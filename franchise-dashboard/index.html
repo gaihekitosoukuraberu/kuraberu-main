@@ -32320,6 +32320,162 @@
             console.log('[V2166] prefillContractForm完了');
         }
 
+        // V2169: 成約データシートから既存データを取得してフォームにプリフィル
+        window.prefillFromContractSheet = async function(cvId) {
+            if (!cvId) return;
+            console.log('[V2169] prefillFromContractSheet開始:', cvId);
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        system: 'merchant',
+                        subsystem: 'contract',
+                        action: 'getContractData',
+                        cvId: cvId
+                    })
+                });
+
+                const result = await response.json();
+                console.log('[V2169] getContractData結果:', result);
+
+                if (!result.success || !result.data) {
+                    console.log('[V2169] 既存成約データなし');
+                    return;
+                }
+
+                const data = result.data;
+                console.log('[V2169] 既存成約データ:', data);
+
+                // 成約日
+                if (data['成約日']) {
+                    const contractDateInput = document.getElementById('contractDate');
+                    if (contractDateInput) contractDateInput.value = data['成約日'];
+                }
+
+                // 成約金額
+                if (data['成約金額']) {
+                    const contractAmountInput = document.getElementById('contractAmount');
+                    if (contractAmountInput) contractAmountInput.value = data['成約金額'];
+                }
+
+                // 入金状況
+                if (data['入金確認日'] || data['入金額']) {
+                    // 入金済み
+                    const paidRadio = document.querySelector('input[name="paymentStatus"][value="paid"]');
+                    if (paidRadio) {
+                        paidRadio.checked = true;
+                        togglePaymentFields();
+                    }
+                    if (data['入金確認日']) {
+                        const paymentConfirmDateInput = document.getElementById('paymentConfirmDate');
+                        if (paymentConfirmDateInput) paymentConfirmDateInput.value = data['入金確認日'];
+                    }
+                    if (data['入金額']) {
+                        const paymentAmountInput = document.getElementById('paymentAmount');
+                        if (paymentAmountInput) paymentAmountInput.value = data['入金額'];
+                    }
+                } else if (data['入金予定日']) {
+                    // 未入金
+                    const unpaidRadio = document.querySelector('input[name="paymentStatus"][value="unpaid"]');
+                    if (unpaidRadio) {
+                        unpaidRadio.checked = true;
+                        togglePaymentFields();
+                    }
+                    // 日付形式かどうかチェック
+                    if (data['入金予定日'].match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        const paymentDateInput = document.getElementById('paymentDate');
+                        if (paymentDateInput) paymentDateInput.value = data['入金予定日'];
+                    } else {
+                        // 目安（1週間以内など）
+                        const paymentEstimateSelect = document.getElementById('paymentEstimate');
+                        if (paymentEstimateSelect) {
+                            const estimateMap = {
+                                '1週間以内': '1week',
+                                '2週間以内': '2weeks',
+                                '1ヶ月以内': '1month',
+                                '未定': 'unknown'
+                            };
+                            paymentEstimateSelect.value = estimateMap[data['入金予定日']] || '';
+                        }
+                    }
+                }
+
+                // 工事予定
+                if (data['工事開始予定日'] || (data['工事完了予定日'] && data['工事完了予定日'].match(/^\d{4}-\d{2}-\d{2}$/))) {
+                    // 日程決定済み
+                    const scheduledRadio = document.querySelector('input[name="constructionStatus"][value="scheduled"]');
+                    if (scheduledRadio) {
+                        scheduledRadio.checked = true;
+                        toggleConstructionFields();
+                    }
+                    if (data['工事開始予定日']) {
+                        const constructionStartDateInput = document.getElementById('constructionStartDate');
+                        if (constructionStartDateInput) constructionStartDateInput.value = data['工事開始予定日'];
+                    }
+                    if (data['工事完了予定日'] && data['工事完了予定日'].match(/^\d{4}-\d{2}-\d{2}$/)) {
+                        const completionDateInput = document.getElementById('completionDate');
+                        if (completionDateInput) completionDateInput.value = data['工事完了予定日'];
+                    }
+                } else if (data['工事完了予定日']) {
+                    // 目安
+                    const undecidedRadio = document.querySelector('input[name="constructionStatus"][value="undecided"]');
+                    if (undecidedRadio) {
+                        undecidedRadio.checked = true;
+                        toggleConstructionFields();
+                    }
+                    const constructionEstimateSelect = document.getElementById('constructionEstimate');
+                    if (constructionEstimateSelect) {
+                        const estimateMap = {
+                            '1週間以内': '1week',
+                            '2週間以内': '2weeks',
+                            '1ヶ月以内': '1month',
+                            '未定': 'unknown'
+                        };
+                        constructionEstimateSelect.value = estimateMap[data['工事完了予定日']] || '';
+                    }
+                }
+
+                // 施工内容（見積工事内容）
+                if (data['見積工事内容']) {
+                    const workTypes = data['見積工事内容'].split('、');
+                    // まず全チェックを外す
+                    document.querySelectorAll('#contractReportForm input[name="workType"]').forEach(cb => {
+                        cb.checked = false;
+                        const parentDiv = cb.closest('label')?.querySelector('div');
+                        if (parentDiv) {
+                            parentDiv.classList.remove('border-purple-500', 'bg-purple-50', 'text-purple-700');
+                            parentDiv.classList.add('border-gray-200');
+                        }
+                    });
+                    // マッチするものをチェック
+                    workTypes.forEach(workType => {
+                        const checkbox = document.querySelector(`#contractReportForm input[name="workType"][value="${workType.trim()}"]`);
+                        if (checkbox) {
+                            checkbox.checked = true;
+                            const parentDiv = checkbox.closest('label')?.querySelector('div');
+                            if (parentDiv) {
+                                parentDiv.classList.add('border-purple-500', 'bg-purple-50', 'text-purple-700');
+                                parentDiv.classList.remove('border-gray-200');
+                            }
+                        }
+                    });
+                }
+
+                // 階数
+                if (data['階数']) {
+                    const floorsSelect = document.getElementById('buildingFloors');
+                    if (floorsSelect) floorsSelect.value = data['階数'];
+                }
+
+                console.log('[V2169] prefillFromContractSheet完了');
+
+            } catch (error) {
+                console.error('[V2169] prefillFromContractSheet error:', error);
+            }
+        }
+
         // 成約報告フォーム送信
         document.addEventListener('DOMContentLoaded', function() {
             const contractForm = document.getElementById('contractReportForm');
@@ -32936,6 +33092,11 @@
                 if (contractAnswers[1]) {
                     updateDateLabels(contractAnswers[1]);
                 }
+
+                // V2169: 既存の成約データがあればフォームにプリフィル
+                if (selectedContractCase && selectedContractCase.cvId) {
+                    prefillFromContractSheet(selectedContractCase.cvId);
+                }
             }
         }
 
@@ -32965,6 +33126,9 @@
                 if (selectedContractCase && selectedContractCase.cvId) {
                     const caseData = findCaseByCvId(selectedContractCase.cvId);
                     if (caseData) prefillContractForm(caseData);
+
+                    // V2169: 既存の成約データがあればフォームにプリフィル
+                    prefillFromContractSheet(selectedContractCase.cvId);
                 }
 
                 // V2168: 選択されたステータスに基づいて入金・工事状況をプリセット

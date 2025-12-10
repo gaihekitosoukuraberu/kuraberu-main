@@ -210,6 +210,60 @@ var MerchantContractReport = {
   },
 
   /**
+   * V2169: 既存の成約データを取得（フォームプリフィル用）
+   * @param {Object} params - { cvId }
+   * @return {Object} - { success, data }
+   */
+  getContractData: function(params) {
+    try {
+      const { cvId } = params;
+      if (!cvId) {
+        return { success: false, error: 'CV IDが必要です' };
+      }
+
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const contractSheet = ss.getSheetByName('成約データ');
+
+      if (!contractSheet) {
+        return { success: true, data: null }; // シートがなければデータなし
+      }
+
+      const data = contractSheet.getDataRange().getValues();
+      const headers = data[0];
+      const rows = data.slice(1);
+
+      const cvIdIdx = headers.indexOf('CV ID');
+      if (cvIdIdx === -1) {
+        return { success: true, data: null };
+      }
+
+      // CV IDで検索
+      for (let i = 0; i < rows.length; i++) {
+        if (rows[i][cvIdIdx] === cvId) {
+          // ヘッダーとデータをマッピング
+          const contractData = {};
+          headers.forEach((header, idx) => {
+            let value = rows[i][idx];
+            // 日付オブジェクトを文字列に変換
+            if (value instanceof Date) {
+              value = Utilities.formatDate(value, 'Asia/Tokyo', 'yyyy-MM-dd');
+            }
+            contractData[header] = value || '';
+          });
+
+          console.log('[MerchantContractReport] getContractData - 既存データ取得:', cvId);
+          return { success: true, data: contractData };
+        }
+      }
+
+      return { success: true, data: null }; // データなし
+    } catch (error) {
+      console.error('[MerchantContractReport] getContractData error:', error);
+      return { success: false, error: error.toString() };
+    }
+  },
+
+  /**
    * 成約報告を登録
    * @param {Object} params - {
    *   merchantId: 加盟店ID,
