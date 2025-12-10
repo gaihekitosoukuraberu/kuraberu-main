@@ -21,14 +21,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V2169 @2139
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxMYG8NcRGwIoXH8hCU-CPoarvBRc3uvnM34ZBLID5moaxzwNKX9Zl90VSZ-rZuEZSVdg/exec',
+  // プライマリGAS URL（メイン運用）- V2169 @2141
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbwEkc5TFk38D9EGh5whW4wVhXyYyDYWhh2JOUGa9r08nBecOf6PcoYl2sWyozUTppPOJQ/exec',
 
-  // フォールバックGAS URL（バックアップ）- V2169 @2139
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxMYG8NcRGwIoXH8hCU-CPoarvBRc3uvnM34ZBLID5moaxzwNKX9Zl90VSZ-rZuEZSVdg/exec',
+  // フォールバックGAS URL（バックアップ）- V2169 @2141
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbwEkc5TFk38D9EGh5whW4wVhXyYyDYWhh2JOUGa9r08nBecOf6PcoYl2sWyozUTppPOJQ/exec',
 
-  // 緊急時URL（最終フォールバック）- V2169 @2139
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxMYG8NcRGwIoXH8hCU-CPoarvBRc3uvnM34ZBLID5moaxzwNKX9Zl90VSZ-rZuEZSVdg/exec',
+  // 緊急時URL（最終フォールバック）- V2169 @2141
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbwEkc5TFk38D9EGh5whW4wVhXyYyDYWhh2JOUGa9r08nBecOf6PcoYl2sWyozUTppPOJQ/exec',
 
   // ============================================
   // 🔧 システム設定

@@ -532,6 +532,9 @@ var MerchantContractReport = {
         reportType // V2169: 追加工事判定用
       });
 
+      // V2169: 配信管理シートの成約日時・成約金額も更新
+      this._updateDeliverySheetContract(ss, cvId, merchantId, contractDate, contractAmount);
+
       console.log('[MerchantContractReport] submitContractReport - 成約報告完了:', cvId, '報告種別:', reportType, 'ステータス:', newManagementStatus);
 
       // V2169: 更新の場合はメッセージを変える
@@ -2154,6 +2157,84 @@ var MerchantContractReport = {
     } catch (error) {
       console.error('[V2094] reportClaim error:', error);
       return { success: false, error: error.toString() };
+    }
+  },
+
+  /**
+   * V2169: 配信管理シートの成約日時・成約金額を更新
+   * @param {Spreadsheet} ss - スプレッドシート
+   * @param {string} cvId - CV ID
+   * @param {string} merchantId - 加盟店ID
+   * @param {string} contractDate - 成約日
+   * @param {number} contractAmount - 成約金額
+   */
+  _updateDeliverySheetContract: function(ss, cvId, merchantId, contractDate, contractAmount) {
+    try {
+      const deliverySheet = ss.getSheetByName('配信管理');
+      if (!deliverySheet) {
+        console.warn('[MerchantContractReport] _updateDeliverySheetContract - 配信管理シートが見つかりません');
+        return;
+      }
+
+      const data = deliverySheet.getDataRange().getValues();
+      const headers = data[0];
+
+      // カラムインデックス取得
+      const cvIdCol = headers.indexOf('CV ID');
+      const merchantIdCol = headers.indexOf('加盟店ID');
+      const contractDateCol = headers.indexOf('成約日時');
+      const contractAmountCol = headers.indexOf('成約金額');
+
+      if (cvIdCol === -1 || merchantIdCol === -1) {
+        console.warn('[MerchantContractReport] _updateDeliverySheetContract - 必要なカラムが見つかりません');
+        return;
+      }
+
+      // 加盟店シートから会社名を取得（配信管理の加盟店IDは会社名の場合がある）
+      let merchantCompanyName = '';
+      const merchantSheet = ss.getSheetByName('加盟店');
+      if (merchantSheet) {
+        const merchantData = merchantSheet.getDataRange().getValues();
+        const merchantHeaders = merchantData[0];
+        const midIdx = merchantHeaders.indexOf('加盟店ID');
+        const companyIdx = merchantHeaders.indexOf('会社名');
+        for (let j = 1; j < merchantData.length; j++) {
+          if (merchantData[j][midIdx] === merchantId) {
+            merchantCompanyName = merchantData[j][companyIdx] || '';
+            break;
+          }
+        }
+      }
+
+      // CV ID と 加盟店ID（または会社名）で検索して更新
+      let updatedCount = 0;
+      for (let i = 1; i < data.length; i++) {
+        const rowCvId = data[i][cvIdCol];
+        const rowMerchantId = data[i][merchantIdCol];
+
+        // CV IDが一致 AND 加盟店IDまたは会社名が一致
+        if (String(rowCvId) === String(cvId)) {
+          const merchantMatch = String(rowMerchantId) === String(merchantId) ||
+                               String(rowMerchantId) === String(merchantCompanyName);
+          if (merchantMatch) {
+            // 成約日時を更新
+            if (contractDateCol !== -1) {
+              const contractDateTime = contractDate || new Date();
+              deliverySheet.getRange(i + 1, contractDateCol + 1).setValue(contractDateTime);
+            }
+            // 成約金額を更新
+            if (contractAmountCol !== -1 && contractAmount) {
+              deliverySheet.getRange(i + 1, contractAmountCol + 1).setValue(contractAmount);
+            }
+            updatedCount++;
+            console.log('[MerchantContractReport] _updateDeliverySheetContract - 更新行:', i + 1);
+          }
+        }
+      }
+
+      console.log('[MerchantContractReport] _updateDeliverySheetContract - 更新完了:', updatedCount, '件');
+    } catch (error) {
+      console.error('[MerchantContractReport] _updateDeliverySheetContract error:', error);
     }
   }
 };
