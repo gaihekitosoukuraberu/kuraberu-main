@@ -25556,7 +25556,12 @@
                 highlightStatusButton(status);
             } else if (status === '完了') {
                 // 完了は入金済+工事済の場合のみ
-                if (!isContractSelected) return;
+                console.log('[V2168] 完了クリック！isContractSelected:', isContractSelected);
+                if (!isContractSelected) {
+                    console.log('[V2168] 完了クリック - 成約未選択のためreturn');
+                    return;
+                }
+                console.log('[V2168] 完了処理開始 - 全ボタン白にする');
                 selectedPaymentStatus = '入金済';
                 selectedWorkStatus = '工事済';
 
