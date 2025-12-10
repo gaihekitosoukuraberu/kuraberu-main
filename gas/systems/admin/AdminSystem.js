@@ -1904,6 +1904,9 @@ const AdminSystem = {
       // V1843: プレビューHP取得（加盟店登録のAX列から）
       const previewHPFromReg = latestRowData[latestHeaders.indexOf('プレビューHP')] || '';
 
+      // V2175: 請求用メールアドレス取得（加盟店登録のV列から）
+      const billingEmailFromReg = latestRowData[latestHeaders.indexOf('請求用メールアドレス')] || '';
+
       // V1765: Yahoo APIを使って郵便番号から都道府県を取得
       let headquarterPrefecture = '';
       if (zipcode) {
@@ -2112,6 +2115,10 @@ const AdminSystem = {
             // V1947: 郵便番号を加盟店登録から取得（AI列）
             masterRow.push(zipcode || '');
             break;
+          case '請求先メールアドレス':
+            // V2175: 加盟店登録の「請求用メールアドレス」（V列）からコピー
+            masterRow.push(billingEmailFromReg || '');
+            break;
           default:
             masterRow.push('');
         }
@@ -2138,6 +2145,94 @@ const AdminSystem = {
 
     } catch (error) {
       console.error('[copyToFranchiseMaster] エラー:', error);
+      return {
+        success: false,
+        error: error.toString()
+      };
+    }
+  },
+
+  /**
+   * V2175: 既存加盟店の請求用メールアドレスを一括コピー
+   * 加盟店登録の「請求用メールアドレス」→ 加盟店マスタの「請求先メールアドレス」
+   */
+  syncBillingEmailsToMaster: function() {
+    try {
+      console.log('[syncBillingEmailsToMaster] 一括同期開始');
+
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+      // 加盟店登録シート
+      const regSheet = ss.getSheetByName('加盟店登録');
+      const regData = regSheet.getDataRange().getValues();
+      const regHeaders = regData[0];
+      const regIdIndex = regHeaders.indexOf('登録ID');
+      const regEmailIndex = regHeaders.indexOf('請求用メールアドレス');
+
+      if (regEmailIndex === -1) {
+        throw new Error('加盟店登録に「請求用メールアドレス」カラムが見つかりません');
+      }
+
+      // 加盟店登録のメールアドレスをマップ化（登録ID → メールアドレス）
+      const emailMap = {};
+      for (let i = 1; i < regData.length; i++) {
+        const regId = regData[i][regIdIndex];
+        const email = regData[i][regEmailIndex];
+        if (regId && email) {
+          emailMap[regId] = email;
+        }
+      }
+
+      console.log('[syncBillingEmailsToMaster] 取得した請求用メールアドレス数:', Object.keys(emailMap).length);
+
+      // 加盟店マスタシート
+      const masterSheet = ss.getSheetByName('加盟店マスタ');
+      const masterData = masterSheet.getDataRange().getValues();
+      const masterHeaders = masterData[0];
+      const masterIdIndex = masterHeaders.indexOf('加盟店ID');
+      const masterEmailIndex = masterHeaders.indexOf('請求先メールアドレス');
+
+      if (masterEmailIndex === -1) {
+        throw new Error('加盟店マスタに「請求先メールアドレス」カラムが見つかりません');
+      }
+
+      // 更新対象をチェックして一括更新
+      let updatedCount = 0;
+      const updates = [];
+
+      for (let i = 1; i < masterData.length; i++) {
+        const merchantId = masterData[i][masterIdIndex];
+        const currentEmail = masterData[i][masterEmailIndex] || '';
+        const newEmail = emailMap[merchantId] || '';
+
+        // 現在空で、新しいメールがある場合のみ更新
+        if (!currentEmail && newEmail) {
+          updates.push({
+            row: i + 1,
+            col: masterEmailIndex + 1,
+            value: newEmail
+          });
+          updatedCount++;
+          console.log('[syncBillingEmailsToMaster] 更新予定:', merchantId, '→', newEmail);
+        }
+      }
+
+      // 一括更新
+      updates.forEach(update => {
+        masterSheet.getRange(update.row, update.col).setValue(update.value);
+      });
+
+      console.log('[syncBillingEmailsToMaster] ✅ 完了 - 更新件数:', updatedCount);
+
+      return {
+        success: true,
+        message: `請求先メールアドレスを${updatedCount}件更新しました`,
+        updatedCount: updatedCount
+      };
+
+    } catch (error) {
+      console.error('[syncBillingEmailsToMaster] エラー:', error);
       return {
         success: false,
         error: error.toString()

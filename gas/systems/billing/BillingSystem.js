@@ -404,6 +404,15 @@ const BillingSystem = {
             const paymentMethod = paymentMethods[fee.merchantId] || '振込';
             const dueDate = this._calculateDueDate(paymentMethod, targetMonth);
 
+            // freee請求書作成（明細付き）
+            let freeeInvoiceId = '';
+            try {
+              const freeeResult = this._createFreeeInvoiceWithDetails(fee, targetMonth, invoiceId, dueDate);
+              freeeInvoiceId = freeeResult?.invoice?.id || '';
+            } catch (e) {
+              console.error('[BillingSystem] freee請求書作成失敗:', e.message);
+            }
+
             const row = [
               invoiceId,
               fee.merchantId,
@@ -418,11 +427,11 @@ const BillingSystem = {
               '', // 手数料率（紹介料は不要）
               paymentMethod,
               dueDate,
-              '', // freee請求書ID
-              '', // 発行日
+              freeeInvoiceId, // freee請求書ID
+              freeeInvoiceId ? now : '', // 発行日（freee作成成功なら発行済み）
               '', // 入金確認日
               '', // 入金額
-              '未発行',
+              freeeInvoiceId ? '発行済み' : '未発行', // freee作成成功なら発行済み
               0, // 督促回数
               '', // 最終督促日
               '', // 備考
@@ -431,7 +440,7 @@ const BillingSystem = {
             ];
 
             billingSheet.appendRow(row);
-            results.push({ type: '紹介料', invoiceId, merchantId: fee.merchantId, amount: fee.totalWithTax });
+            results.push({ type: '紹介料', invoiceId, merchantId: fee.merchantId, amount: fee.totalWithTax, freeeInvoiceId });
           }
         }
       }
@@ -1123,6 +1132,212 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
     for (const detail of details) {
       contractSheet.getRange(detail.rowIndex, billingIdIdx + 1).setValue(invoiceId);
     }
+  },
+
+  /**
+   * freee請求書を明細付きで作成
+   * @param {Object} fee - 請求データ（getReferralFees/getCommissionFeesの結果）
+   * @param {string} targetMonth - 対象月（YYYY-MM）
+   * @param {string} invoiceId - 請求ID（スプシ管理用）
+   * @param {Date} dueDate - 支払期限
+   * @returns {Object} freeeAPIの結果
+   */
+  _createFreeeInvoiceWithDetails: function(fee, targetMonth, invoiceId, dueDate) {
+    // FreeeAPIがグローバルで存在するか確認
+    if (typeof FreeeAPI === 'undefined') {
+      console.warn('[BillingSystem] FreeeAPIが定義されていません');
+      return null;
+    }
+
+    // 加盟店のfreee取引先IDを取得
+    const partnerId = this._getFreeePartnerId(fee.merchantId);
+    if (!partnerId) {
+      console.warn('[BillingSystem] freee取引先IDが見つかりません:', fee.merchantId);
+      // 取引先が存在しない場合は作成
+      const newPartner = this._createFreeePartner(fee.merchantId, fee.merchantName);
+      if (!newPartner?.partner?.id) {
+        console.error('[BillingSystem] freee取引先作成失敗');
+        return null;
+      }
+    }
+
+    // 加盟店のメールアドレス取得
+    const merchantEmail = this._getMerchantEmail(fee.merchantId);
+
+    // 明細データ構築（紹介料の場合）
+    const items = [];
+    if (fee.cvIds && fee.cvIds.length > 0) {
+      // CV明細（顧客名は取得できれば追加）
+      const cvDetails = this._getCvDetails(fee.cvIds);
+
+      for (let i = 0; i < fee.cvIds.length; i++) {
+        const cvId = fee.cvIds[i];
+        const cvDetail = cvDetails[cvId] || {};
+        const customerName = cvDetail.customerName || '';
+        const itemName = customerName
+          ? `紹介料（${cvId}: ${customerName}様）`
+          : `紹介料（${cvId}）`;
+
+        items.push({
+          name: itemName,
+          quantity: 1,
+          unit: '件',
+          unitPrice: this.DEFAULTS.REFERRAL_FEE,
+          description: cvDetail.workContent || ''
+        });
+      }
+    } else if (fee.details && fee.details.length > 0) {
+      // 成約手数料の場合
+      for (const detail of fee.details) {
+        items.push({
+          name: `成約手数料（${detail.cvId}）`,
+          quantity: 1,
+          unit: '件',
+          unitPrice: detail.commissionAmount,
+          description: `成約金額: ¥${Number(detail.contractAmount).toLocaleString()}`
+        });
+      }
+    }
+
+    if (items.length === 0) {
+      // 明細がない場合は一括で
+      items.push({
+        name: fee.type === 'commission' ? '成約手数料' : '紹介料',
+        quantity: fee.count,
+        unit: '件',
+        unitPrice: fee.type === 'commission'
+          ? Math.floor(fee.totalCommission / fee.count)
+          : this.DEFAULTS.REFERRAL_FEE,
+        description: `${targetMonth}分`
+      });
+    }
+
+    // freee請求書作成
+    const invoiceData = {
+      partnerId: this._getFreeePartnerId(fee.merchantId),
+      invoiceNumber: invoiceId,
+      title: `${targetMonth} ${fee.type === 'commission' ? '成約手数料' : '紹介料'}請求書`,
+      dueDate: dueDate,
+      items: items,
+      sendEmail: !!merchantEmail,
+      email: merchantEmail,
+      message: `${fee.merchantName} 御中\n\nいつもお世話になっております。\n${targetMonth}分の${fee.type === 'commission' ? '成約手数料' : '紹介料'}をご請求申し上げます。`
+    };
+
+    console.log('[BillingSystem] freee請求書作成:', invoiceData.invoiceNumber);
+
+    try {
+      const result = FreeeAPI.createInvoice(invoiceData);
+      return result;
+    } catch (e) {
+      console.error('[BillingSystem] freee請求書作成エラー:', e.message);
+      return null;
+    }
+  },
+
+  /**
+   * 加盟店のfreee取引先IDを取得
+   */
+  _getFreeePartnerId: function(merchantId) {
+    const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    const ss = SpreadsheetApp.openById(ssId);
+    const merchantSheet = ss.getSheetByName(this.SHEETS.MERCHANTS);
+    if (!merchantSheet) return null;
+
+    const data = merchantSheet.getDataRange().getValues();
+    const headers = data[0];
+    const idIdx = headers.indexOf('加盟店ID');
+    const freeeIdIdx = headers.indexOf('freee取引先ID');
+
+    if (idIdx === -1 || freeeIdIdx === -1) return null;
+
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][idIdx] === merchantId) {
+        return data[i][freeeIdIdx] || null;
+      }
+    }
+    return null;
+  },
+
+  /**
+   * freee取引先を新規作成し、スプシに保存
+   */
+  _createFreeePartner: function(merchantId, merchantName) {
+    if (typeof FreeeAPI === 'undefined') return null;
+
+    try {
+      const result = FreeeAPI.createPartner({
+        name: merchantName,
+        code: merchantId,
+        longName: merchantName
+      });
+
+      if (result?.partner?.id) {
+        // スプシに保存
+        this._saveFreeePartnerId(merchantId, result.partner.id);
+      }
+
+      return result;
+    } catch (e) {
+      console.error('[BillingSystem] freee取引先作成エラー:', e.message);
+      return null;
+    }
+  },
+
+  /**
+   * freee取引先IDをスプシに保存
+   */
+  _saveFreeePartnerId: function(merchantId, partnerId) {
+    const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    const ss = SpreadsheetApp.openById(ssId);
+    const merchantSheet = ss.getSheetByName(this.SHEETS.MERCHANTS);
+    if (!merchantSheet) return;
+
+    const data = merchantSheet.getDataRange().getValues();
+    const headers = data[0];
+    const idIdx = headers.indexOf('加盟店ID');
+    let freeeIdIdx = headers.indexOf('freee取引先ID');
+
+    // カラムがなければ追加
+    if (freeeIdIdx === -1) {
+      merchantSheet.getRange(1, headers.length + 1).setValue('freee取引先ID');
+      freeeIdIdx = headers.length;
+    }
+
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][idIdx] === merchantId) {
+        merchantSheet.getRange(i + 1, freeeIdIdx + 1).setValue(partnerId);
+        break;
+      }
+    }
+  },
+
+  /**
+   * CV詳細情報を取得（顧客名など）
+   */
+  _getCvDetails: function(cvIds) {
+    const details = {};
+    const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    const ss = SpreadsheetApp.openById(ssId);
+    const cvSheet = ss.getSheetByName('配信管理');
+    if (!cvSheet) return details;
+
+    const data = cvSheet.getDataRange().getValues();
+    const headers = data[0];
+    const cvIdIdx = headers.indexOf('CV ID');
+    const nameIdx = headers.indexOf('お名前') !== -1 ? headers.indexOf('お名前') : headers.indexOf('顧客名');
+    const workIdx = headers.indexOf('工事内容') !== -1 ? headers.indexOf('工事内容') : headers.indexOf('希望工事');
+
+    for (let i = 1; i < data.length; i++) {
+      const cvId = data[i][cvIdIdx];
+      if (cvIds.includes(cvId)) {
+        details[cvId] = {
+          customerName: nameIdx !== -1 ? data[i][nameIdx] : '',
+          workContent: workIdx !== -1 ? data[i][workIdx] : ''
+        };
+      }
+    }
+    return details;
   }
 };
 
