@@ -25421,6 +25421,10 @@
             // V2168: 複合ステータス用変数もリセット
             selectedPaymentStatus = null;
             selectedWorkStatus = null;
+            isContractSelected = false;
+
+            // V2168: 入金/工事エリアをグレーアウトに戻す
+            disablePostContractArea();
 
             // 新モーダル用リセット
             document.querySelectorAll('#caseStatusModal .status-btn').forEach(btn => {
@@ -25478,6 +25482,46 @@
 
         // 詳細ステータス選択
         function selectDetailStatus(status) {
+            // V2168: 複合ステータス（入金予定・未着工など）の復元処理
+            if (status && status.includes('・')) {
+                const parts = status.split('・');
+                const payment = parts[0]; // 入金予定 or 入金済
+                const work = parts[1];     // 未着工 or 施工中 or 工事済
+
+                // 成約状態を有効化
+                isContractSelected = true;
+                enablePostContractArea();
+                highlightStatusButton('成約');
+
+                // 入金ステータスを設定・ハイライト
+                if (paymentStatuses.includes(payment)) {
+                    selectedPaymentStatus = payment;
+                    highlightStatusButton(payment);
+                }
+                // 工事ステータスを設定・ハイライト
+                if (workStatuses.includes(work)) {
+                    selectedWorkStatus = work;
+                    highlightStatusButton(work);
+                }
+
+                selectedStatusValue = status;
+                return;
+            }
+
+            // V2168: 完了ステータスの復元処理（入金済・工事済として復元）
+            if (status === '完了') {
+                isContractSelected = true;
+                enablePostContractArea();
+                highlightStatusButton('成約');
+                selectedPaymentStatus = '入金済';
+                selectedWorkStatus = '工事済';
+                highlightStatusButton('入金済');
+                highlightStatusButton('工事済');
+                highlightStatusButton('完了');
+                selectedStatusValue = '完了';
+                return;
+            }
+
             // V2168: 成約を押したら入金/工事エリアを活性化
             if (status === '成約') {
                 isContractSelected = true;
