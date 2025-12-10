@@ -7384,12 +7384,12 @@
                                             <div id="unpaidFields" class="grid grid-cols-2 gap-3 pt-3 border-t">
                                                 <div>
                                                     <label class="block text-xs font-medium text-gray-600 mb-1">入金予定日</label>
-                                                    <input type="date" id="paymentDate" class="w-full px-3 py-2 border-2 rounded-lg focus:border-blue-500 focus:outline-none">
+                                                    <input type="date" id="paymentDate" class="w-full px-3 py-2 border-2 rounded-lg focus:border-blue-500 focus:outline-none" onchange="onPaymentDateChange()">
                                                 </div>
                                                 <div>
                                                     <label class="block text-xs font-medium text-gray-600 mb-1">または</label>
-                                                    <select id="paymentEstimate" class="w-full px-3 py-2 border-2 rounded-lg focus:border-blue-500 focus:outline-none">
-                                                        <option value="">日付を選択済み</option>
+                                                    <select id="paymentEstimate" class="w-full px-3 py-2 border-2 rounded-lg focus:border-blue-500 focus:outline-none" onchange="onPaymentEstimateChange()">
+                                                        <option value="">選択してください</option>
                                                         <option value="1week">1週間以内</option>
                                                         <option value="2weeks">2週間以内</option>
                                                         <option value="1month">1ヶ月以内</option>
@@ -31816,6 +31816,25 @@
             const scheduled = document.querySelector('input[name="constructionStatus"]:checked')?.value === 'scheduled';
             document.getElementById('scheduledFields').classList.toggle('hidden', !scheduled);
             document.getElementById('undecidedFields').classList.toggle('hidden', scheduled);
+        }
+
+        // V2168: 入金予定日と「または」の排他制御
+        window.onPaymentDateChange = function() {
+            const paymentDate = document.getElementById('paymentDate');
+            const paymentEstimate = document.getElementById('paymentEstimate');
+            if (paymentDate && paymentDate.value) {
+                // 日付を選んだら「または」をリセット
+                if (paymentEstimate) paymentEstimate.value = '';
+            }
+        }
+
+        window.onPaymentEstimateChange = function() {
+            const paymentDate = document.getElementById('paymentDate');
+            const paymentEstimate = document.getElementById('paymentEstimate');
+            if (paymentEstimate && paymentEstimate.value) {
+                // 「または」を選んだら日付をクリア
+                if (paymentDate) paymentDate.value = '';
+            }
         }
 
         // V2166: 契約書ファイルアップロード（修正版）
