@@ -584,6 +584,77 @@ var MerchantContractReport = {
   },
 
   /**
+   * V2169: 成約データシートを作成（ヘッダー行含む）
+   */
+  _createContractDataSheet: function(ss) {
+    try {
+      const sheet = ss.insertSheet('成約データ');
+
+      // ヘッダー行を作成（ContractDataSystemと同じ構造）
+      const headers = [
+        'CV ID',
+        '登録日時',
+        '管理ステータス',
+        '配信日時',
+        '配信先業者一覧',
+        '成約加盟店ID',
+        '成約加盟店名',
+        '加盟店ステータス',
+        '成約報告日',
+        '成約日',
+        '成約金額',
+        '見積工事内容',
+        '実施工事内容',
+        '追加工事フラグ',
+        '追加工事内容',
+        '追加工事金額',
+        '入金予定日',
+        '入金確認日',
+        '入金額',
+        '返品フラグ',
+        '返品日',
+        '返品理由',
+        '工事開始予定日',
+        '工事完了予定日',
+        '工事完了日',
+        '工事進捗ステータス',
+        'クレームフラグ',
+        'クレーム内容',
+        'クレーム発生日',
+        'クレーム対応ステータス',
+        'クレーム対応履歴',
+        '不成約業者一覧',
+        '不成約業者通知済フラグ',
+        '不成約業者通知日時',
+        '備考',
+        '登録者',
+        '最終更新日時',
+        '契約書URL'
+      ];
+
+      // ヘッダー行を書き込み
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+
+      // ヘッダー行をフォーマット
+      const headerRange = sheet.getRange(1, 1, 1, headers.length);
+      headerRange.setBackground('#4285F4');
+      headerRange.setFontColor('#FFFFFF');
+      headerRange.setFontWeight('bold');
+      headerRange.setHorizontalAlignment('center');
+
+      // 1行目を固定
+      sheet.setFrozenRows(1);
+
+      console.log('[MerchantContractReport] 成約データシートを作成しました（カラム数: ' + headers.length + '）');
+
+      return sheet;
+    } catch (error) {
+      console.error('[MerchantContractReport] _createContractDataSheet error:', error);
+      return null;
+    }
+  },
+
+  /**
    * V2162: 契約書ファイルをGoogle Driveにアップロード
    * @param {Object} params - { fileName, fileType, fileData, cvId, merchantId }
    * @return {Object} - { success, fileUrl }
