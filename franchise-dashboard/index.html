@@ -971,40 +971,40 @@
                                     </div>
                                 </div>
 
-                                <!-- 下部：入金/工事の2軸分岐 -->
-                                <div class="flex flex-row gap-2">
+                                <!-- V2168: 下部：入金/工事の2軸分岐（成約前はグレーアウト） -->
+                                <div id="postContractArea" class="flex flex-row gap-2 opacity-40 pointer-events-none">
                                     <!-- 左側：入金状況 -->
-                                    <div class="w-1/2 bg-emerald-50 rounded-xl p-2">
-                                        <div class="text-center text-emerald-600 font-bold text-xs mb-2">💰 入金</div>
+                                    <div id="paymentStatusArea" class="w-1/2 bg-gray-100 rounded-xl p-2 transition-all">
+                                        <div class="text-center text-gray-400 font-bold text-xs mb-2">💰 入金</div>
                                         <div class="flex flex-col items-center gap-1">
-                                            <button onclick="selectDetailStatus('入金予定')" data-status="入金予定" class="status-btn w-full py-1.5 bg-white border-2 border-cyan-300 rounded-lg text-cyan-800 font-bold text-sm hover:bg-cyan-100 hover:shadow-md transition-all text-center">入金予定</button>
-                                            <span class="text-emerald-400 text-xs">↓</span>
-                                            <button onclick="selectDetailStatus('入金済')" data-status="入金済" class="status-btn w-full py-1.5 bg-white border-2 border-emerald-400 rounded-lg text-emerald-800 font-bold text-sm hover:bg-emerald-100 hover:shadow-md transition-all text-center">入金済</button>
+                                            <button onclick="selectDetailStatus('入金予定')" data-status="入金予定" class="status-btn payment-btn w-full py-1.5 bg-white border-2 border-gray-300 rounded-lg text-gray-400 font-bold text-sm transition-all text-center" disabled>入金予定</button>
+                                            <span class="text-gray-300 text-xs">↓</span>
+                                            <button onclick="selectDetailStatus('入金済')" data-status="入金済" class="status-btn payment-btn w-full py-1.5 bg-white border-2 border-gray-300 rounded-lg text-gray-400 font-bold text-sm transition-all text-center" disabled>入金済</button>
                                         </div>
                                     </div>
 
                                     <!-- 右側：工事状況 -->
-                                    <div class="w-1/2 bg-orange-50 rounded-xl p-2">
-                                        <div class="text-center text-orange-600 font-bold text-xs mb-2">🔧 工事</div>
+                                    <div id="workStatusArea" class="w-1/2 bg-gray-100 rounded-xl p-2 transition-all">
+                                        <div class="text-center text-gray-400 font-bold text-xs mb-2">🔧 工事</div>
                                         <div class="flex flex-col items-center gap-1">
-                                            <button onclick="selectDetailStatus('未着工')" data-status="未着工" class="status-btn w-full py-1.5 bg-white border-2 border-orange-300 rounded-lg text-orange-800 font-bold text-sm hover:bg-orange-100 hover:shadow-md transition-all text-center">未着工</button>
-                                            <span class="text-orange-400 text-xs">↓</span>
-                                            <button onclick="selectDetailStatus('施工中')" data-status="施工中" class="status-btn w-full py-1.5 bg-white border-2 border-yellow-400 rounded-lg text-yellow-700 font-bold text-sm hover:bg-yellow-100 hover:shadow-md transition-all text-center">施工中</button>
-                                            <span class="text-orange-400 text-xs">↓</span>
-                                            <button onclick="selectDetailStatus('工事済')" data-status="工事済" class="status-btn w-full py-1.5 bg-white border-2 border-amber-400 rounded-lg text-amber-800 font-bold text-sm hover:bg-amber-100 hover:shadow-md transition-all text-center">工事済</button>
+                                            <button onclick="selectDetailStatus('未着工')" data-status="未着工" class="status-btn work-btn w-full py-1.5 bg-white border-2 border-gray-300 rounded-lg text-gray-400 font-bold text-sm transition-all text-center" disabled>未着工</button>
+                                            <span class="text-gray-300 text-xs">↓</span>
+                                            <button onclick="selectDetailStatus('施工中')" data-status="施工中" class="status-btn work-btn w-full py-1.5 bg-white border-2 border-gray-300 rounded-lg text-gray-400 font-bold text-sm transition-all text-center" disabled>施工中</button>
+                                            <span class="text-gray-300 text-xs">↓</span>
+                                            <button onclick="selectDetailStatus('工事済')" data-status="工事済" class="status-btn work-btn w-full py-1.5 bg-white border-2 border-gray-300 rounded-lg text-gray-400 font-bold text-sm transition-all text-center" disabled>工事済</button>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- 完了への合流 -->
-                                <div class="flex items-center justify-center gap-6 py-1 text-teal-500 font-bold text-sm">
+                                <div id="completionArrows" class="flex items-center justify-center gap-6 py-1 text-gray-300 font-bold text-sm">
                                     <span>↘</span>
                                     <span>↙</span>
                                 </div>
 
                                 <!-- 完了 -->
-                                <div class="bg-teal-50 rounded-xl p-2 flex-shrink-0">
-                                    <button onclick="selectDetailStatus('完了')" data-status="完了" class="status-btn w-full py-2 bg-white border-2 border-teal-400 rounded-lg text-teal-700 font-bold text-sm hover:bg-teal-100 hover:shadow-md transition-all text-center">✅ 完了</button>
+                                <div id="completionArea" class="bg-gray-100 rounded-xl p-2 flex-shrink-0 opacity-40">
+                                    <button onclick="selectDetailStatus('完了')" data-status="完了" class="status-btn w-full py-2 bg-white border-2 border-gray-300 rounded-lg text-gray-400 font-bold text-sm transition-all text-center" disabled>✅ 完了</button>
                                 </div>
                             </div>
 
@@ -25473,21 +25473,51 @@
         const paymentStatuses = ['入金予定', '入金済'];
         const workStatuses = ['未着工', '施工中', '工事済'];
 
+        // V2168: 成約状態フラグ
+        let isContractSelected = false;
+
         // 詳細ステータス選択
         function selectDetailStatus(status) {
-            // V2168: 入金系/工事系は別変数に保存
+            // V2168: 成約を押したら入金/工事エリアを活性化
+            if (status === '成約') {
+                isContractSelected = true;
+                enablePostContractArea();
+                // 成約ボタンをハイライト（他はリセットしない）
+                highlightStatusButton('成約');
+                // 成約単体ではselectedStatusValueは設定しない（入金/工事選択待ち）
+                return;
+            }
+
+            // V2168: 入金系/工事系は成約後のみ選択可能
             if (paymentStatuses.includes(status)) {
+                if (!isContractSelected) return; // 成約前は無視
                 selectedPaymentStatus = status;
                 // 入金系ボタンだけリセットして選択
                 resetStatusButtons(paymentStatuses);
                 highlightStatusButton(status);
             } else if (workStatuses.includes(status)) {
+                if (!isContractSelected) return; // 成約前は無視
                 selectedWorkStatus = status;
                 // 工事系ボタンだけリセットして選択
                 resetStatusButtons(workStatuses);
                 highlightStatusButton(status);
+            } else if (status === '完了') {
+                // 完了は入金済+工事済の場合のみ（自動選択される）
+                if (!isContractSelected) return;
+                // 完了を直接選んだ場合は入金済+工事済を自動設定
+                selectedPaymentStatus = '入金済';
+                selectedWorkStatus = '工事済';
+                resetStatusButtons(paymentStatuses);
+                resetStatusButtons(workStatuses);
+                highlightStatusButton('入金済');
+                highlightStatusButton('工事済');
+                highlightStatusButton('完了');
+                selectedStatusValue = '完了';
+                return;
             } else {
-                // 通常ステータス（成約前、キャンセル系、完了）
+                // 通常ステータス（成約前、キャンセル系）
+                isContractSelected = false;
+                disablePostContractArea();
                 selectedStatusValue = status;
                 selectedPaymentStatus = null;
                 selectedWorkStatus = null;
@@ -25498,6 +25528,117 @@
 
             // V2168: 入金+工事の両方選択されたら複合ステータスを生成
             updateCompositeStatus();
+        }
+
+        // V2168: 成約後エリアを活性化
+        function enablePostContractArea() {
+            const area = document.getElementById('postContractArea');
+            const paymentArea = document.getElementById('paymentStatusArea');
+            const workArea = document.getElementById('workStatusArea');
+            const completionArea = document.getElementById('completionArea');
+            const completionArrows = document.getElementById('completionArrows');
+
+            if (area) {
+                area.classList.remove('opacity-40', 'pointer-events-none');
+            }
+            if (paymentArea) {
+                paymentArea.classList.remove('bg-gray-100');
+                paymentArea.classList.add('bg-emerald-50');
+                paymentArea.querySelector('div').classList.remove('text-gray-400');
+                paymentArea.querySelector('div').classList.add('text-emerald-600');
+            }
+            if (workArea) {
+                workArea.classList.remove('bg-gray-100');
+                workArea.classList.add('bg-orange-50');
+                workArea.querySelector('div').classList.remove('text-gray-400');
+                workArea.querySelector('div').classList.add('text-orange-600');
+            }
+            if (completionArea) {
+                completionArea.classList.remove('bg-gray-100', 'opacity-40');
+                completionArea.classList.add('bg-teal-50');
+            }
+            if (completionArrows) {
+                completionArrows.classList.remove('text-gray-300');
+                completionArrows.classList.add('text-teal-500');
+            }
+
+            // ボタンを有効化＆色を戻す
+            document.querySelectorAll('.payment-btn').forEach(btn => {
+                btn.disabled = false;
+                btn.classList.remove('text-gray-400', 'border-gray-300');
+                if (btn.dataset.status === '入金予定') {
+                    btn.classList.add('text-cyan-800', 'border-cyan-300', 'hover:bg-cyan-100', 'hover:shadow-md');
+                } else {
+                    btn.classList.add('text-emerald-800', 'border-emerald-400', 'hover:bg-emerald-100', 'hover:shadow-md');
+                }
+            });
+            document.querySelectorAll('.work-btn').forEach(btn => {
+                btn.disabled = false;
+                btn.classList.remove('text-gray-400', 'border-gray-300');
+                if (btn.dataset.status === '未着工') {
+                    btn.classList.add('text-orange-800', 'border-orange-300', 'hover:bg-orange-100', 'hover:shadow-md');
+                } else if (btn.dataset.status === '施工中') {
+                    btn.classList.add('text-yellow-700', 'border-yellow-400', 'hover:bg-yellow-100', 'hover:shadow-md');
+                } else {
+                    btn.classList.add('text-amber-800', 'border-amber-400', 'hover:bg-amber-100', 'hover:shadow-md');
+                }
+            });
+            // 完了ボタン
+            const completionBtn = document.querySelector('[data-status="完了"]');
+            if (completionBtn) {
+                completionBtn.disabled = false;
+                completionBtn.classList.remove('text-gray-400', 'border-gray-300');
+                completionBtn.classList.add('text-teal-700', 'border-teal-400', 'hover:bg-teal-100', 'hover:shadow-md');
+            }
+        }
+
+        // V2168: 成約後エリアを非活性化
+        function disablePostContractArea() {
+            const area = document.getElementById('postContractArea');
+            const paymentArea = document.getElementById('paymentStatusArea');
+            const workArea = document.getElementById('workStatusArea');
+            const completionArea = document.getElementById('completionArea');
+            const completionArrows = document.getElementById('completionArrows');
+
+            if (area) {
+                area.classList.add('opacity-40', 'pointer-events-none');
+            }
+            if (paymentArea) {
+                paymentArea.classList.add('bg-gray-100');
+                paymentArea.classList.remove('bg-emerald-50');
+                paymentArea.querySelector('div').classList.add('text-gray-400');
+                paymentArea.querySelector('div').classList.remove('text-emerald-600');
+            }
+            if (workArea) {
+                workArea.classList.add('bg-gray-100');
+                workArea.classList.remove('bg-orange-50');
+                workArea.querySelector('div').classList.add('text-gray-400');
+                workArea.querySelector('div').classList.remove('text-orange-600');
+            }
+            if (completionArea) {
+                completionArea.classList.add('bg-gray-100', 'opacity-40');
+                completionArea.classList.remove('bg-teal-50');
+            }
+            if (completionArrows) {
+                completionArrows.classList.add('text-gray-300');
+                completionArrows.classList.remove('text-teal-500');
+            }
+
+            // ボタンを無効化
+            document.querySelectorAll('.payment-btn, .work-btn').forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('text-gray-400', 'border-gray-300');
+                btn.classList.remove('text-cyan-800', 'border-cyan-300', 'text-emerald-800', 'border-emerald-400',
+                    'text-orange-800', 'border-orange-300', 'text-yellow-700', 'border-yellow-400',
+                    'text-amber-800', 'border-amber-400', 'hover:bg-cyan-100', 'hover:bg-emerald-100',
+                    'hover:bg-orange-100', 'hover:bg-yellow-100', 'hover:bg-amber-100', 'hover:shadow-md');
+            });
+            const completionBtn = document.querySelector('[data-status="完了"]');
+            if (completionBtn) {
+                completionBtn.disabled = true;
+                completionBtn.classList.add('text-gray-400', 'border-gray-300');
+                completionBtn.classList.remove('text-teal-700', 'border-teal-400', 'hover:bg-teal-100', 'hover:shadow-md');
+            }
         }
 
         // V2168: 複合ステータスを生成・更新
