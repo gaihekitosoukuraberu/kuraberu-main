@@ -204,6 +204,10 @@ const BillingSystem = {
       const targetMonth = month || this._getCurrentMonth();
       const [year, monthNum] = targetMonth.split('-').map(Number);
 
+      // V2183: キャンセル承認済みCVリストを取得（二重チェック用）
+      const cancelledCVs = this._getCancelledCVs(ss);
+      console.log('[BillingSystem] キャンセル承認済みCV数:', cancelledCVs.size);
+
       const merchantFees = {};
 
       for (const row of rows) {
@@ -220,6 +224,12 @@ const BillingSystem = {
         const merchantId = row[merchantIdIdx];
         const amount = row[deliveryAmountIdx] || this.DEFAULTS.REFERRAL_FEE;
         const cvId = row[cvIdIdx];
+
+        // V2183: キャンセル承認済みCVは除外（二重チェック）
+        if (cancelledCVs.has(cvId)) {
+          console.log('[BillingSystem] キャンセル済みCV除外:', cvId);
+          continue;
+        }
 
         if (!merchantFees[merchantId]) {
           merchantFees[merchantId] = {
@@ -1076,6 +1086,41 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
       names[data[i][idIdx]] = data[i][nameIdx];
     }
     return names;
+  },
+
+  /**
+   * V2183: キャンセル承認済みCVリストを取得
+   * @param {Spreadsheet} ss - スプレッドシート
+   * @return {Set} キャンセル承認済みCV IDのSet
+   */
+  _getCancelledCVs: function(ss) {
+    const cancelledCVs = new Set();
+
+    try {
+      const cancelSheet = ss.getSheetByName('キャンセル申請');
+      if (!cancelSheet) return cancelledCVs;
+
+      const data = cancelSheet.getDataRange().getValues();
+      if (data.length <= 1) return cancelledCVs;
+
+      const headers = data[0];
+      const cvIdIdx = headers.indexOf('CV ID');
+      const statusIdx = headers.indexOf('承認ステータス');
+
+      if (cvIdIdx === -1 || statusIdx === -1) return cancelledCVs;
+
+      for (let i = 1; i < data.length; i++) {
+        // 承認済みのキャンセル申請のCV IDを収集
+        if (data[i][statusIdx] === '承認済み') {
+          cancelledCVs.add(data[i][cvIdIdx]);
+        }
+      }
+
+      return cancelledCVs;
+    } catch (e) {
+      console.error('[BillingSystem] _getCancelledCVs error:', e);
+      return cancelledCVs;
+    }
   },
 
   _getPaymentMethods: function(ss) {

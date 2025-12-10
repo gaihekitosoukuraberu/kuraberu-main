@@ -119,13 +119,24 @@ var AdminCancelSystem = {
         console.log('[AdminCancelSystem] ユーザー登録シート更新完了');
       }
 
+      // V2183: 請求取り消し処理
+      const billingResult = this.cancelBillingForCV(cvId, merchantId);
+      if (!billingResult.success) {
+        console.error('[AdminCancelSystem] 請求取り消し失敗:', billingResult.error);
+        // エラーでも処理は続行（承認は完了している）
+      } else {
+        console.log('[AdminCancelSystem] 請求取り消し完了:', billingResult.message);
+      }
+
       return {
         success: true,
         message: 'キャンセル申請を承認しました',
         data: {
           applicationId: applicationId,
           cvId: cvId,
-          userSheetUpdated: userResult.success
+          userSheetUpdated: userResult.success,
+          billingCancelled: billingResult.success,
+          billingMessage: billingResult.message
         }
       };
 
@@ -545,6 +556,103 @@ var AdminCancelSystem = {
           success: false,
           error: 'Unknown action: ' + action
         };
+    }
+  },
+
+  /**
+   * V2183: キャンセル承認時の請求取り消し処理
+   * @param {string} cvId - CV ID
+   * @param {string} merchantId - 加盟店ID
+   * @return {Object} - { success: boolean, message: string }
+   */
+  cancelBillingForCV: function(cvId, merchantId) {
+    try {
+      console.log('[AdminCancelSystem] cancelBillingForCV - CV:', cvId, '加盟店:', merchantId);
+
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+      const billingSheet = ss.getSheetByName('請求管理');
+
+      if (!billingSheet) {
+        console.log('[AdminCancelSystem] 請求管理シートが存在しません（まだ請求データなし）');
+        return { success: true, message: '請求データなし（取り消し不要）' };
+      }
+
+      const data = billingSheet.getDataRange().getValues();
+      if (data.length <= 1) {
+        return { success: true, message: '請求データなし（取り消し不要）' };
+      }
+
+      const headers = data[0];
+      const invoiceIdIdx = headers.indexOf('請求ID');
+      const merchantIdIdx = headers.indexOf('加盟店ID');
+      const cvIdsIdx = headers.indexOf('対象CV ID');
+      const statusIdx = headers.indexOf('ステータス');
+      const cancelDateIdx = headers.indexOf('キャンセル日');
+      const cancelReasonIdx = headers.indexOf('キャンセル理由');
+
+      let cancelledCount = 0;
+      const now = new Date();
+
+      // 該当CVを含む請求を検索
+      for (let i = 1; i < data.length; i++) {
+        const rowMerchantId = data[i][merchantIdIdx];
+        const rowCvIds = data[i][cvIdsIdx] || '';
+        const rowStatus = data[i][statusIdx];
+
+        // 入金済みは取り消し不可
+        if (rowStatus === '入金済み') {
+          continue;
+        }
+
+        // 加盟店IDが一致し、対象CV IDにcvIdが含まれている場合
+        if (rowMerchantId === merchantId && rowCvIds.includes(cvId)) {
+          const rowNum = i + 1;
+
+          // ステータスを「キャンセル」に更新
+          if (statusIdx !== -1) {
+            billingSheet.getRange(rowNum, statusIdx + 1).setValue('キャンセル');
+          }
+
+          // キャンセル日カラムがあれば更新（なければ追加）
+          if (cancelDateIdx !== -1) {
+            billingSheet.getRange(rowNum, cancelDateIdx + 1).setValue(now);
+          } else {
+            // カラムがなければ末尾に追加（初回のみ）
+            const newColIdx = headers.length;
+            if (cancelledCount === 0) {
+              billingSheet.getRange(1, newColIdx + 1).setValue('キャンセル日');
+              billingSheet.getRange(1, newColIdx + 2).setValue('キャンセル理由');
+            }
+            billingSheet.getRange(rowNum, newColIdx + 1).setValue(now);
+            billingSheet.getRange(rowNum, newColIdx + 2).setValue('キャンセル申請承認');
+          }
+
+          // キャンセル理由カラムがあれば更新
+          if (cancelReasonIdx !== -1) {
+            billingSheet.getRange(rowNum, cancelReasonIdx + 1).setValue('キャンセル申請承認');
+          }
+
+          cancelledCount++;
+          console.log('[AdminCancelSystem] 請求取り消し:', data[i][invoiceIdIdx]);
+        }
+      }
+
+      if (cancelledCount === 0) {
+        return { success: true, message: '該当する請求データなし（取り消し不要）' };
+      }
+
+      // freee取引のキャンセル（未入金の場合）
+      // TODO: freee APIでdealsのステータス更新（必要に応じて実装）
+
+      return {
+        success: true,
+        message: `${cancelledCount}件の請求を取り消しました`
+      };
+
+    } catch (e) {
+      console.error('[AdminCancelSystem] cancelBillingForCV error:', e);
+      return { success: false, error: e.message };
     }
   }
 };
