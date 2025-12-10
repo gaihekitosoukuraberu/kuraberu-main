@@ -364,26 +364,36 @@ var MerchantContractReport = {
         constructionStatus = '工事完了';
       }
 
-      // データ更新（通常の成約報告の場合）
+      // V2166: データ更新（通常の成約報告の場合）- カラム存在チェック追加
       if (!isAdditionalWork) {
-        userSheet.getRange(targetRow, contractMerchantIdIdx + 1).setValue(merchantId);
-        userSheet.getRange(targetRow, contractMerchantNameIdx + 1).setValue(merchantName || '');
-        userSheet.getRange(targetRow, contractReportDateIdx + 1).setValue(new Date());
+        if (contractMerchantIdIdx !== -1) {
+          userSheet.getRange(targetRow, contractMerchantIdIdx + 1).setValue(merchantId);
+        }
+        if (contractMerchantNameIdx !== -1) {
+          userSheet.getRange(targetRow, contractMerchantNameIdx + 1).setValue(merchantName || '');
+        }
+        if (contractReportDateIdx !== -1) {
+          userSheet.getRange(targetRow, contractReportDateIdx + 1).setValue(new Date());
+        }
       }
 
       // 共通項目の更新
-      if (contractDate) {
+      if (contractDate && contractDateIdx !== -1) {
         userSheet.getRange(targetRow, contractDateIdx + 1).setValue(contractDate);
       }
 
-      userSheet.getRange(targetRow, contractAmountIdx + 1).setValue(contractAmount);
+      if (contractAmountIdx !== -1) {
+        userSheet.getRange(targetRow, contractAmountIdx + 1).setValue(contractAmount);
+      }
 
       // 施工内容（配列を文字列に変換）
-      if (workContent && Array.isArray(workContent)) {
-        const workContentStr = workContent.join('、');
-        userSheet.getRange(targetRow, workContentIdx + 1).setValue(workContentStr);
-      } else if (workContent) {
-        userSheet.getRange(targetRow, workContentIdx + 1).setValue(workContent);
+      if (workContentIdx !== -1) {
+        if (workContent && Array.isArray(workContent)) {
+          const workContentStr = workContent.join('、');
+          userSheet.getRange(targetRow, workContentIdx + 1).setValue(workContentStr);
+        } else if (workContent) {
+          userSheet.getRange(targetRow, workContentIdx + 1).setValue(workContent);
+        }
       }
 
       // V2162: 入金関連
@@ -397,7 +407,7 @@ var MerchantContractReport = {
         }
       } else {
         // 未入金
-        if (paymentDueDate) {
+        if (paymentDueDate && paymentDueDateIdx !== -1) {
           userSheet.getRange(targetRow, paymentDueDateIdx + 1).setValue(paymentDueDate);
         }
       }
@@ -406,7 +416,7 @@ var MerchantContractReport = {
       if (constructionStartDate && constructionStartDateIdx !== -1) {
         userSheet.getRange(targetRow, constructionStartDateIdx + 1).setValue(constructionStartDate);
       }
-      if (constructionEndDate) {
+      if (constructionEndDate && constructionEndDateIdx !== -1) {
         userSheet.getRange(targetRow, constructionEndDateIdx + 1).setValue(constructionEndDate);
       }
 
@@ -428,8 +438,10 @@ var MerchantContractReport = {
         userSheet.getRange(targetRow, additionalWorkFlagIdx + 1).setValue(true);
       }
 
-      // 管理ステータス更新
-      userSheet.getRange(targetRow, managementStatusIdx + 1).setValue(newManagementStatus);
+      // V2166: 管理ステータス更新
+      if (managementStatusIdx !== -1) {
+        userSheet.getRange(targetRow, managementStatusIdx + 1).setValue(newManagementStatus);
+      }
 
       // V2162: 成約データシートにも登録
       this._saveToContractSheet(ss, {

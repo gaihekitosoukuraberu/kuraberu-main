@@ -7591,8 +7591,13 @@
                                 <button onclick="closeContractModal()" class="flex-1 py-3 bg-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-300 transition-all">
                                     キャンセル
                                 </button>
-                                <button type="submit" form="contractReportForm" class="flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-bold hover:opacity-90 shadow-lg transition-all flex items-center justify-center gap-2">
-                                    <span>🎉</span> 成約報告を送信
+                                <button type="submit" form="contractReportForm" id="contractSubmitBtn" class="flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-bold hover:opacity-90 shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+                                    <span id="contractSubmitIcon">🎉</span>
+                                    <svg id="contractSubmitSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span id="contractSubmitText">成約報告を送信</span>
                                 </button>
                             </div>
                         </div>
@@ -31333,10 +31338,13 @@
             }
         ];
 
-        // 契約状況に応じて日付ラベルを更新
+        // 契約状況に応じて日付ラベルを更新（V2166: nullチェック追加）
         window.updateDateLabels = function(status) {
             const completionLabel = document.getElementById('completionDateLabel');
             const paymentLabel = document.getElementById('paymentDateLabel');
+
+            // V2166: 新デザインでは不要な要素なのでnullチェック
+            if (!completionLabel || !paymentLabel) return;
 
             switch(status) {
                 case '契約前・口頭確約済':
@@ -32530,6 +32538,19 @@
 
             isSubmittingContract = true;
 
+            // V2166: スピナー表示
+            const submitBtn = document.getElementById('contractSubmitBtn');
+            const submitIcon = document.getElementById('contractSubmitIcon');
+            const submitSpinner = document.getElementById('contractSubmitSpinner');
+            const submitText = document.getElementById('contractSubmitText');
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                if (submitIcon) submitIcon.classList.add('hidden');
+                if (submitSpinner) submitSpinner.classList.remove('hidden');
+                if (submitText) submitText.textContent = '送信中...';
+            }
+
             try {
                 const merchantId = window.merchantId;
                 const merchantName = window.merchantName || '';
@@ -32537,6 +32558,13 @@
                 if (!merchantId || !selectedContractCase) {
                     alert('必要な情報が不足しています');
                     isSubmittingContract = false;
+                    // V2166: スピナーを元に戻す
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        if (submitIcon) submitIcon.classList.remove('hidden');
+                        if (submitSpinner) submitSpinner.classList.add('hidden');
+                        if (submitText) submitText.textContent = '成約報告を送信';
+                    }
                     return;
                 }
 
@@ -32577,6 +32605,13 @@
                 if (!contractAmount || contractAmount <= 0) {
                     alert('契約金額を入力してください');
                     isSubmittingContract = false;
+                    // V2166: スピナーを元に戻す
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        if (submitIcon) submitIcon.classList.remove('hidden');
+                        if (submitSpinner) submitSpinner.classList.add('hidden');
+                        if (submitText) submitText.textContent = '成約報告を送信';
+                    }
                     return;
                 }
 
@@ -32694,6 +32729,14 @@
                 alert('成約報告の送信に失敗しました');
             } finally {
                 isSubmittingContract = false;
+
+                // V2166: スピナーを元に戻す
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    if (submitIcon) submitIcon.classList.remove('hidden');
+                    if (submitSpinner) submitSpinner.classList.add('hidden');
+                    if (submitText) submitText.textContent = '成約報告を送信';
+                }
             }
         }
 
