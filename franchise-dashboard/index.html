@@ -34014,6 +34014,7 @@
 
             // 案件データを取得
             const caseData = findCaseByCvId(cvId);
+            console.log('[V2094] caseData:', caseData);
             if (!caseData) {
                 alert('案件情報が見つかりません');
                 return;
@@ -34026,6 +34027,7 @@
                 address: caseData.fullAddress || caseData.address,
                 tel: caseData.tel
             };
+            console.log('[V2094] selectedContractCase:', selectedContractCase);
 
             // 質問フローをリセット
             contractAnswers = [];
@@ -34034,6 +34036,7 @@
             const customerInfo = document.getElementById('contractCustomerInfo');
             const customerName = document.getElementById('contractCustomerName');
             const customerAddress = document.getElementById('contractCustomerAddress');
+            console.log('[V2094] customerInfo element:', customerInfo);
 
             if (customerName) customerName.textContent = selectedContractCase.customerName || '';
             if (customerAddress) customerAddress.textContent = selectedContractCase.address || '';
@@ -34046,7 +34049,16 @@
             if (formPhase) formPhase.classList.add('hidden');
 
             // 成約報告モーダルを開く
-            document.getElementById('contractModal').classList.remove('hidden');
+            const contractModal = document.getElementById('contractModal');
+            console.log('[V2094] contractModal element:', contractModal);
+            if (contractModal) {
+                contractModal.classList.remove('hidden');
+                console.log('[V2094] モーダルを表示しました');
+            } else {
+                console.error('[V2094] contractModalが見つかりません！');
+                alert('成約報告モーダルが見つかりません');
+                return;
+            }
 
             // 質問フローを開始
             showContractQuestion(0);
