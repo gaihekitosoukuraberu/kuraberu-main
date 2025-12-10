@@ -223,6 +223,17 @@ const FreeeAPI = {
     return null;
   },
 
+  /**
+   * 取引先検索（名前で）
+   */
+  findPartnerByName: function(name) {
+    const partners = this.getPartners();
+    if (partners.partners) {
+      return partners.partners.find(p => p.name === name);
+    }
+    return null;
+  },
+
   // ========== 請求書 ==========
 
   /**

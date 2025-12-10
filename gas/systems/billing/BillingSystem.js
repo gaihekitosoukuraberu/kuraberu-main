@@ -1263,6 +1263,7 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
 
   /**
    * freee取引先を新規作成し、スプシに保存
+   * 既存の場合は検索してIDを取得
    */
   _createFreeePartner: function(merchantId, merchantName) {
     if (typeof FreeeAPI === 'undefined') return null;
@@ -1282,6 +1283,22 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
       return result;
     } catch (e) {
       console.error('[BillingSystem] freee取引先作成エラー:', e.message);
+
+      // 「既に使用されています」エラーの場合、既存の取引先を検索
+      if (e.message && e.message.includes('既に使用されています')) {
+        console.log('[BillingSystem] 既存の取引先を検索:', merchantName);
+        try {
+          const existing = FreeeAPI.findPartnerByName(merchantName);
+          if (existing?.id) {
+            console.log('[BillingSystem] 既存取引先ID取得成功:', existing.id);
+            this._saveFreeePartnerId(merchantId, existing.id);
+            return { partner: existing };
+          }
+        } catch (searchError) {
+          console.error('[BillingSystem] 取引先検索エラー:', searchError.message);
+        }
+      }
+
       return null;
     }
   },
