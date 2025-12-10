@@ -25542,12 +25542,16 @@
                 selectedPaymentStatus = status;
                 // 入金系ボタンだけリセットして選択
                 resetStatusButtons(paymentStatuses);
+                // 完了ボタンもリセット（入金済+工事済以外になるため）
+                resetStatusButtons(['完了']);
                 highlightStatusButton(status);
             } else if (workStatuses.includes(status)) {
                 if (!isContractSelected) return; // 成約前は無視
                 selectedWorkStatus = status;
                 // 工事系ボタンだけリセットして選択
                 resetStatusButtons(workStatuses);
+                // 完了ボタンもリセット（入金済+工事済以外になるため）
+                resetStatusButtons(['完了']);
                 highlightStatusButton(status);
             } else if (status === '完了') {
                 // 完了は入金済+工事済の場合のみ（自動選択される）
