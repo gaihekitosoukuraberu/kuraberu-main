@@ -32307,10 +32307,15 @@
 
         // 成約報告質問を表示
         window.showContractQuestion = function(questionIndex) {
+            console.log('[V2164] showContractQuestion開始:', questionIndex);
             const container = document.getElementById('contractQuestionContainer');
+            console.log('[V2164] contractQuestionContainer:', container);
             const currentQuestion = contractQuestions[questionIndex];
+            console.log('[V2164] currentQuestion:', currentQuestion);
+            console.log('[V2164] contractQuestions:', contractQuestions);
 
             if (currentQuestion) {
+                console.log('[V2164] 質問を表示します');
                 container.innerHTML = `
                     <div class="mb-4">
                         <h4 class="text-lg font-medium mb-3">${currentQuestion.question}</h4>
