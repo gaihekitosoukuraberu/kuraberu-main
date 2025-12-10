@@ -25469,61 +25469,6 @@
             setCaseStatus(selectedStatusValue);
         }
 
-        // V2162: ステータス選択から成約報告モーダルを開く
-        function openContractReportFromStatus(cvId) {
-            console.log('[openContractReportFromStatus] cvId:', cvId, 'currentStatusCase:', currentStatusCase);
-
-            if (!currentStatusCase) {
-                showNotification('エラー', '案件情報が見つかりません', 'error');
-                return;
-            }
-
-            // selectedContractCaseに案件情報をセット
-            selectedContractCase = {
-                cvId: cvId,
-                customerName: currentStatusCase.customerName || '',
-                customerNameKana: currentStatusCase.customerNameKana || '',
-                tel: currentStatusCase.tel || '',
-                address: currentStatusCase.address || '',
-                propertyType: currentStatusCase.propertyType || '',
-                floors: currentStatusCase.floors || '',
-                workContent: currentStatusCase.workContent || ''
-            };
-
-            // 成約報告モーダルを開く
-            const modal = document.getElementById('contractModal');
-            if (modal) {
-                modal.classList.remove('hidden');
-
-                // 顧客情報を表示
-                const customerInfo = document.getElementById('contractCustomerInfo');
-                if (customerInfo) {
-                    customerInfo.classList.remove('hidden');
-                    customerInfo.innerHTML = `
-                        <div class="bg-gray-50 rounded-lg p-4 mb-4">
-                            <h4 class="font-bold text-gray-700 mb-2">${selectedContractCase.customerName} 様</h4>
-                            <p class="text-sm text-gray-600">📍 ${selectedContractCase.address || '住所未設定'}</p>
-                            <p class="text-sm text-gray-600">📞 ${selectedContractCase.tel || '電話番号未設定'}</p>
-                        </div>
-                    `;
-                }
-
-                // 質問フェーズをスキップしてフォームを直接表示
-                const questionContainer = document.getElementById('contractQuestionContainer');
-                const formPhase = document.getElementById('contractFormPhase');
-
-                if (questionContainer) questionContainer.classList.add('hidden');
-                if (formPhase) formPhase.classList.remove('hidden');
-
-                // contractAnswersを初期化（成約報告として）
-                contractAnswers = ['成約報告', '契約後・工事前'];
-
-                console.log('[openContractReportFromStatus] 成約報告モーダル表示完了');
-            } else {
-                showNotification('エラー', '成約報告モーダルが見つかりません', 'error');
-            }
-        }
-
         function setCaseStatus(newStatus) {
             if (!currentStatusCase) return;
 
