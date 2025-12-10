@@ -61,6 +61,10 @@ const BillingSystem = {
         return this.confirmPayment(params.invoiceId, params.paymentAmount, params.paymentDate);
       case 'billing_setupSheets':
         return this.setupBillingSheets();
+      case 'billing_sendPdf':
+        return this.sendInvoicePdf(params.invoiceId);
+      case 'billing_autoGenerateMonthly':
+        return this.autoGenerateMonthlyInvoices();
       default:
         return { success: false, error: 'Unknown billing action: ' + action };
     }
@@ -1357,6 +1361,230 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
       }
     }
     return details;
+  },
+
+  /**
+   * 個別請求書PDF送信
+   * @param {string} invoiceId - 請求ID
+   */
+  sendInvoicePdf: function(invoiceId) {
+    try {
+      console.log('[BillingSystem] PDF送信開始:', invoiceId);
+
+      // 請求データ取得
+      const invoices = this.getInvoices(null, null, null);
+      if (!invoices.success) {
+        return { success: false, error: '請求データ取得失敗' };
+      }
+
+      const invoice = invoices.invoices.find(inv => inv['請求ID'] === invoiceId);
+      if (!invoice) {
+        return { success: false, error: '請求が見つかりません: ' + invoiceId };
+      }
+
+      // 加盟店のメールアドレス取得
+      const email = this._getMerchantEmail(invoice['加盟店ID']);
+      if (!email) {
+        return { success: false, error: '加盟店のメールアドレスが未登録です' };
+      }
+
+      // CV明細を取得
+      const cvIds = invoice['対象CV ID'] ? invoice['対象CV ID'].split(', ') : [];
+      const items = cvIds.map(cvId => ({
+        name: `紹介料（${cvId}）`,
+        quantity: 1,
+        unitPrice: 20000
+      }));
+
+      // PDF生成用データ作成
+      const invoiceData = InvoicePdfGenerator.createInvoiceDataFromBilling(invoice, items);
+
+      // PDF生成＆メール送信
+      const result = InvoicePdfGenerator.generateAndSendPdf(invoiceData, email);
+
+      if (result.success) {
+        // 請求管理シートのPDF送信日を更新
+        this._updatePdfSentDate(invoiceId);
+      }
+
+      return {
+        success: result.success,
+        sentTo: email,
+        fileName: result.fileName || `請求書_${invoiceId}.pdf`,
+        pdfUrl: result.pdfUrl,
+        error: result.error
+      };
+
+    } catch (e) {
+      console.error('[BillingSystem] sendInvoicePdf error:', e);
+      return { success: false, error: e.message };
+    }
+  },
+
+  /**
+   * 加盟店メールアドレス取得
+   */
+  _getMerchantEmail: function(merchantId) {
+    try {
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+
+      // 加盟店登録シートからメール取得
+      const sheet = ss.getSheetByName(this.SHEETS.MERCHANT_REGISTRATION);
+      if (!sheet) return null;
+
+      const data = sheet.getDataRange().getValues();
+      const headers = data[0];
+      const idIdx = headers.indexOf('店舗ID');
+      const emailIdx = headers.indexOf('メールアドレス');
+
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][idIdx] === merchantId) {
+          return data[i][emailIdx];
+        }
+      }
+      return null;
+    } catch (e) {
+      console.error('[BillingSystem] _getMerchantEmail error:', e);
+      return null;
+    }
+  },
+
+  /**
+   * PDF送信日を更新
+   */
+  _updatePdfSentDate: function(invoiceId) {
+    try {
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+      const sheet = ss.getSheetByName(this.SHEETS.BILLING);
+      if (!sheet) return;
+
+      const data = sheet.getDataRange().getValues();
+      const headers = data[0];
+      const idIdx = headers.indexOf('請求ID');
+      let pdfSentIdx = headers.indexOf('PDF送信日');
+
+      // PDF送信日カラムがなければ追加
+      if (pdfSentIdx === -1) {
+        pdfSentIdx = headers.length;
+        sheet.getRange(1, pdfSentIdx + 1).setValue('PDF送信日');
+      }
+
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][idIdx] === invoiceId) {
+          sheet.getRange(i + 1, pdfSentIdx + 1).setValue(new Date());
+          break;
+        }
+      }
+    } catch (e) {
+      console.error('[BillingSystem] _updatePdfSentDate error:', e);
+    }
+  },
+
+  /**
+   * 月次自動請求生成（毎月1日にトリガーで実行）
+   * - 前月の紹介料を集計
+   * - freeeに売上登録
+   * - 請求管理シートに記録
+   * - PDF生成＆メール送信
+   * - Slack通知
+   */
+  autoGenerateMonthlyInvoices: function() {
+    console.log('========== 月次自動請求生成 開始 ==========');
+    const results = {
+      success: true,
+      invoicesGenerated: 0,
+      pdfsSent: 0,
+      errors: []
+    };
+
+    try {
+      // 1. 前月の請求生成（freee登録 + スプシ記録）
+      const genResult = this.generateInvoices(null, 'referral');
+      if (!genResult.success) {
+        results.errors.push('請求生成失敗: ' + genResult.error);
+        this._sendSlackNotification('請求生成エラー', genResult.error, 'error');
+        return results;
+      }
+
+      results.invoicesGenerated = genResult.invoices?.length || 0;
+      console.log('請求生成完了:', results.invoicesGenerated, '件');
+
+      // 2. 生成した請求書のPDF送信
+      if (genResult.invoices && genResult.invoices.length > 0) {
+        for (const inv of genResult.invoices) {
+          try {
+            const pdfResult = this.sendInvoicePdf(inv.invoiceId);
+            if (pdfResult.success) {
+              results.pdfsSent++;
+              console.log('PDF送信成功:', inv.invoiceId, '→', pdfResult.sentTo);
+            } else {
+              results.errors.push(`${inv.invoiceId}: ${pdfResult.error}`);
+            }
+          } catch (e) {
+            results.errors.push(`${inv.invoiceId}: ${e.message}`);
+          }
+        }
+      }
+
+      // 3. 完了通知
+      const message = `請求生成: ${results.invoicesGenerated}件\nPDF送信: ${results.pdfsSent}件` +
+        (results.errors.length > 0 ? `\n\nエラー:\n${results.errors.join('\n')}` : '');
+
+      this._sendSlackNotification(
+        results.errors.length === 0 ? '月次請求生成完了' : '月次請求生成完了（一部エラー）',
+        message,
+        results.errors.length === 0 ? 'success' : 'warning'
+      );
+
+      console.log('========== 月次自動請求生成 完了 ==========');
+      return results;
+
+    } catch (e) {
+      console.error('[BillingSystem] autoGenerateMonthlyInvoices error:', e);
+      results.success = false;
+      results.errors.push(e.message);
+      this._sendSlackNotification('月次請求生成 致命的エラー', e.message, 'error');
+      return results;
+    }
+  },
+
+  /**
+   * Slack通知
+   */
+  _sendSlackNotification: function(title, message, type) {
+    try {
+      const webhookUrl = PropertiesService.getScriptProperties().getProperty('SLACK_WEBHOOK_URL');
+      if (!webhookUrl) {
+        console.log('[BillingSystem] Slack Webhook未設定、通知スキップ');
+        return;
+      }
+
+      const colors = {
+        success: '#36a64f',
+        warning: '#ff9800',
+        error: '#d32f2f'
+      };
+
+      const payload = {
+        attachments: [{
+          color: colors[type] || '#2196f3',
+          title: `【請求システム】${title}`,
+          text: message,
+          ts: Math.floor(Date.now() / 1000)
+        }]
+      };
+
+      UrlFetchApp.fetch(webhookUrl, {
+        method: 'post',
+        contentType: 'application/json',
+        payload: JSON.stringify(payload)
+      });
+
+    } catch (e) {
+      console.error('[BillingSystem] Slack通知エラー:', e);
+    }
   }
 };
 
@@ -1442,3 +1670,68 @@ const GmoAozoraIntegration = {
     };
   }
 };
+
+// ========== トリガー設定・テスト関数 ==========
+
+/**
+ * 月次請求自動生成トリガーを設定
+ * GASスクリプトエディタで1回だけ実行
+ */
+function setupMonthlyBillingTrigger() {
+  console.log('========== 月次請求トリガー設定 ==========');
+
+  // 既存トリガー削除
+  const triggers = ScriptApp.getProjectTriggers();
+  triggers.forEach(trigger => {
+    if (trigger.getHandlerFunction() === 'runMonthlyBillingAuto') {
+      ScriptApp.deleteTrigger(trigger);
+      console.log('既存トリガー削除');
+    }
+  });
+
+  // 毎月1日 9:00 に実行
+  ScriptApp.newTrigger('runMonthlyBillingAuto')
+    .timeBased()
+    .onMonthDay(1)
+    .atHour(9)
+    .create();
+
+  console.log('トリガー設定完了: 毎月1日 9:00');
+  console.log('========== 完了 ==========');
+}
+
+/**
+ * 月次請求自動生成（トリガーから呼ばれる）
+ */
+function runMonthlyBillingAuto() {
+  console.log('========== トリガー実行: 月次請求自動生成 ==========');
+  const result = BillingSystem.autoGenerateMonthlyInvoices();
+  console.log('結果:', JSON.stringify(result, null, 2));
+  return result;
+}
+
+/**
+ * 月次請求自動生成テスト（手動実行用）
+ */
+function testAutoGenerateMonthlyInvoices() {
+  console.log('========== 月次請求自動生成テスト ==========');
+  const result = BillingSystem.autoGenerateMonthlyInvoices();
+  console.log('結果:', JSON.stringify(result, null, 2));
+  console.log('========== 完了 ==========');
+  return result;
+}
+
+/**
+ * 個別PDF送信テスト
+ */
+function testSendInvoicePdf() {
+  console.log('========== 個別PDF送信テスト ==========');
+
+  // テスト用請求ID（実在するものを指定）
+  const testInvoiceId = 'INV-REF-202412-TESTHOUSEKAI'; // 変更してください
+
+  const result = BillingSystem.sendInvoicePdf(testInvoiceId);
+  console.log('結果:', JSON.stringify(result, null, 2));
+  console.log('========== 完了 ==========');
+  return result;
+}

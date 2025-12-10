@@ -211,7 +211,7 @@ const BillingManager = {
             <span class="px-2 py-1 ${statusClass} rounded text-xs">${statusText}</span>
           </td>
           <td class="text-center py-3 px-4">
-            <button onclick="BillingManager.createInvoice('${item.merchantId}', 'referral')" class="text-blue-600 hover:text-blue-800 text-sm">請求書作成</button>
+            <button onclick="BillingManager.showReferralDetail('${item.merchantId}')" class="text-gray-600 hover:text-gray-800 text-sm"><i class="fas fa-eye mr-1"></i>詳細</button>
           </td>
         </tr>
       `;
@@ -243,8 +243,8 @@ const BillingManager = {
           </div>
         </div>
         <div class="text-xs text-gray-400 mb-3 truncate">CV: ${item.cvIds?.slice(0, 2).join(', ')}${item.cvIds?.length > 2 ? '...' : ''}</div>
-        <button onclick="BillingManager.createInvoice('${item.merchantId}', 'referral')" class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
-          請求書作成
+        <button onclick="BillingManager.showReferralDetail('${item.merchantId}')" class="w-full py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm">
+          <i class="fas fa-eye mr-1"></i>詳細
         </button>
       </div>
     `).join('');
@@ -368,15 +368,21 @@ const BillingManager = {
   getMobileActionButton: function(invoice) {
     const status = invoice['ステータス'];
     const invoiceId = invoice['請求ID'];
+    const pdfSent = invoice['PDF送信日'];
+
+    // PDF送信ボタン
+    const pdfBtn = !pdfSent
+      ? `<button onclick="BillingManager.sendPdf('${invoiceId}')" class="flex-1 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm"><i class="fas fa-paper-plane mr-1"></i>PDF送信</button>`
+      : `<div class="flex-1 py-2 bg-gray-200 text-gray-500 rounded-lg text-sm text-center"><i class="fas fa-check mr-1"></i>送信済</div>`;
 
     if (status === '未発行') {
-      return `<button onclick="BillingManager.issueInvoice('${invoiceId}')" class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">発行する</button>`;
+      return `<div class="flex gap-2">${pdfBtn}<button onclick="BillingManager.issueInvoice('${invoiceId}')" class="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">発行する</button></div>`;
     } else if (status === '発行済み' || status === '未入金') {
-      return `<button onclick="BillingManager.confirmPayment('${invoiceId}')" class="w-full py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">入金確認</button>`;
+      return `<div class="flex gap-2">${pdfBtn}<button onclick="BillingManager.confirmPayment('${invoiceId}')" class="flex-1 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">入金確認</button></div>`;
     } else if (status === '入金済み') {
-      return `<div class="text-center text-gray-400 text-sm py-2">完了</div>`;
+      return `<div class="flex gap-2">${pdfBtn}<div class="flex-1 text-center text-gray-400 text-sm py-2">完了</div></div>`;
     }
-    return '';
+    return pdfBtn;
   },
 
   /**
@@ -399,15 +405,21 @@ const BillingManager = {
   getActionButton: function(invoice) {
     const status = invoice['ステータス'];
     const invoiceId = invoice['請求ID'];
+    const pdfSent = invoice['PDF送信日'];
+
+    // PDF送信ボタン（未送信の場合）
+    const pdfBtn = !pdfSent
+      ? `<button onclick="BillingManager.sendPdf('${invoiceId}')" class="text-purple-600 hover:text-purple-800 text-sm mr-2" title="PDF送信"><i class="fas fa-paper-plane"></i></button>`
+      : `<span class="text-gray-400 text-sm mr-2" title="送信済: ${pdfSent}"><i class="fas fa-check"></i></span>`;
 
     if (status === '未発行') {
-      return `<button onclick="BillingManager.issueInvoice('${invoiceId}')" class="text-blue-600 hover:text-blue-800 text-sm">発行する</button>`;
+      return pdfBtn + `<button onclick="BillingManager.issueInvoice('${invoiceId}')" class="text-blue-600 hover:text-blue-800 text-sm">発行する</button>`;
     } else if (status === '発行済み' || status === '未入金') {
-      return `<button onclick="BillingManager.confirmPayment('${invoiceId}')" class="text-green-600 hover:text-green-800 text-sm">入金確認</button>`;
+      return pdfBtn + `<button onclick="BillingManager.confirmPayment('${invoiceId}')" class="text-green-600 hover:text-green-800 text-sm">入金確認</button>`;
     } else if (status === '入金済み') {
-      return `<span class="text-gray-400 text-sm">完了</span>`;
+      return pdfBtn + `<span class="text-gray-400 text-sm">完了</span>`;
     }
-    return '';
+    return pdfBtn;
   },
 
   /**
@@ -506,6 +518,99 @@ const BillingManager = {
     if (errorDiv) {
       errorDiv.textContent = message;
       errorDiv.style.display = 'block';
+    }
+  },
+
+  /**
+   * PDF送信
+   */
+  async sendPdf(invoiceId) {
+    if (!confirm(`請求書 ${invoiceId} のPDFを送信しますか？\n加盟店のメールアドレスにPDFが添付されます。`)) return;
+
+    try {
+      this.showLoading();
+      const result = await this.apiClient.getRequest('billing_sendPdf', {
+        invoiceId: invoiceId
+      });
+
+      this.hideLoading();
+
+      if (result.success) {
+        alert(`PDF送信完了\n\n送信先: ${result.sentTo}\nファイル: ${result.fileName}`);
+        this.loadFinancialSection(); // リロード
+      } else {
+        alert('エラー: ' + (result.error || 'PDF送信に失敗しました'));
+      }
+    } catch (error) {
+      this.hideLoading();
+      console.error('[BillingManager] PDF送信エラー:', error);
+      alert('エラーが発生しました');
+    }
+  },
+
+  /**
+   * 紹介料詳細表示
+   */
+  showReferralDetail: function(merchantId) {
+    const data = this.cache.referralFees?.data || [];
+    const item = data.find(d => d.merchantId === merchantId);
+
+    if (!item) {
+      alert('データが見つかりません');
+      return;
+    }
+
+    const cvList = item.cvIds?.map((cv, i) => `${i + 1}. ${cv}`).join('\n') || 'なし';
+
+    alert(`【${item.merchantName || merchantId}】紹介料詳細\n\n` +
+      `件数: ${item.count}件\n` +
+      `紹介料（税抜）: ¥${(item.totalAmount || 0).toLocaleString()}\n` +
+      `消費税: ¥${(item.tax || 0).toLocaleString()}\n` +
+      `請求額（税込）: ¥${(item.totalWithTax || 0).toLocaleString()}\n\n` +
+      `【対象CV】\n${cvList}`);
+  },
+
+  /**
+   * 一括PDF送信（請求書一覧タブ用）
+   */
+  async sendAllPdfs() {
+    const invoices = this.cache.invoices?.invoices || [];
+    const unsent = invoices.filter(inv => !inv['PDF送信日'] && inv['ステータス'] !== '入金済み');
+
+    if (unsent.length === 0) {
+      alert('送信対象の請求書がありません');
+      return;
+    }
+
+    if (!confirm(`${unsent.length}件の請求書PDFを一括送信しますか？`)) return;
+
+    try {
+      this.showLoading();
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const inv of unsent) {
+        try {
+          const result = await this.apiClient.getRequest('billing_sendPdf', {
+            invoiceId: inv['請求ID']
+          });
+          if (result.success) {
+            successCount++;
+          } else {
+            errorCount++;
+          }
+        } catch (e) {
+          errorCount++;
+        }
+      }
+
+      this.hideLoading();
+      alert(`一括送信完了\n\n成功: ${successCount}件\n失敗: ${errorCount}件`);
+      this.loadFinancialSection();
+    } catch (error) {
+      this.hideLoading();
+      console.error('[BillingManager] 一括PDF送信エラー:', error);
+      alert('エラーが発生しました');
     }
   }
 };
