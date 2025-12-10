@@ -346,25 +346,10 @@ var MerchantContractReport = {
       const headers = data[0];
       const rows = data.slice(1);
 
-      // 必要なカラムのインデックス取得
+      // V2169: ユーザー登録シートは管理ステータスと成約加盟店IDのみ使用（成約データは成約データシートに一元化）
       const cvIdIdx = headers.indexOf('CV ID');
-      const contractMerchantIdIdx = headers.indexOf('成約加盟店ID');
-      const contractMerchantNameIdx = headers.indexOf('成約加盟店名');
-      const contractDateIdx = headers.indexOf('成約日');
-      const contractAmountIdx = headers.indexOf('成約金額');
-      const workContentIdx = headers.indexOf('見積工事内容');
-      const paymentDueDateIdx = headers.indexOf('入金予定日');
+      const contractMerchantIdIdx = headers.indexOf('成約加盟店ID'); // 成約済み判定用
       const managementStatusIdx = headers.indexOf('管理ステータス');
-      const constructionEndDateIdx = headers.indexOf('工事完了予定日');
-      const constructionStatusIdx = headers.indexOf('工事進捗ステータス');
-      const additionalWorkFlagIdx = headers.indexOf('追加工事フラグ');
-      const propertyTypeIdx = headers.indexOf('Q1_物件種別');
-      const floorsIdx = headers.indexOf('Q2_階数');
-      const contractReportDateIdx = headers.indexOf('成約報告日');
-      // V2162: 追加カラム
-      const paymentConfirmDateIdx = headers.indexOf('入金確認日');
-      const paymentAmountIdx = headers.indexOf('入金額');
-      const constructionStartDateIdx = headers.indexOf('工事開始予定日');
 
       // CV IDで行を検索
       let targetRow = -1;
@@ -428,81 +413,7 @@ var MerchantContractReport = {
         constructionStatus = '工事完了';
       }
 
-      // V2166: データ更新（通常の成約報告の場合）- カラム存在チェック追加
-      if (!isAdditionalWork) {
-        if (contractMerchantIdIdx !== -1) {
-          userSheet.getRange(targetRow, contractMerchantIdIdx + 1).setValue(merchantId);
-        }
-        if (contractMerchantNameIdx !== -1) {
-          userSheet.getRange(targetRow, contractMerchantNameIdx + 1).setValue(merchantName || '');
-        }
-        if (contractReportDateIdx !== -1) {
-          userSheet.getRange(targetRow, contractReportDateIdx + 1).setValue(new Date());
-        }
-      }
-
-      // 共通項目の更新
-      if (contractDate && contractDateIdx !== -1) {
-        userSheet.getRange(targetRow, contractDateIdx + 1).setValue(contractDate);
-      }
-
-      if (contractAmountIdx !== -1) {
-        userSheet.getRange(targetRow, contractAmountIdx + 1).setValue(contractAmount);
-      }
-
-      // 施工内容（配列を文字列に変換）
-      if (workContentIdx !== -1) {
-        if (workContent && Array.isArray(workContent)) {
-          const workContentStr = workContent.join('、');
-          userSheet.getRange(targetRow, workContentIdx + 1).setValue(workContentStr);
-        } else if (workContent) {
-          userSheet.getRange(targetRow, workContentIdx + 1).setValue(workContent);
-        }
-      }
-
-      // V2162: 入金関連
-      if (paymentStatus === 'paid') {
-        // 入金済み
-        if (paymentConfirmDate && paymentConfirmDateIdx !== -1) {
-          userSheet.getRange(targetRow, paymentConfirmDateIdx + 1).setValue(paymentConfirmDate);
-        }
-        if (paymentAmount && paymentAmountIdx !== -1) {
-          userSheet.getRange(targetRow, paymentAmountIdx + 1).setValue(paymentAmount);
-        }
-      } else {
-        // 未入金
-        if (paymentDueDate && paymentDueDateIdx !== -1) {
-          userSheet.getRange(targetRow, paymentDueDateIdx + 1).setValue(paymentDueDate);
-        }
-      }
-
-      // V2162: 工事予定関連
-      if (constructionStartDate && constructionStartDateIdx !== -1) {
-        userSheet.getRange(targetRow, constructionStartDateIdx + 1).setValue(constructionStartDate);
-      }
-      if (constructionEndDate && constructionEndDateIdx !== -1) {
-        userSheet.getRange(targetRow, constructionEndDateIdx + 1).setValue(constructionEndDate);
-      }
-
-      if (propertyType && propertyTypeIdx !== -1) {
-        userSheet.getRange(targetRow, propertyTypeIdx + 1).setValue(propertyType);
-      }
-
-      if (floors && floorsIdx !== -1) {
-        userSheet.getRange(targetRow, floorsIdx + 1).setValue(floors);
-      }
-
-      // 工事進捗ステータス
-      if (constructionStatus && constructionStatusIdx !== -1) {
-        userSheet.getRange(targetRow, constructionStatusIdx + 1).setValue(constructionStatus);
-      }
-
-      // 追加工事フラグ
-      if (isAdditionalWork && additionalWorkFlagIdx !== -1) {
-        userSheet.getRange(targetRow, additionalWorkFlagIdx + 1).setValue(true);
-      }
-
-      // V2166: 管理ステータス更新
+      // V2169: ユーザー登録シートは管理ステータスのみ更新（成約データは成約データシートに一元化）
       if (managementStatusIdx !== -1) {
         userSheet.getRange(targetRow, managementStatusIdx + 1).setValue(newManagementStatus);
       }
@@ -535,8 +446,8 @@ var MerchantContractReport = {
         reporterName // V2169: 登録者（管理者名 or 小ユーザー名）
       });
 
-      // V2169: 配信管理シートの成約日時・成約金額も更新
-      this._updateDeliverySheetContract(ss, cvId, merchantId, contractDate, contractAmount);
+      // V2169: 配信管理シートのステータスのみ更新（成約データは成約データシートに一元化）
+      this._updateDeliverySheetContract(ss, cvId, merchantId);
 
       console.log('[MerchantContractReport] submitContractReport - 成約報告完了:', cvId, '報告種別:', reportType, 'ステータス:', newManagementStatus);
 
@@ -713,14 +624,14 @@ var MerchantContractReport = {
         console.warn('[MerchantContractReport] 配信管理情報取得エラー:', e);
       }
 
-      // V2169: 加盟店ステータスを加盟店シートから取得
+      // V2169: 加盟店ステータスを加盟店登録シートから取得
       let merchantStatus = '';
       try {
-        const merchantSheet = ss.getSheetByName('加盟店');
+        const merchantSheet = ss.getSheetByName('加盟店登録');
         if (merchantSheet) {
           const merchantData = merchantSheet.getDataRange().getValues();
           const merchantHeaders = merchantData[0];
-          const merchantIdIdx = merchantHeaders.indexOf('加盟店ID');
+          const merchantIdIdx = merchantHeaders.indexOf('登録ID'); // 加盟店登録シートは「登録ID」
           const statusIdx = merchantHeaders.indexOf('運用ステータス');
 
           for (let i = 1; i < merchantData.length; i++) {
@@ -2196,14 +2107,12 @@ var MerchantContractReport = {
   },
 
   /**
-   * V2169: 配信管理シートの成約日時・成約金額を更新
+   * V2169: 配信管理シートのステータスを更新（成約データは成約データシートに一元化）
    * @param {Spreadsheet} ss - スプレッドシート
    * @param {string} cvId - CV ID
    * @param {string} merchantId - 加盟店ID
-   * @param {string} contractDate - 成約日
-   * @param {number} contractAmount - 成約金額
    */
-  _updateDeliverySheetContract: function(ss, cvId, merchantId, contractDate, contractAmount) {
+  _updateDeliverySheetContract: function(ss, cvId, merchantId) {
     try {
       const deliverySheet = ss.getSheetByName('配信管理');
       if (!deliverySheet) {
@@ -2214,11 +2123,9 @@ var MerchantContractReport = {
       const data = deliverySheet.getDataRange().getValues();
       const headers = data[0];
 
-      // カラムインデックス取得
+      // カラムインデックス取得（ステータス系のみ）
       const cvIdCol = headers.indexOf('CV ID');
       const merchantIdCol = headers.indexOf('加盟店ID');
-      const contractDateCol = headers.indexOf('成約日時');
-      const contractAmountCol = headers.indexOf('成約金額');
       const deliveryStatusCol = headers.indexOf('配信ステータス');
       const detailStatusCol = headers.indexOf('詳細ステータス');
       const statusUpdateCol = headers.indexOf('ステータス更新日時');
@@ -2229,13 +2136,13 @@ var MerchantContractReport = {
         return;
       }
 
-      // 加盟店シートから会社名を取得（配信管理の加盟店IDは会社名の場合がある）
+      // 加盟店登録シートから会社名を取得（配信管理の加盟店IDは会社名の場合がある）
       let merchantCompanyName = '';
-      const merchantSheet = ss.getSheetByName('加盟店');
+      const merchantSheet = ss.getSheetByName('加盟店登録');
       if (merchantSheet) {
         const merchantData = merchantSheet.getDataRange().getValues();
         const merchantHeaders = merchantData[0];
-        const midIdx = merchantHeaders.indexOf('加盟店ID');
+        const midIdx = merchantHeaders.indexOf('登録ID'); // 加盟店登録シートは「登録ID」
         const companyIdx = merchantHeaders.indexOf('会社名');
         for (let j = 1; j < merchantData.length; j++) {
           if (merchantData[j][midIdx] === merchantId) {
@@ -2257,28 +2164,20 @@ var MerchantContractReport = {
                                String(rowMerchantId) === String(merchantCompanyName);
           if (merchantMatch) {
             const now = new Date();
-            // 成約日時を更新
-            if (contractDateCol !== -1) {
-              const contractDateTime = contractDate || now;
-              deliverySheet.getRange(i + 1, contractDateCol + 1).setValue(contractDateTime);
-            }
-            // 成約金額を更新
-            if (contractAmountCol !== -1 && contractAmount) {
-              deliverySheet.getRange(i + 1, contractAmountCol + 1).setValue(contractAmount);
-            }
-            // V2169: 配信ステータスを「成約」に更新
+            // V2169: 配信管理シートはステータスのみ更新（成約データは成約データシートに一元化）
+            // 配信ステータスを「成約」に更新
             if (deliveryStatusCol !== -1) {
               deliverySheet.getRange(i + 1, deliveryStatusCol + 1).setValue('成約');
             }
-            // V2169: 詳細ステータスを「成約」に更新
+            // 詳細ステータスを「成約」に更新
             if (detailStatusCol !== -1) {
               deliverySheet.getRange(i + 1, detailStatusCol + 1).setValue('成約');
             }
-            // V2169: ステータス更新日時を更新
+            // ステータス更新日時を更新
             if (statusUpdateCol !== -1) {
               deliverySheet.getRange(i + 1, statusUpdateCol + 1).setValue(now);
             }
-            // V2169: 最終更新日時を更新
+            // 最終更新日時を更新
             if (lastUpdateCol !== -1) {
               deliverySheet.getRange(i + 1, lastUpdateCol + 1).setValue(now);
             }
