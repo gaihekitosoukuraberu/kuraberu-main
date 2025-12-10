@@ -1480,7 +1480,7 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
 
       const data = sheet.getDataRange().getValues();
       const headers = data[0];
-      const idIdx = headers.indexOf('店舗ID');
+      const idIdx = headers.indexOf('登録ID');
       const emailIdx = headers.indexOf('メールアドレス');
 
       for (let i = 1; i < data.length; i++) {
