@@ -1615,34 +1615,6 @@ function syncRatingsToMasterManual() {
   return result;
 }
 
-/**
- * ====================================
- * 手動実行用: 請求用メールアドレス一括同期
- * ====================================
- * V2175: 加盟店登録の「請求用メールアドレス」→ 加盟店マスタの「請求先メールアドレス」
- *
- * 使い方: GASエディタで「実行」→「syncBillingEmailsManual」
- */
-function syncBillingEmailsManual() {
-  console.log('========================================');
-  console.log('請求用メールアドレス同期を手動実行中...');
-  console.log('========================================');
-
-  const result = AdminSystem.syncBillingEmailsToMaster();
-
-  console.log('結果:', JSON.stringify(result, null, 2));
-  console.log('========================================');
-
-  if (result.success) {
-    console.log('✅ 同期成功');
-    console.log('  - 更新件数:', result.updatedCount, '件');
-  } else {
-    console.error('❌ 同期失敗:', result.error);
-  }
-
-  return result;
-}
-
 // Test trigger 20251127-064800
 // Timestamp: 2025-11-27 06:48:00 - V1912 Frontend Deploy Trigger
 // V1913 Deploy Trigger - 1764195989
