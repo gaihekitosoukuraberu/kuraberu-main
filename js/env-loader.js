@@ -44,8 +44,8 @@ const ENV = {
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1秒
 
-  // キャッシュバスター（V2166 - 強制更新）
-  CACHE_BUSTER: 'v1765345662' + Date.now()
+  // キャッシュバスター（V2168 - 強制更新）
+  CACHE_BUSTER: 'v1765350001' + Date.now()
 };
 
 // グローバルに公開（全てのファイルから参照可能）
