@@ -25561,18 +25561,20 @@
                 selectedPaymentStatus = '入金済';
                 selectedWorkStatus = '工事済';
 
-                // 入金・工事エリアの全ボタンを直接リセット
-                const allBgColors = ['bg-cyan-100', 'bg-emerald-100', 'bg-orange-100',
-                                     'bg-yellow-100', 'bg-amber-100', 'bg-teal-100', 'bg-green-100'];
+                // 入金・工事エリアの全ボタンを強制リセット（style属性で白に上書き）
                 document.querySelectorAll('.payment-btn, .work-btn, [data-status="完了"]').forEach(btn => {
-                    allBgColors.forEach(color => btn.classList.remove(color));
-                    btn.classList.add('bg-white');
+                    btn.style.backgroundColor = 'white';
                 });
 
-                // 入金済・工事済・完了だけハイライト
-                highlightStatusButton('入金済');
-                highlightStatusButton('工事済');
-                highlightStatusButton('完了');
+                // 入金済・工事済・完了だけハイライト（style属性で直接色指定）
+                const nyukinBtn = document.querySelector('[data-status="入金済"]');
+                const koujiBtn = document.querySelector('[data-status="工事済"]');
+                const kanryoBtn = document.querySelector('[data-status="完了"]');
+
+                if (nyukinBtn) nyukinBtn.style.backgroundColor = '#d1fae5'; // emerald-100
+                if (koujiBtn) koujiBtn.style.backgroundColor = '#fef3c7';  // amber-100
+                if (kanryoBtn) kanryoBtn.style.backgroundColor = '#ccfbf1'; // teal-100
+
                 selectedStatusValue = '完了';
                 return;
             } else {
