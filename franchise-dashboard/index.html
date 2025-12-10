@@ -927,57 +927,83 @@
                                 <p id="statusTargetName" class="text-xs text-purple-200">---</p>
                             </div>
 
-                            <!-- ステータス選択エリア（左右分割：左=キャンセル、右=縦フロー） -->
-                            <div class="flex-1 p-2 bg-gray-50 flex flex-row gap-2">
-                                <!-- 左側：キャンセル系（アポ済と下部ライン合わせ） -->
-                                <div class="w-2/5 bg-gray-100 rounded-xl p-2 flex flex-col justify-end">
-                                    <div class="flex flex-col gap-2">
-                                        <button onclick="selectDetailStatus('現調前キャンセル')" data-status="現調前キャンセル" class="status-btn py-2 px-2 bg-white border-2 border-gray-300 rounded-lg text-gray-600 font-bold text-sm hover:bg-gray-100 hover:shadow-md transition-all text-center leading-tight">現調前<br>キャンセル</button>
-                                        <button onclick="selectDetailStatus('現調後失注')" data-status="現調後失注" class="status-btn py-2.5 px-2 bg-white border-2 border-gray-400 rounded-lg text-gray-700 font-bold text-sm hover:bg-gray-200 hover:shadow-md transition-all text-center">現調後失注</button>
-                                        <button onclick="selectDetailStatus('他社契約済')" data-status="他社契約済" class="status-btn py-2.5 px-2 bg-white border-2 border-gray-300 rounded-lg text-gray-600 font-bold text-sm hover:bg-gray-100 hover:shadow-md transition-all text-center">他社契約済</button>
-                                        <button onclick="selectDetailStatus('別加盟店契約済')" data-status="別加盟店契約済" class="status-btn py-2.5 px-2 bg-white border-2 border-indigo-300 rounded-lg text-indigo-700 font-bold text-sm hover:bg-indigo-100 hover:shadow-md transition-all text-center">別加盟店契約</button>
-                                        <button onclick="selectDetailStatus('クレーム')" data-status="クレーム" class="status-btn py-2.5 px-2 bg-white border-2 border-red-300 rounded-lg text-red-800 font-bold text-sm hover:bg-red-100 hover:shadow-md transition-all text-center">クレーム</button>
+                            <!-- V2168: ステータス選択エリア（キャンセル上部、成約以降は入金/工事2軸） -->
+                            <div class="flex-1 p-2 bg-gray-50 flex flex-col gap-2 overflow-y-auto">
+                                <!-- 上部：キャンセル系（横並び） -->
+                                <div class="bg-gray-100 rounded-xl p-2 flex-shrink-0">
+                                    <div class="grid grid-cols-5 gap-1">
+                                        <button onclick="selectDetailStatus('現調前キャンセル')" data-status="現調前キャンセル" class="status-btn py-2 px-1 bg-white border-2 border-gray-300 rounded-lg text-gray-600 font-bold text-xs hover:bg-gray-100 hover:shadow-md transition-all text-center leading-tight">現調前<br>ｷｬﾝｾﾙ</button>
+                                        <button onclick="selectDetailStatus('現調後失注')" data-status="現調後失注" class="status-btn py-2 px-1 bg-white border-2 border-gray-400 rounded-lg text-gray-700 font-bold text-xs hover:bg-gray-200 hover:shadow-md transition-all text-center leading-tight">現調後<br>失注</button>
+                                        <button onclick="selectDetailStatus('他社契約済')" data-status="他社契約済" class="status-btn py-2 px-1 bg-white border-2 border-gray-300 rounded-lg text-gray-600 font-bold text-xs hover:bg-gray-100 hover:shadow-md transition-all text-center leading-tight">他社<br>契約済</button>
+                                        <button onclick="selectDetailStatus('別加盟店契約済')" data-status="別加盟店契約済" class="status-btn py-2 px-1 bg-white border-2 border-indigo-300 rounded-lg text-indigo-700 font-bold text-xs hover:bg-indigo-100 hover:shadow-md transition-all text-center leading-tight">別加盟<br>店契約</button>
+                                        <button onclick="selectDetailStatus('クレーム')" data-status="クレーム" class="status-btn py-2 px-1 bg-white border-2 border-red-300 rounded-lg text-red-700 font-bold text-xs hover:bg-red-100 hover:shadow-md transition-all text-center">クレーム</button>
                                     </div>
                                 </div>
 
-                                <!-- 右側：正規ルート縦フロー -->
-                                <div class="w-3/5 flex flex-col items-center justify-between">
-                                    <!-- 営業進捗 -->
-                                    <div class="w-full bg-blue-50 rounded-xl p-2 flex-1 flex flex-col">
-                                        <div class="flex flex-col items-center flex-1 justify-around">
-                                            <button onclick="selectDetailStatus('新着')" data-status="新着" class="status-btn w-full py-1.5 bg-white border-2 border-blue-300 rounded-lg text-blue-800 font-bold text-sm hover:bg-blue-100 hover:shadow-md transition-all text-center">新着</button>
-                                            <span class="text-blue-400 text-sm">↓</span>
-                                            <button onclick="selectDetailStatus('未アポ')" data-status="未アポ" class="status-btn w-full py-1.5 bg-white border-2 border-pink-300 rounded-lg text-pink-700 font-bold text-sm hover:bg-pink-100 hover:shadow-md transition-all text-center">未アポ</button>
-                                            <span class="text-blue-400 text-sm">↓</span>
-                                            <button onclick="selectDetailStatus('アポ済')" data-status="アポ済" class="status-btn w-full py-1.5 bg-white border-2 border-orange-300 rounded-lg text-orange-800 font-bold text-sm hover:bg-orange-100 hover:shadow-md transition-all text-center">アポ済</button>
-                                            <span class="text-blue-400 text-sm">↓</span>
-                                            <button onclick="selectDetailStatus('現調済')" data-status="現調済" class="status-btn w-full py-1.5 bg-white border-2 border-purple-300 rounded-lg text-purple-800 font-bold text-sm hover:bg-purple-100 hover:shadow-md transition-all text-center">現調済</button>
-                                            <span class="text-blue-400 text-sm">↓</span>
-                                            <button onclick="selectDetailStatus('見積提出済')" data-status="見積提出済" class="status-btn w-full py-1.5 bg-white border-2 border-amber-300 rounded-lg text-amber-800 font-bold text-sm hover:bg-amber-100 hover:shadow-md transition-all text-center">見積提出済</button>
+                                <!-- メインエリア：左右分割 -->
+                                <div class="flex-1 flex flex-row gap-2">
+                                    <!-- 左側：営業進捗 + 入金状況 -->
+                                    <div class="w-1/2 flex flex-col gap-2">
+                                        <!-- 営業進捗 -->
+                                        <div class="bg-blue-50 rounded-xl p-2 flex-1">
+                                            <div class="flex flex-col items-center h-full justify-around">
+                                                <button onclick="selectDetailStatus('新着')" data-status="新着" class="status-btn w-full py-1.5 bg-white border-2 border-blue-300 rounded-lg text-blue-800 font-bold text-sm hover:bg-blue-100 hover:shadow-md transition-all text-center">新着</button>
+                                                <span class="text-blue-400 text-xs">↓</span>
+                                                <button onclick="selectDetailStatus('未アポ')" data-status="未アポ" class="status-btn w-full py-1.5 bg-white border-2 border-pink-300 rounded-lg text-pink-700 font-bold text-sm hover:bg-pink-100 hover:shadow-md transition-all text-center">未アポ</button>
+                                                <span class="text-blue-400 text-xs">↓</span>
+                                                <button onclick="selectDetailStatus('アポ済')" data-status="アポ済" class="status-btn w-full py-1.5 bg-white border-2 border-orange-300 rounded-lg text-orange-800 font-bold text-sm hover:bg-orange-100 hover:shadow-md transition-all text-center">アポ済</button>
+                                                <span class="text-blue-400 text-xs">↓</span>
+                                                <button onclick="selectDetailStatus('現調済')" data-status="現調済" class="status-btn w-full py-1.5 bg-white border-2 border-purple-300 rounded-lg text-purple-800 font-bold text-sm hover:bg-purple-100 hover:shadow-md transition-all text-center">現調済</button>
+                                                <span class="text-blue-400 text-xs">↓</span>
+                                                <button onclick="selectDetailStatus('見積提出済')" data-status="見積提出済" class="status-btn w-full py-1.5 bg-white border-2 border-amber-300 rounded-lg text-amber-800 font-bold text-sm hover:bg-amber-100 hover:shadow-md transition-all text-center">見積提出済</button>
+                                            </div>
+                                        </div>
+                                        <!-- 入金状況 -->
+                                        <div class="bg-emerald-50 rounded-xl p-2">
+                                            <div class="text-center text-emerald-600 font-bold text-xs mb-1">💰 入金状況</div>
+                                            <div class="flex flex-col items-center gap-1">
+                                                <button onclick="selectDetailStatus('入金予定')" data-status="入金予定" class="status-btn w-full py-1.5 bg-white border-2 border-cyan-300 rounded-lg text-cyan-800 font-bold text-sm hover:bg-cyan-100 hover:shadow-md transition-all text-center">入金予定</button>
+                                                <span class="text-emerald-400 text-xs">↓</span>
+                                                <button onclick="selectDetailStatus('入金済')" data-status="入金済" class="status-btn w-full py-1.5 bg-white border-2 border-emerald-400 rounded-lg text-emerald-800 font-bold text-sm hover:bg-emerald-100 hover:shadow-md transition-all text-center">入金済</button>
+                                            </div>
                                         </div>
                                     </div>
-                                    <span class="text-green-500 font-bold">▼</span>
-                                    <!-- 成約・入金 -->
-                                    <div class="w-full bg-green-50 rounded-xl p-2 flex flex-col">
-                                        <div class="flex flex-col items-center justify-around">
-                                            <button onclick="selectDetailStatus('成約')" data-status="成約" class="status-btn w-full py-1.5 bg-white border-2 border-green-300 rounded-lg text-green-800 font-bold text-sm hover:bg-green-100 hover:shadow-md transition-all text-center">成約</button>
-                                            <span class="text-green-400 text-sm">↓</span>
-                                            <button onclick="selectDetailStatus('入金予定')" data-status="入金予定" class="status-btn w-full py-1.5 bg-white border-2 border-cyan-300 rounded-lg text-cyan-800 font-bold text-sm hover:bg-cyan-100 hover:shadow-md transition-all text-center">入金予定</button>
-                                            <span class="text-green-400 text-sm">↓</span>
-                                            <button onclick="selectDetailStatus('入金済')" data-status="入金済" class="status-btn w-full py-1.5 bg-white border-2 border-emerald-300 rounded-lg text-emerald-800 font-bold text-sm hover:bg-emerald-100 hover:shadow-md transition-all text-center">入金済</button>
+
+                                    <!-- 右側：成約 + 工事状況 -->
+                                    <div class="w-1/2 flex flex-col gap-2">
+                                        <!-- 成約 -->
+                                        <div class="bg-green-50 rounded-xl p-2 flex items-center justify-center">
+                                            <button onclick="selectDetailStatus('成約')" data-status="成約" class="status-btn w-full py-2 bg-white border-2 border-green-400 rounded-lg text-green-800 font-bold text-sm hover:bg-green-100 hover:shadow-md transition-all text-center">🎉 成約</button>
+                                        </div>
+                                        <!-- 分岐矢印 -->
+                                        <div class="flex items-center justify-center gap-2 text-green-500 font-bold text-sm">
+                                            <span>↙</span>
+                                            <span class="text-xs text-gray-400">成約後</span>
+                                            <span>↘</span>
+                                        </div>
+                                        <!-- 工事状況 -->
+                                        <div class="bg-orange-50 rounded-xl p-2 flex-1">
+                                            <div class="text-center text-orange-600 font-bold text-xs mb-1">🔧 工事状況</div>
+                                            <div class="flex flex-col items-center h-full justify-around">
+                                                <button onclick="selectDetailStatus('未着工')" data-status="未着工" class="status-btn w-full py-1.5 bg-white border-2 border-orange-300 rounded-lg text-orange-800 font-bold text-sm hover:bg-orange-100 hover:shadow-md transition-all text-center">未着工</button>
+                                                <span class="text-orange-400 text-xs">↓</span>
+                                                <button onclick="selectDetailStatus('施工中')" data-status="施工中" class="status-btn w-full py-1.5 bg-white border-2 border-yellow-400 rounded-lg text-yellow-700 font-bold text-sm hover:bg-yellow-100 hover:shadow-md transition-all text-center">施工中</button>
+                                                <span class="text-orange-400 text-xs">↓</span>
+                                                <button onclick="selectDetailStatus('工事済')" data-status="工事済" class="status-btn w-full py-1.5 bg-white border-2 border-amber-400 rounded-lg text-amber-800 font-bold text-sm hover:bg-amber-100 hover:shadow-md transition-all text-center">工事済</button>
+                                            </div>
                                         </div>
                                     </div>
-                                    <span class="text-orange-500 font-bold">▼</span>
-                                    <!-- 工事進捗 -->
-                                    <div class="w-full bg-orange-50 rounded-xl p-2 flex flex-col">
-                                        <div class="flex flex-col items-center justify-around">
-                                            <button onclick="selectDetailStatus('未着工')" data-status="未着工" class="status-btn w-full py-1.5 bg-white border-2 border-orange-300 rounded-lg text-orange-800 font-bold text-sm hover:bg-orange-100 hover:shadow-md transition-all text-center">未着工</button>
-                                            <span class="text-orange-400 text-sm">↓</span>
-                                            <button onclick="selectDetailStatus('施工中')" data-status="施工中" class="status-btn w-full py-1.5 bg-white border-2 border-yellow-300 rounded-lg text-yellow-700 font-bold text-sm hover:bg-yellow-100 hover:shadow-md transition-all text-center">施工中</button>
-                                            <span class="text-orange-400 text-sm">↓</span>
-                                            <button onclick="selectDetailStatus('完了')" data-status="完了" class="status-btn w-full py-1.5 bg-white border-2 border-teal-300 rounded-lg text-teal-700 font-bold text-sm hover:bg-teal-100 hover:shadow-md transition-all text-center">完了</button>
-                                        </div>
+                                </div>
+
+                                <!-- 完了（入金済+工事済で自動選択） -->
+                                <div class="bg-teal-50 rounded-xl p-2 flex-shrink-0">
+                                    <div class="flex items-center justify-center gap-2 text-teal-500 text-xs mb-1">
+                                        <span>入金済</span>
+                                        <span>+</span>
+                                        <span>工事済</span>
+                                        <span>=</span>
                                     </div>
+                                    <button onclick="selectDetailStatus('完了')" data-status="完了" class="status-btn w-full py-2 bg-white border-2 border-teal-400 rounded-lg text-teal-700 font-bold text-sm hover:bg-teal-100 hover:shadow-md transition-all text-center">✅ 完了</button>
                                 </div>
                             </div>
 
