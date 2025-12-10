@@ -452,6 +452,7 @@ var MerchantContractReport = {
       }
 
       // V2162: 成約データシートにも登録
+      // V2169: 成約データシートに保存（全項目渡す）
       this._saveToContractSheet(ss, {
         cvId,
         merchantId,
@@ -470,7 +471,8 @@ var MerchantContractReport = {
         floors,
         workContent,
         contractFileUrl,
-        newManagementStatus
+        newManagementStatus,
+        reportType // V2169: 追加工事判定用
       });
 
       console.log('[MerchantContractReport] submitContractReport - 成約報告完了:', cvId, '報告種別:', reportType, 'ステータス:', newManagementStatus);
@@ -541,26 +543,58 @@ var MerchantContractReport = {
         }
       }
 
-      // 更新するデータを準備
+      // V2169: 更新するデータを準備（成約データシート全カラム完全対応）
+      // 施工内容を文字列に変換
+      let workContentStr = '';
+      if (data.workContent) {
+        workContentStr = Array.isArray(data.workContent) ? data.workContent.join('、') : data.workContent;
+      }
+
+      // 工事進捗ステータス判定
+      let constructionProgressStatus = '';
+      if (data.constructionStatusParam === 'scheduled') {
+        constructionProgressStatus = '工事予定';
+      } else if (data.constructionScheduleEstimate) {
+        constructionProgressStatus = data.constructionScheduleEstimate;
+      }
+
       const updates = {
+        // 基本情報
         'CV ID': data.cvId,
+        '管理ステータス': data.newManagementStatus || '成約',
+
+        // 成約加盟店情報
         '成約加盟店ID': data.merchantId,
         '成約加盟店名': data.merchantName || '',
         '成約報告日': new Date(),
         '成約金額': data.contractAmount,
-        '管理ステータス': data.newManagementStatus,
+
+        // 施工内容
+        '見積工事内容': workContentStr,
+        '実施工事内容': workContentStr, // 見積時点では同じ
+
+        // 入金関連
+        '入金予定日': data.paymentDueDate || data.paymentSchedule || '',
         '入金確認日': data.paymentConfirmDate || '',
         '入金額': data.paymentAmount || '',
-        '入金予定日': data.paymentDueDate || '',
+
+        // 工事関連
         '工事開始予定日': data.constructionStartDate || '',
-        '工事完了予定日': data.constructionEndDate || '',
-        '契約書URL': data.contractFileUrl || ''
+        '工事完了予定日': data.constructionEndDate || data.constructionScheduleEstimate || '',
+        '工事進捗ステータス': constructionProgressStatus,
+
+        // ファイル
+        '契約書URL': data.contractFileUrl || '',
+
+        // 最終更新
+        '最終更新日時': new Date()
       };
 
-      // 施工内容
-      if (data.workContent) {
-        const workContentStr = Array.isArray(data.workContent) ? data.workContent.join('、') : data.workContent;
-        updates['見積工事内容'] = workContentStr;
+      // 追加工事の場合
+      if (data.reportType === '追加工事報告') {
+        updates['追加工事フラグ'] = true;
+        updates['追加工事内容'] = workContentStr;
+        updates['追加工事金額'] = data.contractAmount;
       }
 
       if (targetRow === -1) {
