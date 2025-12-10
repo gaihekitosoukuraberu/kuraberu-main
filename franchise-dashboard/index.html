@@ -25560,8 +25560,10 @@
                 // 完了を直接選んだ場合は入金済+工事済を自動設定
                 selectedPaymentStatus = '入金済';
                 selectedWorkStatus = '工事済';
+                // 入金・工事・完了の全ボタンをリセットしてから必要なものだけハイライト
                 resetStatusButtons(paymentStatuses);
                 resetStatusButtons(workStatuses);
+                resetStatusButtons(['完了']);
                 highlightStatusButton('入金済');
                 highlightStatusButton('工事済');
                 highlightStatusButton('完了');
