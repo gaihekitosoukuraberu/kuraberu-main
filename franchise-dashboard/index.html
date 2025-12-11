@@ -846,7 +846,7 @@
                                             <button onclick="selectDetailStatus('現調後失注')" data-status="現調後失注" class="status-btn py-2.5 px-2 bg-white border-2 border-gray-400 rounded-lg text-gray-700 font-bold text-sm hover:bg-gray-200 hover:shadow-md transition-all text-center">現調後失注</button>
                                             <button onclick="selectDetailStatus('他社契約済')" data-status="他社契約済" class="status-btn py-2.5 px-2 bg-white border-2 border-gray-300 rounded-lg text-gray-600 font-bold text-sm hover:bg-gray-100 hover:shadow-md transition-all text-center">他社契約済</button>
                                             <button onclick="selectDetailStatus('別加盟店契約済')" data-status="別加盟店契約済" class="status-btn py-2.5 px-2 bg-white border-2 border-indigo-300 rounded-lg text-indigo-700 font-bold text-sm hover:bg-indigo-100 hover:shadow-md transition-all text-center">別加盟店契約</button>
-                                            <button onclick="selectDetailStatus('クレーム')" data-status="クレーム" class="status-btn py-2.5 px-2 bg-white border-2 border-red-300 rounded-lg text-red-700 font-bold text-sm hover:bg-red-100 hover:shadow-md transition-all text-center">クレーム</button>
+                                            <button onclick="selectDetailStatus('顧客クレーム')" data-status="顧客クレーム" class="status-btn py-2.5 px-2 bg-white border-2 border-red-300 rounded-lg text-red-700 font-bold text-sm hover:bg-red-100 hover:shadow-md transition-all text-center">顧客クレーム</button>
                                         </div>
                                     </div>
 
@@ -2519,7 +2519,7 @@
                                             <button id="uf-status-btn-現調後失注" onclick="ufToggleStatusFilter('現調後失注')" class="uf-status-filter-btn px-2 py-2 border-2 border-gray-200 bg-white text-gray-600 rounded-lg hover:border-gray-400 transition-all text-xs font-medium">現調後失注</button>
                                             <button id="uf-status-btn-他社契約済" onclick="ufToggleStatusFilter('他社契約済')" class="uf-status-filter-btn px-2 py-2 border-2 border-gray-200 bg-white text-gray-600 rounded-lg hover:border-gray-400 transition-all text-xs font-medium">他社契約</button>
                                             <button id="uf-status-btn-別加盟店契約済" onclick="ufToggleStatusFilter('別加盟店契約済')" class="uf-status-filter-btn px-2 py-2 border-2 border-gray-200 bg-white text-gray-600 rounded-lg hover:border-gray-400 transition-all text-xs font-medium">別加盟店契約</button>
-                                            <button id="uf-status-btn-クレーム" onclick="ufToggleStatusFilter('クレーム')" class="uf-status-filter-btn px-2 py-2 border-2 border-gray-200 bg-white text-gray-600 rounded-lg hover:border-gray-400 transition-all text-xs font-medium">クレーム</button>
+                                            <button id="uf-status-btn-顧客クレーム" onclick="ufToggleStatusFilter('顧客クレーム')" class="uf-status-filter-btn px-2 py-2 border-2 border-gray-200 bg-white text-gray-600 rounded-lg hover:border-gray-400 transition-all text-xs font-medium">顧客クレーム</button>
                                         </div>
                                     </div>
                                 </div>
@@ -2656,7 +2656,7 @@
                                         <button id="status-btn-現調後失注" onclick="toggleStatusFilter('現調後失注')" class="status-filter-btn px-2 py-1.5 border-2 border-gray-500 bg-gray-200 text-gray-700 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">現調後失注</button>
                                         <button id="status-btn-他社契約済" onclick="toggleStatusFilter('他社契約済')" class="status-filter-btn px-2 py-1.5 border-2 border-gray-400 bg-gray-100 text-gray-600 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">他社契約</button>
                                         <button id="status-btn-別加盟店契約済" onclick="toggleStatusFilter('別加盟店契約済')" class="status-filter-btn px-2 py-1.5 border-2 border-indigo-400 bg-indigo-100 text-indigo-700 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">別加盟店契約</button>
-                                        <button id="status-btn-クレーム" onclick="toggleStatusFilter('クレーム')" class="status-filter-btn px-2 py-1.5 border-2 border-red-400 bg-red-100 text-red-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">クレーム</button>
+                                        <button id="status-btn-顧客クレーム" onclick="toggleStatusFilter('顧客クレーム')" class="status-filter-btn px-2 py-1.5 border-2 border-red-400 bg-red-100 text-red-800 rounded-lg shadow-sm hover:shadow-md transition-all text-xs font-medium">顧客クレーム</button>
                                     </div>
                                 </div>
                             </div>
@@ -15215,7 +15215,8 @@
 
             // merchantCasesDataからタスクを抽出
             // V2197: 終了系ステータス（キャンセル/辞退/失注）はリマインダーから除外
-            const ENDED_STATUSES_FOR_REMINDER = ['現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', 'クレーム', '辞退', '入金済'];
+            // V2207: クレーム→顧客クレームに変更
+            const ENDED_STATUSES_FOR_REMINDER = ['現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', '顧客クレーム', 'クレーム', '辞退', '入金済'];
             const cases = (merchantCasesData || []).filter(c => !ENDED_STATUSES_FOR_REMINDER.includes(c.detailStatus || ''));
             const overdueTasks = []; // V2142: 過去の未対応タスク
             const urgentTasks = []; // V2137: 今すぐ対応（時間が来た/過ぎたタスク）
@@ -15666,7 +15667,8 @@
             '現調後失注': { bg: 'bg-gray-200', text: 'text-gray-700' },
             '他社契約済': { bg: 'bg-gray-100', text: 'text-gray-600' },
             '別加盟店契約済': { bg: 'bg-indigo-100', text: 'text-indigo-700' },
-            'クレーム': { bg: 'bg-red-100', text: 'text-red-800' }
+            '顧客クレーム': { bg: 'bg-red-100', text: 'text-red-800' },
+            'クレーム': { bg: 'bg-red-100', text: 'text-red-800' } // 後方互換
         };
 
         // タスクカードのHTML生成（電話/SMS/案件リンク/スヌーズボタン付き）
@@ -20041,7 +20043,8 @@
             '現調後失注': { bg: 'bg-gray-200', text: 'text-gray-700', border: 'border-gray-400' },
             '他社契約済': { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-300' },
             '別加盟店契約済': { bg: 'bg-indigo-100', text: 'text-indigo-700', border: 'border-indigo-300' },
-            'クレーム': { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-300' },
+            '顧客クレーム': { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-300' },
+            'クレーム': { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-300' }, // 後方互換
             'キャンセル': { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-300' },
             // デフォルト（新着扱い）
             '': { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-300' }
@@ -20209,7 +20212,8 @@
             '現調後失注': { bg: 'bg-gray-200', text: 'text-gray-700', border: 'border-gray-400' },
             '他社契約済': { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-300' },
             '別加盟店契約済': { bg: 'bg-indigo-100', text: 'text-indigo-700', border: 'border-indigo-300' },
-            'クレーム': { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-300' }
+            '顧客クレーム': { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-300' },
+            'クレーム': { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-300' } // 後方互換
         };
 
         function ufUpdateStatusButtonStates() {
@@ -20551,7 +20555,8 @@
         }
 
         // V2197: 終了系ステータス（追客終了BOX行き）
-        const ENDED_STATUSES = ['現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', 'クレーム', '辞退'];
+        // V2207: クレーム→顧客クレームに変更
+        const ENDED_STATUSES = ['現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', '顧客クレーム', 'クレーム', '辞退'];
         let showEndedCases = false; // デフォルトは非表示
 
         // 統合フィルターに合致するかチェック
@@ -20628,14 +20633,14 @@
         // 10. 別加盟店契約済: 他の加盟店で契約
         // 11. 入金予定: 契約金の入金待ち
         // 12. 入金済: 入金確認完了
-        // 13. クレーム: 問題発生または失注
+        // V2207: 16. 顧客クレーム: 問題発生または失注
         function updateQuickFilterStats() {
             let pending = 0;
             let contracted = 0;
             let newCount = 0;
 
-            // V2203: 終了系ステータス（全案件からは除外）
-            const endedStatuses = ['現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', 'クレーム'];
+            // V2207: 終了系ステータス（全案件からは除外、クレーム→顧客クレームに変更）
+            const endedStatuses = ['現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', '顧客クレーム'];
             let activeTotal = 0; // 終了系を除いた全案件
             let totalWithEnded = 0; // 終了系を含めた全案件
 
@@ -20767,11 +20772,11 @@
         // 10. 別加盟店契約済: 他の加盟店で契約
         // 11. 入金予定: 契約金の入金待ち
         // 12. 入金済: 入金確認完了
-        // 13. クレーム: 問題発生または失注
+        // V2207: 16. 顧客クレーム: 問題発生または失注
         function matchesFilter(caseItem) {
             const status = caseItem.detailStatus || '';
-            // V2203: 終了系ステータス
-            const endedStatuses = ['現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', 'クレーム'];
+            // V2207: 終了系ステータス（クレーム→顧客クレームに変更）
+            const endedStatuses = ['現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', '顧客クレーム'];
 
             // V2203: 全案件 = 終了系を除外（終了ボタンON時は全部表示）
             if (currentFilter === 'all') {
@@ -21109,7 +21114,8 @@
             });
 
             // ソート順を適用
-            const STATUS_ORDER = ['未対応', '架電済/未アポ', 'アポ済', '現調済', '見積提出済', '入金予定', '成約', '入金済', '現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', 'クレーム'];
+            // V2207: クレーム→顧客クレームに変更、新ステータス定義に合わせて更新
+            const STATUS_ORDER = ['新着', '未アポ', 'アポ済', '現調済', '見積提出済', '入金予定・未着工', '入金予定・施工中', '入金予定・工事済', '入金済・未着工', '入金済・施工中', '完了', '現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', '顧客クレーム'];
             filteredCases.sort((a, b) => {
                 switch (currentSortOrder) {
                     case 'date-desc':
@@ -22075,7 +22081,8 @@
                     return { dot: '⚫', bg: 'bg-gray-100', text: 'text-gray-600', dotColor: 'bg-gray-400' };
                 case '別加盟店契約済':
                     return { dot: '🟤', bg: 'bg-indigo-100', text: 'text-indigo-700', dotColor: 'bg-indigo-400' }; // indigo→茶で区別
-                case 'クレーム':
+                case '顧客クレーム':
+                case 'クレーム': // 後方互換
                     return { dot: '🔴', bg: 'bg-red-100', text: 'text-red-800', dotColor: 'bg-red-400' };
                 default:
                     return { dot: '⚪', bg: 'bg-gray-100', text: 'text-gray-700', dotColor: 'bg-gray-400' };
@@ -22881,7 +22888,8 @@
             '現調後失注': { bg: 'bg-gray-300', border: 'border-gray-600', text: 'text-gray-800' },
             '他社契約済': { bg: 'bg-gray-200', border: 'border-gray-500', text: 'text-gray-700' },
             '別加盟店契約済': { bg: 'bg-indigo-100', border: 'border-indigo-400', text: 'text-indigo-700' },
-            'クレーム': { bg: 'bg-red-100', border: 'border-red-400', text: 'text-red-800' }
+            '顧客クレーム': { bg: 'bg-red-100', border: 'border-red-400', text: 'text-red-800' },
+            'クレーム': { bg: 'bg-red-100', border: 'border-red-400', text: 'text-red-800' } // 後方互換
         };
 
         // ===== V2089: SMS/メッセージ送信機能 =====
@@ -25071,7 +25079,8 @@
             '現調後失注': 'bg-gray-200',
             '他社契約済': 'bg-gray-100',
             '別加盟店契約済': 'bg-indigo-100',
-            'クレーム': 'bg-red-100'
+            '顧客クレーム': 'bg-red-100',
+            'クレーム': 'bg-red-100' // 後方互換
         };
 
         // V2168: 入金系・工事系のステータス定義
@@ -25405,7 +25414,8 @@
             '現調後失注': '#e5e7eb',         // gray-200
             '他社契約済': '#f3f4f6',         // gray-100
             '別加盟店契約済': '#e0e7ff',     // indigo-100
-            'クレーム': '#fee2e2'            // red-100
+            '顧客クレーム': '#fee2e2',     // red-100
+            'クレーム': '#fee2e2'            // red-100 (後方互換)
         };
         function highlightStatusButton(status) {
             const selectedBtn = document.querySelector(`#caseStatusModal [data-status="${status}"]`);
@@ -25452,8 +25462,8 @@
                 return;
             }
 
-            // V2108: キャンセル系ステータスの場合 → 申請確認モーダルへ
-            const cancelStatuses = ['現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', 'クレーム'];
+            // V2207: キャンセル系ステータスの場合 → 申請確認モーダルへ（クレーム→顧客クレームに変更）
+            const cancelStatuses = ['現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', '顧客クレーム'];
             if (cancelStatuses.includes(selectedStatusValue)) {
                 const cancelStatus = selectedStatusValue;
                 closeStatusModal();
@@ -25587,12 +25597,12 @@
                 // 完了なら工事完了確認モーダル
                 openConstructionCompleteModal(cvId);
             }
-            // V2094: キャンセル系ステータス
+            // V2207: キャンセル系ステータス（クレーム→顧客クレームに変更）
             else if (newStatus === '現調前キャンセル' || newStatus === '現調後失注' || newStatus === '他社契約済' || newStatus === '別加盟店契約済') {
                 // キャンセル系なら理由入力モーダル
                 openCancelReasonFromStatus(cvId, newStatus);
-            } else if (newStatus === 'クレーム') {
-                // クレームならクレーム報告モーダル
+            } else if (newStatus === '顧客クレーム' || newStatus === 'クレーム') {
+                // 顧客クレームならクレーム報告モーダル
                 openClaimReportModal(cvId);
             }
         }
@@ -29632,7 +29642,8 @@
                 '他社契約済': 'bg-gray-100 text-gray-600',
                 '別加盟店契約済': 'bg-indigo-100 text-indigo-700',
                 'キャンセル': 'bg-gray-100 text-gray-600',
-                'クレーム': 'bg-red-100 text-red-800'
+                '顧客クレーム': 'bg-red-100 text-red-800',
+                'クレーム': 'bg-red-100 text-red-800' // 後方互換
             };
             return statusColors[status] || 'bg-blue-100 text-blue-800';
         }

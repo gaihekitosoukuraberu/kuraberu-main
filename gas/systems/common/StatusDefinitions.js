@@ -1,45 +1,63 @@
 /**
  * ====================================
- * ステータス定義 一元管理
+ * V2207: ステータス定義 一元管理（全面改定）
  * ====================================
  *
- * 【機能】
- * - 配信管理シートの詳細ステータス定義
- * - 配信ステータス定義
- * - ステータスカテゴリ分類（アクティブ、終了、未対応）
- * - 各システムで再利用可能
+ * 【ステータス体系】
+ *
+ * 1. 管理ステータス（ユーザー登録シート・CV単位）
+ *    - 配信前: アドミンが管理（新規→配信済）
+ *    - 配信後: 加盟店の詳細ステータスから最も進んだものを自動反映
+ *
+ * 2. 詳細ステータス（配信管理シート・加盟店×CV単位）
+ *    - 加盟店が各案件をどう追客しているかを表す
+ *    - 成約後は入金×工事の組み合わせステータス
  *
  * 【利用箇所】
  * - setup-cv-delivery-sheet.js（データバリデーション）
- * - CVDeliveryChecker.js（他社追客判定）
- * - フロントエンド（ステータス選択UI）
+ * - MerchantContractReport.js（ステータス更新）
+ * - フランチャイズダッシュボード（ステータス選択UI）
+ * - アドミンダッシュボード
  */
 
 var StatusDefinitions = {
-  /**
-   * V2003: 詳細ステータス（配信管理シート用・13種類）
-   * 加盟店が各案件をどう追客しているかを表す
-   */
+
+  // =====================================================
+  // 配信前ステータス（ユーザー登録シート・アドミン管理）
+  // =====================================================
+  preDeliveryStatus: {
+    NEW: { value: '新規', order: 1, description: '新規流入案件' },
+    ABSENT: { value: '不在', order: 2, description: '電話に出ない' },
+    RECALL: { value: '再架電', order: 3, description: '再度電話予定' },
+    PROSPECT: { value: '見込み', order: 4, description: '配信候補として有望' },
+    LOST: { value: 'ロスト', order: 5, description: '失注' },
+    DELIVERING: { value: '配信中', order: 6, description: '加盟店選定・配信作業中' },
+    DELIVERED: { value: '配信済', order: 7, description: '加盟店への転送完了' },
+    OTHER_COMPANY: { value: '他社契約済', order: 8, description: '他社で契約決定' },
+    INVALID: { value: '無効', order: 9, description: 'BOTや重複等の無効案件' },
+    CLAIM: { value: 'クレーム', order: 10, description: '顧客からのクレーム案件（運営へ）' }
+  },
+
+  // =====================================================
+  // 詳細ステータス（配信管理シート・加盟店×CV単位）
+  // 配信後のユーザー登録シート管理ステータスもこれと同一
+  // =====================================================
   merchantStatus: {
-    // === 1. 未対応 ===
-    PENDING: {
-      value: '未対応',
-      category: 'pending',
-      isActive: false,
+    // --- 追客中 ---
+    NEW: {
+      value: '新着',
+      category: 'active',
+      isActive: true,
       order: 1,
       description: '配信後未着手'
     },
-
-    // === 2. 架電済/未アポ ===
-    CALLED_NO_APPOINTMENT: {
-      value: '架電済/未アポ',
+    NO_APPOINTMENT: {
+      value: '未アポ',
       category: 'active',
       isActive: true,
       order: 2,
       description: '電話したがアポ取れず'
     },
-
-    // === 3. アポ済 ===
     APPOINTMENT_SET: {
       value: 'アポ済',
       category: 'active',
@@ -47,8 +65,6 @@ var StatusDefinitions = {
       order: 3,
       description: '現調日時確定'
     },
-
-    // === 4. 現調済 ===
     SITE_SURVEY_DONE: {
       value: '現調済',
       category: 'active',
@@ -56,114 +72,119 @@ var StatusDefinitions = {
       order: 4,
       description: '現地調査完了'
     },
-
-    // === 5. 現調前キャンセル ===
-    PRE_SURVEY_CANCEL: {
-      value: '現調前キャンセル',
-      category: 'closed_failed',
-      isActive: false,
-      order: 5,
-      description: '現調前に顧客都合でキャンセル'
-    },
-
-    // === 6. 現調後失注 ===
-    POST_SURVEY_LOST: {
-      value: '現調後失注',
-      category: 'closed_failed',
-      isActive: false,
-      order: 6,
-      description: '現調後断られた'
-    },
-
-    // === 7. 見積提出済 ===
     QUOTE_SUBMITTED: {
       value: '見積提出済',
       category: 'active',
       isActive: true,
-      order: 7,
+      order: 5,
       description: '見積書を顧客に提出'
     },
 
-    // === 8. 成約 ===
-    CONTRACT: {
-      value: '成約',
-      category: 'closed_success',
+    // --- 成約済（入金×工事の組み合わせ）---
+    PAYMENT_PENDING_NOT_STARTED: {
+      value: '入金予定・未着工',
+      category: 'contracted',
       isActive: false,
-      order: 8,
-      description: '自社で契約締結'
+      order: 10,
+      description: '成約→入金待ち・工事未開始'
+    },
+    PAYMENT_PENDING_IN_PROGRESS: {
+      value: '入金予定・施工中',
+      category: 'contracted',
+      isActive: false,
+      order: 11,
+      description: '成約→入金待ち・工事中'
+    },
+    PAYMENT_PENDING_WORK_DONE: {
+      value: '入金予定・工事済',
+      category: 'contracted',
+      isActive: false,
+      order: 12,
+      description: '成約→入金待ち・工事完了'
+    },
+    PAYMENT_RECEIVED_NOT_STARTED: {
+      value: '入金済・未着工',
+      category: 'contracted',
+      isActive: false,
+      order: 13,
+      description: '成約→入金済・工事未開始'
+    },
+    PAYMENT_RECEIVED_IN_PROGRESS: {
+      value: '入金済・施工中',
+      category: 'contracted',
+      isActive: false,
+      order: 14,
+      description: '成約→入金済・工事中'
+    },
+    COMPLETED: {
+      value: '完了',
+      category: 'contracted',
+      isActive: false,
+      order: 20,
+      description: '入金済・工事済（全処理完了）'
     },
 
-    // === 9. 他社契約済 ===
+    // --- 終了（失注・キャンセル）---
+    PRE_SURVEY_CANCEL: {
+      value: '現調前キャンセル',
+      category: 'closed_failed',
+      isActive: false,
+      order: 30,
+      description: '現調前に顧客都合でキャンセル'
+    },
+    POST_SURVEY_LOST: {
+      value: '現調後失注',
+      category: 'closed_failed',
+      isActive: false,
+      order: 31,
+      description: '現調後断られた'
+    },
     OTHER_COMPANY_CONTRACT: {
       value: '他社契約済',
       category: 'closed_failed',
       isActive: false,
-      order: 9,
+      order: 32,
       description: '他の一般業者で契約'
     },
-
-    // === 10. 別加盟店契約済 ===
     OTHER_FRANCHISE_CONTRACT: {
       value: '別加盟店契約済',
       category: 'closed_failed',
       isActive: false,
-      order: 10,
+      order: 33,
       description: '他の加盟店で契約'
     },
-
-    // === 11. 入金予定 ===
-    PAYMENT_PENDING: {
-      value: '入金予定',
-      category: 'closed_success',
-      isActive: false,
-      order: 11,
-      description: '契約金の入金待ち'
-    },
-
-    // === 12. 入金済 ===
-    PAYMENT_RECEIVED: {
-      value: '入金済',
-      category: 'closed_success',
-      isActive: false,
-      order: 12,
-      description: '入金確認完了'
-    },
-
-    // === 13. クレーム or 失注 ===
-    CLAIM_OR_LOST: {
-      value: 'クレーム or 失注',
+    CUSTOMER_CLAIM: {
+      value: '顧客クレーム',
       category: 'closed_failed',
       isActive: false,
-      order: 13,
-      description: '問題発生または失注'
+      order: 34,
+      description: '顧客からのクレーム・問題発生'
     }
   },
 
-  /**
-   * 配信ステータス（大分類）
-   */
+  // =====================================================
+  // 配信ステータス（大分類・配信管理シート用）
+  // =====================================================
   deliveryStatus: {
-    DELIVERED: {
-      value: '配信済み',
-      description: '加盟店に配信済み（追客中）'
-    },
-    CONTRACT: {
-      value: '成約',
-      description: '成約完了'
-    },
-    LOST: {
-      value: '失注',
-      description: '失注（他社成約含む）'
-    },
-    CANCELLED: {
-      value: 'キャンセル承認済み',
-      description: 'キャンセル申請が承認された'
-    }
+    DELIVERED: { value: '配信済み', description: '加盟店に配信済み（追客中）' },
+    CONTRACT: { value: '成約', description: '成約完了' },
+    LOST: { value: '失注', description: '失注（他社成約含む）' },
+    CANCELLED: { value: 'キャンセル承認済み', description: 'キャンセル申請が承認された' }
+  },
+
+  // =====================================================
+  // ヘルパー関数
+  // =====================================================
+
+  /**
+   * 配信前ステータスのリストを返す
+   */
+  getPreDeliveryStatuses: function() {
+    return Object.values(this.preDeliveryStatus).map(s => s.value);
   },
 
   /**
    * アクティブな追客ステータスのリストを返す
-   * @return {Array<String>}
    */
   getActiveStatuses: function() {
     return Object.values(this.merchantStatus)
@@ -172,28 +193,16 @@ var StatusDefinitions = {
   },
 
   /**
-   * 終了ステータスのリストを返す（成功+失敗）
-   * @return {Array<String>}
+   * 成約済ステータスのリストを返す
    */
-  getClosedStatuses: function() {
+  getContractedStatuses: function() {
     return Object.values(this.merchantStatus)
-      .filter(s => s.category === 'closed_success' || s.category === 'closed_failed')
+      .filter(s => s.category === 'contracted')
       .map(s => s.value);
   },
 
   /**
-   * 成功終了ステータスのリストを返す
-   * @return {Array<String>}
-   */
-  getClosedSuccessStatuses: function() {
-    return Object.values(this.merchantStatus)
-      .filter(s => s.category === 'closed_success')
-      .map(s => s.value);
-  },
-
-  /**
-   * 失敗終了ステータスのリストを返す
-   * @return {Array<String>}
+   * 終了ステータスのリストを返す（失注・キャンセル系）
    */
   getClosedFailedStatuses: function() {
     return Object.values(this.merchantStatus)
@@ -202,26 +211,14 @@ var StatusDefinitions = {
   },
 
   /**
-   * 未対応ステータスのリストを返す
-   * @return {Array<String>}
-   */
-  getPendingStatuses: function() {
-    return Object.values(this.merchantStatus)
-      .filter(s => s.category === 'pending')
-      .map(s => s.value);
-  },
-
-  /**
    * 全ての詳細ステータスのリストを返す（データバリデーション用）
-   * @return {Array<String>}
    */
   getAllMerchantStatuses: function() {
     return Object.values(this.merchantStatus).map(s => s.value);
   },
 
   /**
-   * 全ての配信ステータスのリストを返す（データバリデーション用）
-   * @return {Array<String>}
+   * 全ての配信ステータスのリストを返す
    */
   getAllDeliveryStatuses: function() {
     return Object.values(this.deliveryStatus).map(s => s.value);
@@ -229,19 +226,41 @@ var StatusDefinitions = {
 
   /**
    * ステータスがアクティブな追客かどうか判定
-   * @param {String} status - 詳細ステータス
-   * @return {Boolean}
    */
   isActiveStatus: function(status) {
     return this.getActiveStatuses().includes(status);
   },
 
   /**
+   * ステータスが成約済かどうか判定
+   */
+  isContractedStatus: function(status) {
+    return this.getContractedStatuses().includes(status);
+  },
+
+  /**
    * ステータスが終了状態かどうか判定
-   * @param {String} status - 詳細ステータス
-   * @return {Boolean}
    */
   isClosedStatus: function(status) {
-    return this.getClosedStatuses().includes(status);
+    return this.getClosedFailedStatuses().includes(status);
+  },
+
+  /**
+   * ステータスの優先順位を取得（同期用）
+   */
+  getStatusOrder: function(status) {
+    // 詳細ステータスから検索
+    for (const key in this.merchantStatus) {
+      if (this.merchantStatus[key].value === status) {
+        return this.merchantStatus[key].order;
+      }
+    }
+    // 配信前ステータスから検索
+    for (const key in this.preDeliveryStatus) {
+      if (this.preDeliveryStatus[key].value === status) {
+        return this.preDeliveryStatus[key].order;
+      }
+    }
+    return 0;
   }
 };
