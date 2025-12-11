@@ -2569,25 +2569,11 @@ window.addEventListener('beforeunload', function(e) {
                         <p id="cancelFlowSelectedStatus" class="text-sm text-center text-purple-600 font-bold mt-2 hidden">選択中: ---</p>
                     </div>
 
-                    <!-- 加盟店個別設定 -->
+                    <!-- 配信済み加盟店への処理 -->
                     <div>
-                        <p class="text-xs font-bold text-gray-500 mb-2">🏢 加盟店への処理 <span class="text-gray-400">（個別設定可）</span></p>
-                        <div class="flex gap-2 mb-2">
-                            <button onclick="setCancelFlowAll('notify', true)" class="flex-1 px-2 py-1 text-xs border rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600">全員に通知</button>
-                            <button onclick="setCancelFlowAll('refund', true)" class="flex-1 px-2 py-1 text-xs border rounded-lg bg-green-50 hover:bg-green-100 text-green-600">全員請求取消</button>
-                            <button onclick="setCancelFlowAll('refund', false)" class="flex-1 px-2 py-1 text-xs border rounded-lg bg-orange-50 hover:bg-orange-100 text-orange-600">全員請求維持</button>
-                        </div>
-                        <div id="cancelFlowFranchiseList" class="space-y-2 max-h-48 overflow-y-auto">
+                        <p class="text-xs font-bold text-gray-500 mb-2">🏢 配信済み加盟店への処理</p>
+                        <div id="cancelFlowFranchiseList" class="space-y-2 max-h-64 overflow-y-auto">
                             <!-- 動的生成 -->
-                        </div>
-                    </div>
-
-                    <!-- テンプレート選択 -->
-                    <div>
-                        <p class="text-xs font-bold text-gray-500 mb-2">📝 テンプレート:</p>
-                        <div class="flex gap-2 mb-2">
-                            <button onclick="setCancelFlowTemplate('cancel')" class="flex-1 px-2 py-1.5 text-xs border-2 rounded-lg bg-gray-50 hover:bg-gray-100 font-medium">キャンセル通知</button>
-                            <button onclick="setCancelFlowTemplate('contract')" class="flex-1 px-2 py-1.5 text-xs border-2 rounded-lg bg-green-50 hover:bg-green-100 font-medium text-green-700">他社成約通知</button>
                         </div>
                     </div>
 
@@ -8519,14 +8505,12 @@ window.addEventListener('beforeunload', function(e) {
             // 加盟店リスト生成
             renderCancelFlowFranchiseList();
 
-            // デフォルトメッセージ
+            // デフォルトメッセージ（※請求取消チェック時は自動で費用免除文が追記される）
             const customerName = caseData.name || caseData.customerName || 'お客様';
             document.getElementById('cancelFlowMessage').value = `いつもお世話になっております。
 外壁塗装くらべる運営事務局です。
 
 ご紹介済みの「${customerName}」様の案件につきまして、お客様のご都合によりキャンセルとなりましたのでご連絡申し上げます。
-
-本案件につきましては、紹介料等の費用は一切発生いたしませんのでご安心ください。
 
 何卒よろしくお願い申し上げます。`;
 
@@ -8568,59 +8552,25 @@ window.addEventListener('beforeunload', function(e) {
                 const within48h = isWithin48h(f.deliveryDate);
                 cancelFlowSettings[f.franchiseId] = { notify: true, refund: within48h };
 
-                return `<div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg border">
-                    <div class="flex items-center gap-2">
-                        <span class="text-sm font-medium">${f.franchiseName || f.franchiseId}</span>
-                        ${within48h ? '<span class="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded">48h以内</span>' : '<span class="text-[10px] px-1.5 py-0.5 bg-gray-200 text-gray-600 rounded">48h超</span>'}
+                return `<div class="p-3 bg-white border-2 rounded-xl shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-bold text-gray-800">${f.franchiseName || f.franchiseId}</span>
+                        ${within48h
+                            ? '<span class="text-[10px] px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">48h以内</span>'
+                            : '<span class="text-[10px] px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full font-medium">48h超過</span>'}
                     </div>
-                    <div class="flex items-center gap-3">
-                        <label class="flex items-center gap-1 text-xs">
-                            <input type="checkbox" ${cancelFlowSettings[f.franchiseId].notify ? 'checked' : ''} onchange="cancelFlowSettings['${f.franchiseId}'].notify = this.checked" class="rounded text-blue-500">
-                            通知
+                    <div class="flex items-center gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" checked onchange="cancelFlowSettings['${f.franchiseId}'].notify = this.checked" class="w-4 h-4 rounded text-blue-500 focus:ring-blue-400">
+                            <span class="text-sm text-gray-700">📧 通知送信</span>
                         </label>
-                        <label class="flex items-center gap-1 text-xs">
-                            <input type="checkbox" ${cancelFlowSettings[f.franchiseId].refund ? 'checked' : ''} onchange="cancelFlowSettings['${f.franchiseId}'].refund = this.checked" class="rounded text-green-500">
-                            請求取消
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" ${within48h ? 'checked' : ''} onchange="cancelFlowSettings['${f.franchiseId}'].refund = this.checked" class="w-4 h-4 rounded text-green-500 focus:ring-green-400">
+                            <span class="text-sm text-gray-700">💰 請求取消</span>
                         </label>
                     </div>
                 </div>`;
             }).join('');
-        }
-
-        // 一括設定ヘルパー
-        function setCancelFlowAll(field, value) {
-            for (const franchiseId in cancelFlowSettings) {
-                cancelFlowSettings[franchiseId][field] = value;
-            }
-            renderCancelFlowFranchiseList();
-            showToast(`全加盟店の${field === 'notify' ? '通知' : '請求取消'}を${value ? 'ON' : 'OFF'}にしました`, 'info');
-        }
-
-        // テンプレート設定
-        function setCancelFlowTemplate(type) {
-            const caseData = casesData[cancelFlowCaseId];
-            const customerName = caseData?.name || caseData?.customerName || 'お客様';
-
-            if (type === 'cancel') {
-                document.getElementById('cancelFlowMessage').value = `いつもお世話になっております。
-外壁塗装くらべる運営事務局です。
-
-ご紹介済みの「${customerName}」様の案件につきまして、お客様のご都合によりキャンセルとなりましたのでご連絡申し上げます。
-
-本案件につきましては、紹介料等の費用は一切発生いたしませんのでご安心ください。
-
-何卒よろしくお願い申し上げます。`;
-            } else if (type === 'contract') {
-                document.getElementById('cancelFlowMessage').value = `いつもお世話になっております。
-外壁塗装くらべる運営事務局です。
-
-ご紹介済みの「${customerName}」様の案件につきまして、他の加盟店様にてご成約となりましたのでご連絡申し上げます。
-
-本案件につきましては、紹介料等の費用は一切発生いたしませんのでご安心ください。
-
-何卒よろしくお願い申し上げます。`;
-            }
-            showToast(`${type === 'cancel' ? 'キャンセル' : '他社成約'}テンプレートを適用しました`, 'info');
         }
 
         async function executeCancelFlow() {

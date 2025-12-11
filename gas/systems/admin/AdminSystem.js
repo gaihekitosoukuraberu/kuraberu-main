@@ -4133,23 +4133,14 @@ info@gaihekikuraberu.com
         if (setting.notify && message) {
           let customMessage = message;
 
-          // 返金の場合
+          // V2227: 請求取消の場合のみ「費用は一切発生しません」を追記
           if (setting.refund) {
-            if (!customMessage.includes('費用は一切発生いたしません') && !customMessage.includes('返金')) {
-              customMessage = customMessage.replace(
-                '外壁塗装くらべる運営事務局',
-                '※本案件につきましては、紹介料等の費用は一切発生いたしません。\n\n外壁塗装くらべる運営事務局'
-              );
-            }
-          } else {
-            // 請求維持の場合
-            if (customMessage.includes('費用は一切発生いたしません')) {
-              customMessage = customMessage.replace(
-                '紹介料等の費用は一切発生いたしませんのでご安心ください',
-                '規定に基づき紹介料が発生いたしますのでご了承ください'
-              );
+            // メッセージ末尾に追記（既に含まれていない場合のみ）
+            if (!customMessage.includes('費用は一切発生いたしません')) {
+              customMessage = customMessage.trim() + '\n\n本案件につきましては、紹介料等の費用は一切発生いたしませんのでご安心ください。';
             }
           }
+          // 請求維持の場合は何も追加しない
 
           // メール送信
           if (info && info.email) {
