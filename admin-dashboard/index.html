@@ -8426,8 +8426,8 @@ window.addEventListener('beforeunload', function(e) {
             if (transferCount > 0) {
                 // 配信済み案件は全てcancelStatusModal（配信後ステータス選択）へ
                 cancelFlowCaseId = caseId;
-                document.getElementById('cancelStatusTargetName').textContent = `${caseData.name || caseData.customerName || '---'} 様`;
-                document.getElementById('cancelStatusModal').classList.remove('hidden');
+                // V2228: 配信済み加盟店を先に取得してからモーダル表示
+                loadDeliveredFranchisesAndShowModal(caseId, caseData);
                 return;
             }
 
@@ -8466,6 +8466,34 @@ window.addEventListener('beforeunload', function(e) {
             document.getElementById('cancelConfirmModal').classList.add('hidden');
         }
 
+        // V2228: 配信済み加盟店を取得してからモーダルを表示
+        async function loadDeliveredFranchisesAndShowModal(caseId, caseData) {
+            cancelFlowFranchises = [];
+
+            // APIから取得
+            try {
+                const result = await window.apiClient.postRequest('admin_getDeliveredFranchises', { cvId: caseId });
+                console.log('[loadDeliveredFranchises] API結果:', result);
+                if (result.deliveredFranchises && result.deliveredFranchises.length > 0) {
+                    cancelFlowFranchises = result.deliveredFranchises;
+                }
+            } catch (e) {
+                console.error('[loadDeliveredFranchises] API取得エラー:', e);
+            }
+
+            // APIから取れなければBusinessSelectionHandlerから取得
+            if (cancelFlowFranchises.length === 0 && window.BusinessSelectionHandler?.deliveredFranchises?.length > 0) {
+                console.log('[loadDeliveredFranchises] BusinessSelectionHandlerから取得');
+                cancelFlowFranchises = window.BusinessSelectionHandler.deliveredFranchises;
+            }
+
+            console.log('[loadDeliveredFranchises] 結果:', cancelFlowFranchises.length, '件');
+
+            document.getElementById('cancelStatusTargetName').textContent = `${caseData.name || caseData.customerName || '---'} 様`;
+            document.getElementById('cancelStatusDeliveryInfo').textContent = `⚠️ ${cancelFlowFranchises.length}社に配信済み`;
+            document.getElementById('cancelStatusModal').classList.remove('hidden');
+        }
+
         // 確認後、キャンセル or 成約 選択モーダルを表示
         async function proceedWithCancelFlow() {
             closeCancelConfirmModal();
@@ -8473,13 +8501,37 @@ window.addEventListener('beforeunload', function(e) {
             if (!caseData) return;
 
             // 配信済み加盟店を取得
+            cancelFlowFranchises = [];
+
+            // 1. まずAPIから取得を試みる
             try {
                 const result = await window.apiClient.postRequest('admin_getDeliveredFranchises', { cvId: cancelFlowCaseId });
-                cancelFlowFranchises = result.deliveredFranchises || [];
+                console.log('[proceedWithCancelFlow] API結果:', result);
+                if (result.deliveredFranchises && result.deliveredFranchises.length > 0) {
+                    cancelFlowFranchises = result.deliveredFranchises;
+                }
             } catch (e) {
-                console.error('[proceedWithCancelFlow] 配信先取得エラー:', e);
-                cancelFlowFranchises = [];
+                console.error('[proceedWithCancelFlow] API取得エラー:', e);
             }
+
+            // 2. APIから取れなければBusinessSelectionHandlerから取得
+            if (cancelFlowFranchises.length === 0 && window.BusinessSelectionHandler?.deliveredFranchises?.length > 0) {
+                console.log('[proceedWithCancelFlow] BusinessSelectionHandlerから取得');
+                cancelFlowFranchises = window.BusinessSelectionHandler.deliveredFranchises;
+            }
+
+            // 3. それでもなければ配信詳細モーダル用APIを使う（openDeliveryDetailModalと同じ）
+            if (cancelFlowFranchises.length === 0) {
+                try {
+                    const detailResult = await window.apiClient.postRequest('admin_getDeliveredFranchises', { cvId: cancelFlowCaseId });
+                    console.log('[proceedWithCancelFlow] 配信詳細API結果:', detailResult);
+                    cancelFlowFranchises = detailResult.deliveredFranchises || detailResult.franchises || [];
+                } catch (e) {
+                    console.error('[proceedWithCancelFlow] 配信詳細API取得エラー:', e);
+                }
+            }
+
+            console.log('[proceedWithCancelFlow] 最終結果:', cancelFlowFranchises.length, '件');
 
             document.getElementById('cancelStatusTargetName').textContent = `${caseData.name || caseData.customerName || '---'} 様`;
             document.getElementById('cancelStatusDeliveryInfo').textContent = `⚠️ ${cancelFlowFranchises.length}社に配信済み`;
@@ -10077,8 +10129,8 @@ window.addEventListener('beforeunload', function(e) {
             if (transferCount > 0) {
                 // V2223: 配信済み案件はcancelStatusModal（配信後ステータス選択）へ
                 cancelFlowCaseId = currentCaseId;
-                document.getElementById('cancelStatusTargetName').textContent = `${caseData.name || caseData.customerName || '---'} 様`;
-                document.getElementById('cancelStatusModal').classList.remove('hidden');
+                // V2228: 配信済み加盟店を先に取得してからモーダル表示
+                loadDeliveredFranchisesAndShowModal(currentCaseId, caseData);
             } else {
                 // 未配信 → 配信前ステータスモーダル（従来）
                 const modal = document.getElementById('statusModal');
@@ -10098,8 +10150,8 @@ window.addEventListener('beforeunload', function(e) {
             const transferCount = caseData.transferCount || 0;
             if (transferCount > 0) {
                 cancelFlowCaseId = currentCaseId;
-                document.getElementById('cancelStatusTargetName').textContent = `${caseData.name || caseData.customerName || '---'} 様`;
-                document.getElementById('cancelStatusModal').classList.remove('hidden');
+                // V2228: 配信済み加盟店を先に取得してからモーダル表示
+                loadDeliveredFranchisesAndShowModal(currentCaseId, caseData);
                 return;
             }
 
