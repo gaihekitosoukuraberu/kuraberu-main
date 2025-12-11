@@ -1333,6 +1333,10 @@ var MerchantContractReport = {
           }
 
           console.log('[MerchantContractReport] updateCaseStatus - updated row', i + 1);
+
+          // V2206: ユーザー登録シートへの同期（加盟店別ステータス更新）
+          this._syncToUserRegistration(ss, cvId, merchantId, status, data, headers);
+
           return { success: true };
         }
       }
@@ -1343,6 +1347,133 @@ var MerchantContractReport = {
       console.error('[MerchantContractReport] updateCaseStatus error:', error);
       return { success: false, error: error.toString() };
     }
+  },
+
+  /**
+   * V2206: ユーザー登録シートへのステータス同期
+   * - 加盟店別ステータス（JSON）を更新
+   * - 全加盟店のステータスから最も進んだものを管理ステータスに反映
+   */
+  _syncToUserRegistration: function(ss, cvId, merchantId, newStatus, deliveryData, deliveryHeaders) {
+    try {
+      const userSheet = ss.getSheetByName('ユーザー登録');
+      if (!userSheet) {
+        console.log('[V2206] ユーザー登録シートが見つかりません');
+        return;
+      }
+
+      const userData = userSheet.getDataRange().getValues();
+      const userHeaders = userData[0];
+
+      const userColIdx = {
+        cvId: userHeaders.indexOf('CV ID'),
+        merchantStatuses: userHeaders.indexOf('加盟店別ステータス'),
+        adminStatus: userHeaders.indexOf('管理ステータス')
+      };
+
+      if (userColIdx.cvId < 0) {
+        console.log('[V2206] CV IDカラムが見つかりません');
+        return;
+      }
+
+      // 該当CVIDの行を探す
+      let userRowIndex = -1;
+      for (let i = 1; i < userData.length; i++) {
+        if (String(userData[i][userColIdx.cvId]) === String(cvId)) {
+          userRowIndex = i;
+          break;
+        }
+      }
+
+      if (userRowIndex < 0) {
+        console.log('[V2206] ユーザー登録に該当CVIDが見つかりません:', cvId);
+        return;
+      }
+
+      // 配信管理シートから該当CVIDの全加盟店のステータスを取得
+      const deliveryColIdx = {
+        cvId: deliveryHeaders.indexOf('CV ID'),
+        franchiseId: deliveryHeaders.indexOf('加盟店ID'),
+        detailStatus: deliveryHeaders.indexOf('詳細ステータス')
+      };
+
+      const merchantStatusMap = {};
+      for (let i = 1; i < deliveryData.length; i++) {
+        if (String(deliveryData[i][deliveryColIdx.cvId]) === String(cvId)) {
+          const fId = deliveryData[i][deliveryColIdx.franchiseId];
+          const st = deliveryData[i][deliveryColIdx.detailStatus];
+          if (fId && st) {
+            merchantStatusMap[fId] = st;
+          }
+        }
+      }
+
+      // 現在更新中の加盟店のステータスを反映
+      merchantStatusMap[merchantId] = newStatus;
+
+      // 加盟店別ステータス（JSON）を更新
+      if (userColIdx.merchantStatuses >= 0) {
+        userSheet.getRange(userRowIndex + 1, userColIdx.merchantStatuses + 1).setValue(JSON.stringify(merchantStatusMap));
+      }
+
+      // 全加盟店のステータスから最も進んだものを計算
+      const mostAdvancedStatus = this._getMostAdvancedStatus(Object.values(merchantStatusMap));
+
+      // 管理ステータスを更新
+      if (userColIdx.adminStatus >= 0 && mostAdvancedStatus) {
+        userSheet.getRange(userRowIndex + 1, userColIdx.adminStatus + 1).setValue(mostAdvancedStatus);
+      }
+
+      console.log('[V2206] ユーザー登録シート同期完了:', { cvId, merchantId, newStatus, mostAdvancedStatus });
+
+    } catch (error) {
+      console.error('[V2206] _syncToUserRegistration error:', error);
+      // エラーでも本体処理は成功させる
+    }
+  },
+
+  /**
+   * V2206: 最も進んだステータスを取得
+   * ステータスの進行順序: 新着 < 未アポ < アポ済 < 現調済 < 見積提出済 < 成約系 < 完了
+   */
+  _getMostAdvancedStatus: function(statuses) {
+    // ステータスの優先順位（数字が大きいほど進んでいる）
+    const statusOrder = {
+      '新着': 1,
+      '未アポ': 2,
+      'アポ済': 3,
+      '現調済': 4,
+      '見積提出済': 5,
+      '成約': 10,
+      '入金予定': 11,
+      '入金予定・未着工': 11,
+      '入金予定・施工中': 12,
+      '入金予定・工事済': 13,
+      '入金済': 14,
+      '入金済・未着工': 14,
+      '入金済・施工中': 15,
+      '入金済・工事済': 16,
+      '完了': 20,
+      // 終了系は別枠（成約より優先しない）
+      '現調前キャンセル': -1,
+      '現調後失注': -2,
+      '他社契約済': -3,
+      '別加盟店契約済': -4,
+      'クレーム': -5
+    };
+
+    let maxOrder = -999;
+    let mostAdvanced = null;
+
+    for (const status of statuses) {
+      const order = statusOrder[status] || 0;
+      if (order > maxOrder) {
+        maxOrder = order;
+        mostAdvanced = status;
+      }
+    }
+
+    return mostAdvanced;
   },
 
   /**

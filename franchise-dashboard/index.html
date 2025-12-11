@@ -20786,13 +20786,16 @@
             const filterMap = {
                 // V2203: 成約前（追客中）: 新着、未アポ、アポ済、現調済、見積提出済
                 'pending': ['新着', '未アポ', 'アポ済', '現調済', '見積提出済'],
-                // 成約済: 成約、入金予定、入金済
-                'contracted': ['成約', '入金予定', '入金済'],
+                // V2206: 成約済: 成約、入金予定、入金済、完了（部分一致で「入金予定・未着工」等に対応）
+                'contracted': ['成約', '入金予定', '入金済', '完了'],
                 // キャンセル・失注系（終了ボタン用）
                 'cancelled': endedStatuses
             };
 
-            return filterMap[currentFilter]?.includes(status);
+            // V2206: 部分一致で判定（「入金予定・未着工」が「入金予定」を含む等）
+            const filterStatuses = filterMap[currentFilter];
+            if (!filterStatuses) return true;
+            return filterStatuses.some(s => status.includes(s));
         }
 
         // =====================================================
