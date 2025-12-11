@@ -2482,13 +2482,13 @@ window.addEventListener('beforeunload', function(e) {
         </div>
     </div>
 
-    <!-- V2214: キャンセル用全体ステータスモーダル（配信中/配信済みなし） -->
+    <!-- V2224: キャンセル or 成約 選択モーダル -->
     <div id="cancelStatusModal" class="fixed inset-0 z-50 hidden">
         <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeCancelStatusModal()"></div>
-        <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[90vh] sm:max-h-[85vh] flex flex-col overflow-hidden">
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
                 <!-- ヘッダー -->
-                <div class="px-5 py-4 bg-gradient-to-r from-amber-500 to-orange-500 flex-shrink-0 relative">
+                <div class="px-5 py-4 bg-gradient-to-r from-amber-500 to-orange-500 relative">
                     <button onclick="closeCancelStatusModal()" class="absolute top-3 right-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -2496,74 +2496,190 @@ window.addEventListener('beforeunload', function(e) {
                     </button>
                     <h3 class="text-base font-bold text-white">ステータス変更</h3>
                     <p id="cancelStatusTargetName" class="text-sm text-amber-100 mt-0.5">---</p>
-                    <p class="text-xs text-amber-200 mt-1">⚠️ 配信済み案件のステータス変更</p>
+                    <p id="cancelStatusDeliveryInfo" class="text-xs text-amber-200 mt-1">---</p>
                 </div>
 
-                <!-- スクロール可能なコンテンツエリア -->
-                <div class="flex-1 overflow-y-auto p-4">
-                    <!-- 配信前ステータス -->
-                    <div class="mb-4">
-                        <h4 class="text-xs font-bold text-gray-500 mb-2 flex items-center gap-2">
-                            <span class="w-2 h-2 bg-indigo-500 rounded-full"></span>
-                            配信前ステータス
-                        </h4>
+                <!-- 選択ボタン -->
+                <div class="p-5 space-y-3">
+                    <p class="text-sm text-gray-600 text-center mb-4">どのような変更ですか？</p>
+
+                    <!-- キャンセル系 -->
+                    <button onclick="openCancelFlowModal()" class="w-full py-4 bg-gray-100 hover:bg-gray-200 border-2 border-gray-300 rounded-xl transition-all">
+                        <div class="flex items-center justify-center gap-3">
+                            <span class="text-2xl">❌</span>
+                            <div class="text-left">
+                                <p class="font-bold text-gray-700">キャンセル・失注</p>
+                                <p class="text-xs text-gray-500">全社キャンセル、他社契約済など</p>
+                            </div>
+                        </div>
+                    </button>
+
+                    <!-- 成約系 -->
+                    <button onclick="openContractFlowModal()" class="w-full py-4 bg-green-50 hover:bg-green-100 border-2 border-green-300 rounded-xl transition-all">
+                        <div class="flex items-center justify-center gap-3">
+                            <span class="text-2xl">🎉</span>
+                            <div class="text-left">
+                                <p class="font-bold text-green-700">成約・契約</p>
+                                <p class="text-xs text-green-600">1社が成約、他社にお断り通知</p>
+                            </div>
+                        </div>
+                    </button>
+
+                    <!-- 追客中のまま -->
+                    <button onclick="openProgressFlowModal()" class="w-full py-4 bg-blue-50 hover:bg-blue-100 border-2 border-blue-300 rounded-xl transition-all">
+                        <div class="flex items-center justify-center gap-3">
+                            <span class="text-2xl">📞</span>
+                            <div class="text-left">
+                                <p class="font-bold text-blue-700">追客中（進捗変更）</p>
+                                <p class="text-xs text-blue-600">アポ済、現調済、見積提出済など</p>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- V2224: キャンセルフロー詳細モーダル -->
+    <div id="cancelFlowModal" class="fixed inset-0 z-50 hidden">
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeCancelFlowModal()"></div>
+        <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[95vh] flex flex-col overflow-hidden">
+                <!-- ヘッダー -->
+                <div class="px-5 py-4 bg-gradient-to-r from-gray-600 to-gray-700 relative flex-shrink-0">
+                    <button onclick="closeCancelFlowModal()" class="absolute top-3 right-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <h3 class="text-base font-bold text-white">❌ キャンセル処理</h3>
+                    <p id="cancelFlowTargetName" class="text-sm text-gray-200 mt-0.5">---</p>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                    <!-- ステータス選択 -->
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 mb-2">変更後ステータス:</p>
                         <div class="grid grid-cols-2 gap-2">
-                            <div class="bg-gray-100 rounded-2xl p-3">
-                                <p class="text-xs text-gray-500 mb-2 font-semibold text-center">🚫 終了</p>
-                                <div class="space-y-1.5">
-                                    <button onclick="selectCancelStatus('ロスト')" class="w-full px-3 py-2 border-2 border-gray-400 bg-white text-gray-700 rounded-xl text-xs font-bold hover:shadow-md transition-all">ロスト</button>
-                                    <button onclick="selectCancelStatus('他社契約済')" class="w-full px-3 py-2 border-2 border-slate-400 bg-white text-slate-700 rounded-xl text-xs font-bold hover:shadow-md transition-all">他社契約済</button>
-                                    <button onclick="selectCancelStatus('無効')" class="w-full px-3 py-2 border-2 border-gray-400 bg-white text-gray-700 rounded-xl text-xs font-bold hover:shadow-md transition-all">無効</button>
-                                    <button onclick="selectCancelStatus('クレーム')" class="w-full px-3 py-2 border-2 border-red-400 bg-white text-red-600 rounded-xl text-xs font-bold hover:shadow-md transition-all">クレーム</button>
-                                </div>
-                            </div>
-                            <div class="bg-blue-50 rounded-2xl p-3">
-                                <p class="text-xs text-blue-600 mb-2 font-semibold text-center">📞 追客中</p>
-                                <div class="space-y-1.5">
-                                    <button onclick="selectCancelStatus('新規')" class="w-full px-3 py-2 border-2 border-blue-400 bg-white text-blue-700 rounded-xl text-xs font-bold hover:shadow-md transition-all">新規</button>
-                                    <button onclick="selectCancelStatus('不在')" class="w-full px-3 py-2 border-2 border-gray-400 bg-white text-gray-700 rounded-xl text-xs font-bold hover:shadow-md transition-all">不在</button>
-                                    <button onclick="selectCancelStatus('再架電')" class="w-full px-3 py-2 border-2 border-yellow-400 bg-white text-yellow-700 rounded-xl text-xs font-bold hover:shadow-md transition-all">再架電</button>
-                                    <button onclick="selectCancelStatus('見込み')" class="w-full px-3 py-2 border-2 border-orange-400 bg-white text-orange-600 rounded-xl text-xs font-bold hover:shadow-md transition-all">見込み</button>
-                                </div>
-                            </div>
+                            <button onclick="selectCancelNewStatus('現調前キャンセル')" class="cancel-status-btn px-3 py-2 border-2 border-gray-300 bg-white rounded-xl text-xs font-bold hover:bg-gray-100 transition-all">現調前キャンセル</button>
+                            <button onclick="selectCancelNewStatus('現調後失注')" class="cancel-status-btn px-3 py-2 border-2 border-gray-300 bg-white rounded-xl text-xs font-bold hover:bg-gray-100 transition-all">現調後失注</button>
+                            <button onclick="selectCancelNewStatus('他社契約済')" class="cancel-status-btn px-3 py-2 border-2 border-slate-300 bg-white rounded-xl text-xs font-bold hover:bg-slate-100 transition-all">他社契約済</button>
+                            <button onclick="selectCancelNewStatus('顧客クレーム')" class="cancel-status-btn px-3 py-2 border-2 border-red-300 bg-white text-red-600 rounded-xl text-xs font-bold hover:bg-red-50 transition-all">顧客クレーム</button>
+                        </div>
+                        <p id="cancelFlowSelectedStatus" class="text-sm text-center text-purple-600 font-bold mt-2 hidden">選択中: ---</p>
+                    </div>
+
+                    <!-- 加盟店個別設定 -->
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 mb-2">🏢 加盟店への処理 <span class="text-gray-400">（個別設定可）</span></p>
+                        <div id="cancelFlowFranchiseList" class="space-y-2 max-h-48 overflow-y-auto">
+                            <!-- 動的生成 -->
                         </div>
                     </div>
 
-                    <!-- 追客中（詳細ステータス） -->
-                    <div class="bg-blue-50 rounded-2xl p-3 mb-3">
-                        <p class="text-xs text-blue-600 mb-2 font-semibold">📞 追客中</p>
-                        <div class="grid grid-cols-3 gap-1.5">
-                            <button onclick="selectCancelStatus('新着')" class="px-2 py-2 border-2 border-blue-400 bg-white text-blue-700 rounded-xl text-xs font-bold hover:shadow-md transition-all">新着</button>
-                            <button onclick="selectCancelStatus('未アポ')" class="px-2 py-2 border-2 border-pink-400 bg-white text-pink-600 rounded-xl text-xs font-bold hover:shadow-md transition-all">未アポ</button>
-                            <button onclick="selectCancelStatus('アポ済')" class="px-2 py-2 border-2 border-orange-400 bg-white text-orange-600 rounded-xl text-xs font-bold hover:shadow-md transition-all">アポ済</button>
-                            <button onclick="selectCancelStatus('現調済')" class="px-2 py-2 border-2 border-purple-400 bg-white text-purple-600 rounded-xl text-xs font-bold hover:shadow-md transition-all">現調済</button>
-                            <button onclick="selectCancelStatus('見積提出済')" class="col-span-2 px-2 py-2 border-2 border-amber-400 bg-white text-amber-600 rounded-xl text-xs font-bold hover:shadow-md transition-all">見積提出済</button>
+                    <!-- メッセージ -->
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 mb-2">📧 通知メッセージ:</p>
+                        <textarea id="cancelFlowMessage" class="w-full p-3 border-2 border-gray-200 rounded-xl resize-none text-sm" rows="4" placeholder="加盟店への通知メッセージ..."></textarea>
+                    </div>
+                </div>
+
+                <!-- アクションボタン -->
+                <div class="p-4 border-t bg-gray-50 flex-shrink-0">
+                    <button onclick="executeCancelFlow()" class="w-full py-3 bg-gray-600 text-white rounded-xl font-bold text-sm hover:bg-gray-700 transition-all">
+                        ✅ 確定して処理実行
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- V2224: 成約フローモーダル -->
+    <div id="contractFlowModal" class="fixed inset-0 z-50 hidden">
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeContractFlowModal()"></div>
+        <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[95vh] flex flex-col overflow-hidden">
+                <!-- ヘッダー -->
+                <div class="px-5 py-4 bg-gradient-to-r from-green-500 to-emerald-600 relative flex-shrink-0">
+                    <button onclick="closeContractFlowModal()" class="absolute top-3 right-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <h3 class="text-base font-bold text-white">🎉 成約処理</h3>
+                    <p id="contractFlowTargetName" class="text-sm text-green-100 mt-0.5">---</p>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                    <!-- ステータス選択 -->
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 mb-2">変更後ステータス:</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="selectContractNewStatus('入金予定・未着工')" class="contract-status-btn px-2 py-2 border-2 border-emerald-300 bg-white rounded-xl text-[10px] font-bold hover:bg-emerald-50 transition-all">入金予定・未着工</button>
+                            <button onclick="selectContractNewStatus('入金予定・施工中')" class="contract-status-btn px-2 py-2 border-2 border-emerald-300 bg-white rounded-xl text-[10px] font-bold hover:bg-emerald-50 transition-all">入金予定・施工中</button>
+                            <button onclick="selectContractNewStatus('入金済・未着工')" class="contract-status-btn px-2 py-2 border-2 border-green-300 bg-white rounded-xl text-[10px] font-bold hover:bg-green-50 transition-all">入金済・未着工</button>
+                            <button onclick="selectContractNewStatus('完了')" class="contract-status-btn px-2 py-2 border-2 border-green-400 bg-white rounded-xl text-xs font-bold hover:bg-green-50 transition-all">完了</button>
+                        </div>
+                        <p id="contractFlowSelectedStatus" class="text-sm text-center text-green-600 font-bold mt-2 hidden">選択中: ---</p>
+                    </div>
+
+                    <!-- 成約加盟店選択 -->
+                    <div>
+                        <p class="text-xs font-bold text-green-600 mb-2">✅ 成約した加盟店を選択:</p>
+                        <div id="contractFlowWinnerList" class="space-y-2">
+                            <!-- 動的生成 -->
                         </div>
                     </div>
 
-                    <!-- 成約済 -->
-                    <div class="bg-green-50 rounded-2xl p-3 mb-3">
-                        <p class="text-xs text-green-600 mb-2 font-semibold">💰 成約済</p>
-                        <div class="grid grid-cols-3 gap-1.5">
-                            <button onclick="selectCancelStatus('入金予定・未着工')" class="px-1 py-2 border-2 border-emerald-400 bg-white text-emerald-700 rounded-xl text-[10px] font-bold hover:shadow-md transition-all">入金予定・未着工</button>
-                            <button onclick="selectCancelStatus('入金予定・施工中')" class="px-1 py-2 border-2 border-emerald-400 bg-white text-emerald-700 rounded-xl text-[10px] font-bold hover:shadow-md transition-all">入金予定・施工中</button>
-                            <button onclick="selectCancelStatus('入金予定・工事済')" class="px-1 py-2 border-2 border-emerald-500 bg-white text-emerald-700 rounded-xl text-[10px] font-bold hover:shadow-md transition-all">入金予定・工事済</button>
-                            <button onclick="selectCancelStatus('入金済・未着工')" class="px-1 py-2 border-2 border-green-400 bg-white text-green-700 rounded-xl text-[10px] font-bold hover:shadow-md transition-all">入金済・未着工</button>
-                            <button onclick="selectCancelStatus('入金済・施工中')" class="px-1 py-2 border-2 border-green-500 bg-white text-green-700 rounded-xl text-[10px] font-bold hover:shadow-md transition-all">入金済・施工中</button>
-                            <button onclick="selectCancelStatus('完了')" class="px-2 py-2 border-2 border-green-600 bg-white text-green-700 rounded-xl text-xs font-bold hover:shadow-md transition-all">完了</button>
+                    <!-- 他社への処理 -->
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 mb-2">❌ 他の加盟店への処理:</p>
+                        <div id="contractFlowLoserList" class="space-y-2 max-h-36 overflow-y-auto">
+                            <!-- 動的生成 -->
                         </div>
                     </div>
 
-                    <!-- 終了 -->
-                    <div class="bg-gray-100 rounded-2xl p-3">
-                        <p class="text-xs text-gray-500 mb-2 font-semibold">🚫 終了</p>
-                        <div class="grid grid-cols-3 gap-1.5">
-                            <button onclick="selectCancelStatus('現調前キャンセル')" class="px-1 py-2 border-2 border-gray-300 bg-white text-gray-600 rounded-xl text-[10px] font-bold hover:shadow-md transition-all">現調前キャンセル</button>
-                            <button onclick="selectCancelStatus('現調後失注')" class="px-2 py-2 border-2 border-gray-400 bg-white text-gray-600 rounded-xl text-xs font-bold hover:shadow-md transition-all">現調後失注</button>
-                            <button onclick="selectCancelStatus('他社契約済')" class="px-2 py-2 border-2 border-slate-400 bg-white text-slate-600 rounded-xl text-xs font-bold hover:shadow-md transition-all">他社契約済</button>
-                            <button onclick="selectCancelStatus('別加盟店契約済')" class="px-1 py-2 border-2 border-slate-300 bg-white text-slate-600 rounded-xl text-[10px] font-bold hover:shadow-md transition-all">別加盟店契約</button>
-                            <button onclick="selectCancelStatus('顧客クレーム')" class="px-2 py-2 border-2 border-red-400 bg-white text-red-600 rounded-xl text-xs font-bold hover:shadow-md transition-all">顧客クレーム</button>
-                        </div>
+                    <!-- メッセージ -->
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 mb-2">📧 お断り通知メッセージ:</p>
+                        <textarea id="contractFlowMessage" class="w-full p-3 border-2 border-gray-200 rounded-xl resize-none text-sm" rows="4" placeholder="他の加盟店へのお断りメッセージ..."></textarea>
+                    </div>
+                </div>
+
+                <!-- アクションボタン -->
+                <div class="p-4 border-t bg-gray-50 flex-shrink-0">
+                    <button onclick="executeContractFlow()" class="w-full py-3 bg-green-500 text-white rounded-xl font-bold text-sm hover:bg-green-600 transition-all">
+                        🎉 成約確定して処理実行
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- V2224: 追客中（進捗変更）モーダル -->
+    <div id="progressFlowModal" class="fixed inset-0 z-50 hidden">
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeProgressFlowModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+                <!-- ヘッダー -->
+                <div class="px-5 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 relative">
+                    <button onclick="closeProgressFlowModal()" class="absolute top-3 right-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <h3 class="text-base font-bold text-white">📞 進捗変更</h3>
+                    <p id="progressFlowTargetName" class="text-sm text-blue-100 mt-0.5">---</p>
+                </div>
+
+                <div class="p-4 space-y-3">
+                    <p class="text-xs font-bold text-gray-500 mb-2">新しいステータス:</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="executeProgressChange('新着')" class="px-3 py-3 border-2 border-blue-300 bg-white rounded-xl text-sm font-bold hover:bg-blue-50 transition-all">新着</button>
+                        <button onclick="executeProgressChange('未アポ')" class="px-3 py-3 border-2 border-pink-300 bg-white text-pink-600 rounded-xl text-sm font-bold hover:bg-pink-50 transition-all">未アポ</button>
+                        <button onclick="executeProgressChange('アポ済')" class="px-3 py-3 border-2 border-orange-300 bg-white text-orange-600 rounded-xl text-sm font-bold hover:bg-orange-50 transition-all">アポ済</button>
+                        <button onclick="executeProgressChange('現調済')" class="px-3 py-3 border-2 border-purple-300 bg-white text-purple-600 rounded-xl text-sm font-bold hover:bg-purple-50 transition-all">現調済</button>
+                        <button onclick="executeProgressChange('見積提出済')" class="col-span-2 px-3 py-3 border-2 border-amber-300 bg-white text-amber-600 rounded-xl text-sm font-bold hover:bg-amber-50 transition-all">見積提出済</button>
                     </div>
                 </div>
             </div>
@@ -7493,12 +7609,17 @@ window.addEventListener('beforeunload', function(e) {
         }
 
         function showNotification(message, type = 'success') {
-            const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+            const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
             const notification = document.createElement('div');
             notification.className = `fixed top-20 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50`;
             notification.textContent = message;
             document.body.appendChild(notification);
             setTimeout(() => notification.remove(), 3000);
+        }
+
+        // V2224: showToastエイリアス
+        function showToast(message, type = 'info') {
+            showNotification(message, type);
         }
 
         // V2147: キャンセル申請詳細モーダル
@@ -8324,11 +8445,14 @@ window.addEventListener('beforeunload', function(e) {
         }
 
         // ===== V2214: キャンセルフロー関連関数 =====
+        // ===== V2224: 配信済みステータス変更フロー =====
         let cancelFlowCaseId = null;
         let cancelFlowNewStatus = null;
         let cancelFlowFranchises = [];
+        let cancelFlowSettings = {}; // { franchiseId: { notify: bool, refund: bool } }
+        let contractFlowWinnerId = null;
 
-        // キャンセル確認モーダルを表示
+        // キャンセル確認モーダルを表示（配信済みですが変更しますか？）
         function showCancelConfirmModal(caseId) {
             cancelFlowCaseId = caseId;
             const caseData = casesData[caseId];
@@ -8342,13 +8466,23 @@ window.addEventListener('beforeunload', function(e) {
             document.getElementById('cancelConfirmModal').classList.add('hidden');
         }
 
-        // 確認後、キャンセル用ステータスモーダルを表示
-        function proceedWithCancelFlow() {
+        // 確認後、キャンセル or 成約 選択モーダルを表示
+        async function proceedWithCancelFlow() {
             closeCancelConfirmModal();
             const caseData = casesData[cancelFlowCaseId];
             if (!caseData) return;
 
+            // 配信済み加盟店を取得
+            try {
+                const result = await window.apiClient.postRequest('admin_getDeliveredFranchises', { cvId: cancelFlowCaseId });
+                cancelFlowFranchises = result.deliveredFranchises || [];
+            } catch (e) {
+                console.error('[proceedWithCancelFlow] 配信先取得エラー:', e);
+                cancelFlowFranchises = [];
+            }
+
             document.getElementById('cancelStatusTargetName').textContent = `${caseData.name || caseData.customerName || '---'} 様`;
+            document.getElementById('cancelStatusDeliveryInfo').textContent = `⚠️ ${cancelFlowFranchises.length}社に配信済み`;
             document.getElementById('cancelStatusModal').classList.remove('hidden');
         }
 
@@ -8356,10 +8490,300 @@ window.addEventListener('beforeunload', function(e) {
             document.getElementById('cancelStatusModal').classList.add('hidden');
         }
 
-        // V2223: キャンセル用ステータス選択 → V2218の通知モーダル（課金/返金設定付き）へ
+        // ===== キャンセルフロー =====
+        function openCancelFlowModal() {
+            closeCancelStatusModal();
+            const caseData = casesData[cancelFlowCaseId];
+            if (!caseData) return;
+
+            cancelFlowNewStatus = null;
+            cancelFlowSettings = {};
+
+            document.getElementById('cancelFlowTargetName').textContent = `${caseData.name || caseData.customerName || '---'} 様`;
+            document.getElementById('cancelFlowSelectedStatus').classList.add('hidden');
+
+            // 加盟店リスト生成
+            renderCancelFlowFranchiseList();
+
+            // デフォルトメッセージ
+            const customerName = caseData.name || caseData.customerName || 'お客様';
+            document.getElementById('cancelFlowMessage').value = `いつもお世話になっております。
+外壁塗装くらべる運営事務局です。
+
+ご紹介済みの「${customerName}」様の案件につきまして、お客様のご都合によりキャンセルとなりましたのでご連絡申し上げます。
+
+本案件につきましては、紹介料等の費用は一切発生いたしませんのでご安心ください。
+
+何卒よろしくお願い申し上げます。`;
+
+            document.getElementById('cancelFlowModal').classList.remove('hidden');
+        }
+
+        function closeCancelFlowModal() {
+            document.getElementById('cancelFlowModal').classList.add('hidden');
+        }
+
+        function selectCancelNewStatus(status) {
+            cancelFlowNewStatus = status;
+            document.querySelectorAll('.cancel-status-btn').forEach(btn => {
+                btn.classList.remove('bg-purple-100', 'border-purple-500');
+                if (btn.textContent.trim() === status) {
+                    btn.classList.add('bg-purple-100', 'border-purple-500');
+                }
+            });
+            document.getElementById('cancelFlowSelectedStatus').textContent = `選択中: ${status}`;
+            document.getElementById('cancelFlowSelectedStatus').classList.remove('hidden');
+        }
+
+        function renderCancelFlowFranchiseList() {
+            const listEl = document.getElementById('cancelFlowFranchiseList');
+            if (cancelFlowFranchises.length === 0) {
+                listEl.innerHTML = '<p class="text-xs text-gray-400">配信先がありません</p>';
+                return;
+            }
+
+            // 48時間判定
+            const isWithin48h = (dateStr) => {
+                if (!dateStr) return false;
+                const d = new Date(dateStr);
+                const now = new Date();
+                return (now - d) < 48 * 60 * 60 * 1000;
+            };
+
+            listEl.innerHTML = cancelFlowFranchises.map(f => {
+                const within48h = isWithin48h(f.deliveryDate);
+                cancelFlowSettings[f.franchiseId] = { notify: true, refund: within48h };
+
+                return `<div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg border">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium">${f.franchiseName || f.franchiseId}</span>
+                        ${within48h ? '<span class="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded">48h以内</span>' : '<span class="text-[10px] px-1.5 py-0.5 bg-gray-200 text-gray-600 rounded">48h超</span>'}
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <label class="flex items-center gap-1 text-xs">
+                            <input type="checkbox" ${cancelFlowSettings[f.franchiseId].notify ? 'checked' : ''} onchange="cancelFlowSettings['${f.franchiseId}'].notify = this.checked" class="rounded text-blue-500">
+                            通知
+                        </label>
+                        <label class="flex items-center gap-1 text-xs">
+                            <input type="checkbox" ${cancelFlowSettings[f.franchiseId].refund ? 'checked' : ''} onchange="cancelFlowSettings['${f.franchiseId}'].refund = this.checked" class="rounded text-green-500">
+                            返金
+                        </label>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        async function executeCancelFlow() {
+            if (!cancelFlowNewStatus) {
+                showToast('ステータスを選択してください', 'error');
+                return;
+            }
+
+            const message = document.getElementById('cancelFlowMessage').value;
+
+            try {
+                showToast('処理中...', 'info');
+
+                // API呼び出し
+                const result = await window.apiClient.postRequest('admin_executeCancelFlow', {
+                    cvId: cancelFlowCaseId,
+                    newStatus: cancelFlowNewStatus,
+                    message: message,
+                    franchiseSettings: cancelFlowSettings
+                });
+
+                if (result.success) {
+                    showToast('キャンセル処理が完了しました', 'success');
+                    closeCancelFlowModal();
+                    initializeListView();
+                } else {
+                    showToast('処理に失敗しました: ' + (result.error || ''), 'error');
+                }
+            } catch (e) {
+                console.error('[executeCancelFlow] エラー:', e);
+                showToast('処理に失敗しました', 'error');
+            }
+        }
+
+        // ===== 成約フロー =====
+        function openContractFlowModal() {
+            closeCancelStatusModal();
+            const caseData = casesData[cancelFlowCaseId];
+            if (!caseData) return;
+
+            cancelFlowNewStatus = null;
+            contractFlowWinnerId = null;
+            cancelFlowSettings = {};
+
+            document.getElementById('contractFlowTargetName').textContent = `${caseData.name || caseData.customerName || '---'} 様`;
+            document.getElementById('contractFlowSelectedStatus').classList.add('hidden');
+
+            // 成約加盟店選択リスト
+            renderContractFlowWinnerList();
+
+            // デフォルトメッセージ
+            const customerName = caseData.name || caseData.customerName || 'お客様';
+            document.getElementById('contractFlowMessage').value = `いつもお世話になっております。
+外壁塗装くらべる運営事務局です。
+
+ご紹介済みの「${customerName}」様の案件につきまして、別の加盟店様にてご成約となりましたのでご連絡申し上げます。
+
+本案件につきましては、紹介料等の費用は一切発生いたしませんのでご安心ください。
+
+何卒よろしくお願い申し上げます。`;
+
+            document.getElementById('contractFlowModal').classList.remove('hidden');
+        }
+
+        function closeContractFlowModal() {
+            document.getElementById('contractFlowModal').classList.add('hidden');
+        }
+
+        function selectContractNewStatus(status) {
+            cancelFlowNewStatus = status;
+            document.querySelectorAll('.contract-status-btn').forEach(btn => {
+                btn.classList.remove('bg-green-100', 'border-green-500');
+                if (btn.textContent.trim() === status) {
+                    btn.classList.add('bg-green-100', 'border-green-500');
+                }
+            });
+            document.getElementById('contractFlowSelectedStatus').textContent = `選択中: ${status}`;
+            document.getElementById('contractFlowSelectedStatus').classList.remove('hidden');
+        }
+
+        function renderContractFlowWinnerList() {
+            const winnerListEl = document.getElementById('contractFlowWinnerList');
+            const loserListEl = document.getElementById('contractFlowLoserList');
+
+            if (cancelFlowFranchises.length === 0) {
+                winnerListEl.innerHTML = '<p class="text-xs text-gray-400">配信先がありません</p>';
+                loserListEl.innerHTML = '';
+                return;
+            }
+
+            winnerListEl.innerHTML = cancelFlowFranchises.map(f => `
+                <label class="flex items-center gap-2 p-2 bg-green-50 rounded-lg border cursor-pointer hover:bg-green-100 transition-all">
+                    <input type="radio" name="contractWinner" value="${f.franchiseId}" onchange="selectContractWinner('${f.franchiseId}')" class="text-green-500">
+                    <span class="text-sm font-medium">${f.franchiseName || f.franchiseId}</span>
+                </label>
+            `).join('');
+
+            loserListEl.innerHTML = '<p class="text-xs text-gray-400">成約加盟店を選択すると、他社への処理設定が表示されます</p>';
+        }
+
+        function selectContractWinner(franchiseId) {
+            contractFlowWinnerId = franchiseId;
+
+            // 他社リストを更新
+            const loserListEl = document.getElementById('contractFlowLoserList');
+            const losers = cancelFlowFranchises.filter(f => f.franchiseId !== franchiseId);
+
+            if (losers.length === 0) {
+                loserListEl.innerHTML = '<p class="text-xs text-gray-400">他の加盟店はありません</p>';
+                return;
+            }
+
+            // 48時間判定
+            const isWithin48h = (dateStr) => {
+                if (!dateStr) return false;
+                const d = new Date(dateStr);
+                const now = new Date();
+                return (now - d) < 48 * 60 * 60 * 1000;
+            };
+
+            loserListEl.innerHTML = losers.map(f => {
+                const within48h = isWithin48h(f.deliveryDate);
+                cancelFlowSettings[f.franchiseId] = { notify: true, refund: within48h, status: 'decline' };
+
+                return `<div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg border">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium">${f.franchiseName || f.franchiseId}</span>
+                        ${within48h ? '<span class="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded">48h以内</span>' : ''}
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <label class="flex items-center gap-1 text-xs">
+                            <input type="checkbox" checked onchange="cancelFlowSettings['${f.franchiseId}'].notify = this.checked" class="rounded text-blue-500">
+                            通知
+                        </label>
+                        <label class="flex items-center gap-1 text-xs">
+                            <input type="checkbox" ${within48h ? 'checked' : ''} onchange="cancelFlowSettings['${f.franchiseId}'].refund = this.checked" class="rounded text-green-500">
+                            返金
+                        </label>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        async function executeContractFlow() {
+            if (!cancelFlowNewStatus) {
+                showToast('ステータスを選択してください', 'error');
+                return;
+            }
+            if (!contractFlowWinnerId) {
+                showToast('成約加盟店を選択してください', 'error');
+                return;
+            }
+
+            const message = document.getElementById('contractFlowMessage').value;
+
+            try {
+                showToast('処理中...', 'info');
+
+                // API呼び出し
+                const result = await window.apiClient.postRequest('admin_executeContractFlow', {
+                    cvId: cancelFlowCaseId,
+                    newStatus: cancelFlowNewStatus,
+                    winnerId: contractFlowWinnerId,
+                    message: message,
+                    loserSettings: cancelFlowSettings
+                });
+
+                if (result.success) {
+                    showToast('成約処理が完了しました', 'success');
+                    closeContractFlowModal();
+                    initializeListView();
+                } else {
+                    showToast('処理に失敗しました: ' + (result.error || ''), 'error');
+                }
+            } catch (e) {
+                console.error('[executeContractFlow] エラー:', e);
+                showToast('処理に失敗しました', 'error');
+            }
+        }
+
+        // ===== 追客中（進捗変更）フロー =====
+        function openProgressFlowModal() {
+            closeCancelStatusModal();
+            const caseData = casesData[cancelFlowCaseId];
+            if (!caseData) return;
+
+            document.getElementById('progressFlowTargetName').textContent = `${caseData.name || caseData.customerName || '---'} 様`;
+            document.getElementById('progressFlowModal').classList.remove('hidden');
+        }
+
+        function closeProgressFlowModal() {
+            document.getElementById('progressFlowModal').classList.add('hidden');
+        }
+
+        async function executeProgressChange(newStatus) {
+            try {
+                showToast('処理中...', 'info');
+
+                // ステータスのみ更新
+                await updateCaseStatusAfterCancel(cancelFlowCaseId, newStatus);
+
+                showToast(`ステータスを「${newStatus}」に変更しました`, 'success');
+                closeProgressFlowModal();
+                initializeListView();
+            } catch (e) {
+                console.error('[executeProgressChange] エラー:', e);
+                showToast('変更に失敗しました', 'error');
+            }
+        }
+
+        // V2224互換: 古い関数呼び出し用
         async function selectCancelStatus(newStatus) {
             closeCancelStatusModal();
-            // V2218のstatusChangeNotifyModal（課金/返金設定付き）を使用
             await showStatusChangeNotifyModal(cancelFlowCaseId, newStatus);
         }
 
