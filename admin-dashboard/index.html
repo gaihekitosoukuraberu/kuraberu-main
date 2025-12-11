@@ -11068,7 +11068,13 @@ window.addEventListener('beforeunload', function(e) {
             }
 
             if (allHistory.length === 0) {
-                historyList.innerHTML = '<p class="text-gray-500 text-center py-8">履歴がありません</p>';
+                historyList.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="text-4xl mb-3">📝</div>
+                        <p class="text-gray-400 text-sm">まだ履歴がありません</p>
+                        <p class="text-gray-300 text-xs mt-1">上のフォームからメモを追加してください</p>
+                    </div>
+                `;
                 return;
             }
 
@@ -11076,61 +11082,92 @@ window.addEventListener('beforeunload', function(e) {
             allHistory.sort((a, b) => {
                 const timeA = a.timestamp || '';
                 const timeB = b.timestamp || '';
-                return timeA.localeCompare(timeB);
+                return timeB.localeCompare(timeA); // 降順に修正
             });
 
-            // V1963: 履歴を表示（アイコン削除）
-            // V2077: ラベル設定はメモ履歴のみに制限
-            // V2078: 選択時のみボタンを表示（opacity-0ではなく完全非表示）
+            // V2213: タイムライン形式で表示（フランチャイズ統一デザイン）
             historyList.innerHTML = allHistory.map((item, index) => {
-                // callHistoryエントリのみ編集・削除可能（caseMemoは読み取り専用）
                 const isEditable = item.source === 'callHistory';
                 const isSelected = selectedCallHistoryIndex === index;
+                const note = item.note || '';
 
-                // V1965: このエントリがラベルとして設定されているかチェック
-                const isLabel = casesData[currentCaseId]?.label === item.note;
+                // 日付フォーマット（MM/DD HH:mm形式）
+                let formattedDate = item.timestamp || '';
+                try {
+                    const d = new Date(item.timestamp);
+                    if (!isNaN(d.getTime())) {
+                        formattedDate = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+                    }
+                } catch(e) {}
 
-                // V2077: メモかどうか判定（接続/不在/架電を含まないものがメモ）
-                const isCallRecord = item.note && (item.note.includes('📞') || item.note.includes('📵') || item.note.includes('接続') || item.note.includes('不在') || item.note.includes('架電'));
-                const isMemoRecord = !isCallRecord;
+                // 履歴タイプを検出
+                const type = detectAdminHistoryType(note);
+                const { icon, label, bgColor, textColor, dotColor } = getAdminHistoryStyle(type, note);
+
+                // メモ部分のみ抽出（アイコンプレフィックスを除去）
+                const cleanNote = note
+                    .replace(/^(📞\s*(接続|不在)|📵\s*不在|🗓️|次回架電:?\s*)/, '')
+                    .replace(/^次回架電設定:\s*/, '')
+                    .trim();
+
+                // 次回架電日情報
+                const nextCallInfo = item.nextCallDate ? item.nextCallDate : (note.includes('次回架電') ? note.match(/次回架電[設定:：]*\s*(.+)/)?.[1] || '' : '');
 
                 return `
-                    <div class="border-l-4 ${isEditable ? 'border-blue-500' : 'border-gray-400'} pl-4 py-2 group hover:bg-gray-50 rounded-r transition-all ${isSelected ? 'bg-blue-50' : ''} ${isLabel ? 'bg-yellow-50' : ''}" data-history-index="${index}" onclick="toggleHistorySelection(${index}, event)">
-                        <div class="flex justify-between items-start gap-3">
+                <div onclick="toggleHistorySelection(${index}, event)" class="relative cursor-pointer group">
+                    <!-- タイムラインライン -->
+                    <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200 ${index === allHistory.length - 1 ? 'h-6' : ''}"></div>
+
+                    <!-- タイムラインドット -->
+                    <div class="absolute left-2.5 top-2 w-3 h-3 rounded-full ${isSelected ? 'bg-amber-500' : dotColor} border-2 border-white shadow-sm"></div>
+
+                    <!-- コンテンツカード -->
+                    <div class="ml-8 rounded-xl p-3 ${isSelected ? 'bg-amber-50 border-2 border-amber-400 shadow-md' : 'bg-white border border-gray-200 hover:border-gray-300 hover:shadow-sm'} transition-all">
+                        <div class="flex justify-between items-start gap-2">
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm text-gray-600">${item.timestamp} ${isLabel ? '<span class="ml-1 px-1.5 py-0.5 bg-yellow-200 text-yellow-800 rounded text-xs">🏷️ラベル</span>' : ''}</p>
-                                <p class="mt-1 break-words">${item.note}</p>
-                                ${item.nextCallDate ? `<p class="text-sm text-blue-600 mt-1">次回架電: ${item.nextCallDate}</p>` : ''}
+                                <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                    <span class="text-xs text-gray-400 font-medium">${formattedDate}</span>
+                                    <span class="text-xs px-1.5 py-0.5 rounded ${bgColor} ${textColor} font-medium">${icon} ${label}</span>
+                                </div>
+                                ${cleanNote ? `<div class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">${cleanNote}</div>` : ''}
+                                ${nextCallInfo && type === 'next_call' ? `<div class="text-sm font-medium text-blue-600 mt-1">次回架電: ${nextCallInfo}</div>` : ''}
                             </div>
                             ${isEditable && isSelected ? `
-                                <div class="flex gap-1.5 flex-shrink-0">
-                                    ${isMemoRecord ? `<button
-                                        onclick="setAsLabel(${index}, '${item.note.replace(/'/g, "\\'")}'); event.stopPropagation();"
-                                        class="${isLabel ? 'text-yellow-600 bg-yellow-100' : 'text-yellow-600 hover:text-white hover:bg-yellow-500'} text-xs px-2.5 py-1.5 rounded-md transition-all font-medium"
-                                        title="${isLabel ? 'ラベル解除' : 'ラベル設定'}"
-                                    >
-                                        ${isLabel ? '解除' : 'ラベル'}
-                                    </button>` : ''}
-                                    <button
-                                        onclick="editCallHistoryEntry(${index}); event.stopPropagation();"
-                                        class="text-blue-600 hover:text-white hover:bg-blue-600 text-xs px-2.5 py-1.5 rounded-md transition-all font-medium"
-                                        title="編集"
-                                    >
-                                        編集
-                                    </button>
-                                    <button
-                                        onclick="deleteCallHistoryEntry(${index}); event.stopPropagation();"
-                                        class="text-red-600 hover:text-white hover:bg-red-600 text-xs px-2.5 py-1.5 rounded-md transition-all font-medium"
-                                        title="削除"
-                                    >
-                                        削除
-                                    </button>
-                                </div>
+                            <div class="flex gap-1 flex-shrink-0">
+                                <button onclick="editCallHistoryEntry(${index}); event.stopPropagation();" class="w-7 h-7 flex items-center justify-center text-amber-600 hover:bg-amber-100 rounded-lg transition-all text-sm" title="編集">✏️</button>
+                                <button onclick="deleteCallHistoryEntry(${index}); event.stopPropagation();" class="w-7 h-7 flex items-center justify-center text-red-500 hover:bg-red-100 rounded-lg transition-all text-sm" title="削除">🗑️</button>
+                            </div>
                             ` : ''}
                         </div>
                     </div>
-                `;
-            }).join('');
+                </div>
+            `}).join('');
+        }
+
+        // V2213: 履歴タイプを検出
+        function detectAdminHistoryType(note) {
+            if (!note) return 'memo';
+            if (note.includes('📞') && (note.includes('接続') || !note.includes('不在'))) return 'call_connected';
+            if (note.includes('📵') || (note.includes('📞') && note.includes('不在'))) return 'call_absent';
+            if (note.includes('次回架電') || note.includes('🗓️')) return 'next_call';
+            if (note.includes('SMS送信') || note.includes('メール送信') || note.includes('LINE')) return 'message';
+            return 'memo';
+        }
+
+        // V2213: 履歴タイプに応じたスタイル
+        function getAdminHistoryStyle(type, note) {
+            switch(type) {
+                case 'call_connected':
+                    return { icon: '📞', label: '接続', bgColor: 'bg-green-100', textColor: 'text-green-700', dotColor: 'bg-green-400' };
+                case 'call_absent':
+                    return { icon: '📵', label: '不在', bgColor: 'bg-red-100', textColor: 'text-red-600', dotColor: 'bg-red-400' };
+                case 'next_call':
+                    return { icon: '📅', label: '次回架電', bgColor: 'bg-blue-100', textColor: 'text-blue-700', dotColor: 'bg-blue-400' };
+                case 'message':
+                    return { icon: '💬', label: 'メッセージ', bgColor: 'bg-purple-100', textColor: 'text-purple-700', dotColor: 'bg-purple-400' };
+                default:
+                    return { icon: '📋', label: 'メモ', bgColor: 'bg-amber-100', textColor: 'text-amber-700', dotColor: 'bg-gray-300' };
+            }
         }
 
         // 架電履歴エントリを編集
