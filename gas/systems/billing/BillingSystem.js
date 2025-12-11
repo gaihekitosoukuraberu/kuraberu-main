@@ -2582,14 +2582,26 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
         totalCases++;
         const status = row[dIdx.deliveryStatus];
         const deliveryDate = row[dIdx.deliveryDate];
+        const contractDate = row[dIdx.contractDate];
         const cvId = row[dIdx.cvId];
-        const contractAmount = row[dIdx.contractAmount] || 0;
+        const contractAmount = Number(row[dIdx.contractAmount]) || 0;
+        const deliveryAmount = Number(row[dIdx.deliveryAmount]) || 0;
 
         // 今月の新規案件カウント
         if (deliveryDate) {
           const date = new Date(deliveryDate);
           if (date.getFullYear() === thisYear && date.getMonth() === thisMonth) {
             newCases++;
+            // 今月の紹介料支出
+            thisMonthCost += deliveryAmount;
+          }
+        }
+
+        // 今月の売上（成約日ベース）
+        if (contractDate && contractAmount > 0) {
+          const cDate = new Date(contractDate);
+          if (cDate.getFullYear() === thisYear && cDate.getMonth() === thisMonth) {
+            thisMonthRevenue += contractAmount;
           }
         }
 
@@ -2656,7 +2668,10 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
           newCases: newCases,
           contractRate: contractRate,
           inProgress: inProgressCases,
-          memberCount: memberCount
+          memberCount: memberCount,
+          thisMonthRevenue: thisMonthRevenue,
+          thisMonthCost: thisMonthCost,
+          thisMonthProfit: thisMonthRevenue - thisMonthCost
         },
         recentCases: top5Cases
       };
