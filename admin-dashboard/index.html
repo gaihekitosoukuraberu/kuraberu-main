@@ -2287,41 +2287,63 @@ window.addEventListener('beforeunload', function(e) {
                         </div>
                     </div>
 
-                    <!-- V2213: 次回架電設定セクション -->
-                    <div id="nextCallQuickSettings" class="hidden p-4 bg-gray-50 rounded-xl">
-                        <h4 class="text-sm font-semibold text-gray-700 mb-3">次回架電を設定</h4>
-                        <div class="flex gap-2 mb-3">
-                            <!-- 日付ボタン -->
-                            <div class="grid grid-cols-2 gap-1.5 w-24 flex-shrink-0">
-                                <button onclick="setQuickCallDay('today')" data-day="today" class="quick-day-btn px-1.5 py-2 text-xs font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">当日</button>
-                                <button onclick="setQuickCallDay('tomorrow')" data-day="tomorrow" class="quick-day-btn px-1.5 py-2 text-xs font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">明日</button>
-                                <button onclick="setQuickCallDay('saturday')" data-day="saturday" class="quick-day-btn px-1.5 py-2 text-xs font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">土</button>
-                                <button onclick="setQuickCallDay('sunday')" data-day="sunday" class="quick-day-btn px-1.5 py-2 text-xs font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">日</button>
-                            </div>
-                            <!-- 時間ボタン -->
-                            <div class="flex-1 grid grid-cols-4 gap-1.5">
-                                <button onclick="setQuickCallTime(9)" data-hour="9" class="quick-time-btn px-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">9時</button>
-                                <button onclick="setQuickCallTime(12)" data-hour="12" class="quick-time-btn px-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">12時</button>
-                                <button onclick="setQuickCallTime(17)" data-hour="17" class="quick-time-btn px-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">17時</button>
-                                <button onclick="setQuickCallTime(19)" data-hour="19" class="quick-time-btn px-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">19時</button>
+                    <!-- V2213: 次回架電設定セクション（フランチャイズ統一デザイン） -->
+                    <div id="nextCallQuickSettings" class="hidden space-y-4">
+                        <!-- 日付クイック選択 -->
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                <span>📅</span> 日付を選択
+                            </h4>
+                            <div class="grid grid-cols-4 gap-2 mb-3">
+                                <button onclick="setQuickCallDay(0)" data-qday="0" class="quick-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">
+                                    <div class="text-xs text-gray-400">今日</div>
+                                    <div id="qDayLabel0" class="text-base"></div>
+                                </button>
+                                <button onclick="setQuickCallDay(1)" data-qday="1" class="quick-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">
+                                    <div class="text-xs text-gray-400">明日</div>
+                                    <div id="qDayLabel1" class="text-base"></div>
+                                </button>
+                                <button onclick="setQuickCallDay(2)" data-qday="2" class="quick-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">
+                                    <div class="text-xs text-gray-400">明後日</div>
+                                    <div id="qDayLabel2" class="text-base"></div>
+                                </button>
+                                <button onclick="setQuickCallDay(7)" data-qday="7" class="quick-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">
+                                    <div class="text-xs text-gray-400">1週間後</div>
+                                    <div id="qDayLabel7" class="text-base"></div>
+                                </button>
                             </div>
                         </div>
-                        <!-- 分数プルダウン -->
-                        <div class="flex items-center gap-2 mb-3">
-                            <span class="text-xs text-gray-500 flex-shrink-0">分：</span>
-                            <select id="quickCallMinute" onchange="updateSelectedNextCallDisplay()" class="flex-1 px-2 py-1.5 border-2 border-gray-300 rounded-lg text-sm focus:border-blue-500 transition-all">
-                                <option value="0">00分</option>
-                                <option value="15">15分</option>
-                                <option value="30">30分</option>
-                                <option value="45">45分</option>
-                            </select>
+
+                        <!-- 時間帯選択 -->
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                <span>⏰</span> 時間帯を選択
+                            </h4>
+                            <div class="grid grid-cols-4 gap-2">
+                                <button onclick="setQuickCallTime(9)" data-qhour="9" class="quick-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">9時</button>
+                                <button onclick="setQuickCallTime(12)" data-qhour="12" class="quick-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">12時</button>
+                                <button onclick="setQuickCallTime(17)" data-qhour="17" class="quick-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">17時</button>
+                                <button onclick="setQuickCallTime(19)" data-qhour="19" class="quick-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">19時</button>
+                            </div>
                         </div>
-                        <div id="selectedNextCall" class="text-center text-sm text-blue-600 font-medium mb-3 hidden"></div>
-                        <div class="flex gap-2">
-                            <button onclick="skipNextCallSetting()" class="flex-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 text-gray-600 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">
+
+                        <!-- 選択結果プレビュー -->
+                        <div id="selectedNextCall" class="bg-blue-50 rounded-xl p-4 border-2 border-blue-200 hidden">
+                            <div class="flex items-center justify-center gap-3">
+                                <span class="text-2xl">📞</span>
+                                <div class="text-center">
+                                    <div class="text-xs text-blue-600 font-medium">次回架電予定</div>
+                                    <div id="selectedNextCallText" class="text-xl font-bold text-blue-800">---</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ボタン -->
+                        <div class="flex gap-3">
+                            <button onclick="skipNextCallSetting()" class="flex-1 py-3 bg-white border-2 border-gray-300 text-gray-600 rounded-xl hover:bg-gray-100 font-bold transition-all">
                                 スキップ
                             </button>
-                            <button onclick="confirmConnectionResult()" class="flex-1 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all text-sm">
+                            <button onclick="confirmConnectionResult()" class="flex-[2] py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold shadow-lg hover:shadow-xl transition-all">
                                 確定
                             </button>
                         </div>
@@ -9486,25 +9508,25 @@ window.addEventListener('beforeunload', function(e) {
                 initializeListView();
             }
 
-            // GASに保存（バックグラウンド）
+            // GASに保存（バックグラウンド） - admin_updateCVData を使用
             try {
                 const response = await fetch(ENV.GAS_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: new URLSearchParams({
-                        action: 'updateCRM',
-                        caseId: nextCallModalCaseId,
+                        action: 'admin_updateCVData',
+                        cvId: nextCallModalCaseId,
                         data: JSON.stringify({ nextCallDate: nextCallDateTime })
                     })
                 });
                 const result = await response.json();
                 if (result.success) {
-                    console.log('[V2055] 次回架電日保存完了:', nextCallDateTime);
+                    console.log('[V2213] 次回架電日保存完了:', nextCallDateTime);
                 } else {
-                    console.error('[V2055] 次回架電日保存失敗:', result.error);
+                    console.error('[V2213] 次回架電日保存失敗:', result.error);
                 }
             } catch (error) {
-                console.error('[V2055] 次回架電日保存エラー:', error);
+                console.error('[V2213] 次回架電日保存エラー:', error);
             }
         }
 
@@ -9527,25 +9549,25 @@ window.addEventListener('beforeunload', function(e) {
                 initializeListView();
             }
 
-            // GASに保存（バックグラウンド）
+            // GASに保存（バックグラウンド） - admin_updateCVData を使用
             try {
                 const response = await fetch(ENV.GAS_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: new URLSearchParams({
-                        action: 'updateCRM',
-                        caseId: nextCallModalCaseId,
+                        action: 'admin_updateCVData',
+                        cvId: nextCallModalCaseId,
                         data: JSON.stringify({ nextCallDate: '' })
                     })
                 });
                 const result = await response.json();
                 if (result.success) {
-                    console.log('[V2055] 次回架電日クリア完了');
+                    console.log('[V2213] 次回架電日クリア完了');
                 } else {
-                    console.error('[V2055] 次回架電日クリア失敗:', result.error);
+                    console.error('[V2213] 次回架電日クリア失敗:', result.error);
                 }
             } catch (error) {
-                console.error('[V2055] 次回架電日クリアエラー:', error);
+                console.error('[V2213] 次回架電日クリアエラー:', error);
             }
         }
         // ========================================
@@ -9640,142 +9662,124 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
-        // V1958: 時間を選択
+        // V2213: 時間を選択（新デザイン対応）
         function setQuickCallTime(hour) {
             quickCallTime = hour;
             document.querySelectorAll('.quick-time-btn').forEach(btn => {
-                btn.classList.remove('border-blue-500', 'bg-blue-50');
-                btn.classList.add('border-gray-300');
+                if (parseInt(btn.dataset.qhour) === hour) {
+                    btn.classList.add('border-blue-400', 'bg-blue-50');
+                    btn.classList.remove('border-gray-200');
+                } else {
+                    btn.classList.remove('border-blue-400', 'bg-blue-50');
+                    btn.classList.add('border-gray-200');
+                }
             });
-            event.target.classList.remove('border-gray-300');
-            event.target.classList.add('border-blue-500', 'bg-blue-50');
             updateSelectedNextCallDisplay();
         }
 
-        // V1958: 日を選択
-        function setQuickCallDay(day) {
-            quickCallDay = day;
+        // V2213: 日を選択（数値ベースに変更: 0=今日, 1=明日, 2=明後日, 7=1週間後）
+        function setQuickCallDay(daysOffset) {
+            quickCallDay = daysOffset;
             document.querySelectorAll('.quick-day-btn').forEach(btn => {
-                btn.classList.remove('border-blue-500', 'bg-blue-50');
-                btn.classList.add('border-gray-300');
+                if (btn.dataset.qday === String(daysOffset)) {
+                    btn.classList.add('border-blue-400', 'bg-blue-50');
+                    btn.classList.remove('border-gray-200');
+                } else {
+                    btn.classList.remove('border-blue-400', 'bg-blue-50');
+                    btn.classList.add('border-gray-200');
+                }
             });
-            event.target.classList.remove('border-gray-300');
-            event.target.classList.add('border-blue-500', 'bg-blue-50');
             updateSelectedNextCallDisplay();
         }
 
-        // V1961: 選択した次回架電日時を表示（分数対応）
+        // V2213: 選択した次回架電日時を表示（新デザイン対応）
         function updateSelectedNextCallDisplay() {
-            if (!quickCallTime || !quickCallDay) return;
+            if (quickCallTime === null || quickCallDay === null) return;
             const dateStr = getQuickCallDate();
+            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+            const target = new Date();
+            target.setDate(target.getDate() + quickCallDay);
+            const dayName = dayNames[target.getDay()];
+            const previewText = `${dateStr}（${dayName}）${quickCallTime}:00`;
+
             const display = document.getElementById('selectedNextCall');
-            // V1961: 分数プルダウンから取得
-            const minuteSelect = document.getElementById('quickCallMinute');
-            const minute = minuteSelect ? parseInt(minuteSelect.value) || 0 : 0;
-            const minuteStr = String(minute).padStart(2, '0');
-            display.textContent = `${dateStr} ${quickCallTime}:${minuteStr}`;
-            display.classList.remove('hidden');
+            const textEl = document.getElementById('selectedNextCallText');
+            if (textEl) {
+                textEl.textContent = previewText;
+            }
+            display?.classList.remove('hidden');
         }
 
-        // V1958: 日付を計算
+        // V2213: 日付を計算（数値ベース）
         function getQuickCallDate() {
-            const now = new Date();
-            let target = new Date();
-
-            switch(quickCallDay) {
-                case 'today':
-                    break;
-                case 'tomorrow':
-                    target.setDate(now.getDate() + 1);
-                    break;
-                case 'saturday':
-                    const daysUntilSat = (6 - now.getDay() + 7) % 7 || 7;
-                    target.setDate(now.getDate() + daysUntilSat);
-                    break;
-                case 'sunday':
-                    const daysUntilSun = (7 - now.getDay()) % 7 || 7;
-                    target.setDate(now.getDate() + daysUntilSun);
-                    break;
+            const target = new Date();
+            if (typeof quickCallDay === 'number') {
+                target.setDate(target.getDate() + quickCallDay);
             }
-
             return target.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' });
         }
 
-        // V1964: 次の9/12/17/19時を自動計算（土日は翌週土曜デフォルト）
+        // V2213: 次の9/12/17/19時を自動計算（数値ベースに変更）
         function autoSetNextCallTime() {
             const now = new Date();
             const hour = now.getHours();
-            const dayOfWeek = now.getDay(); // 0=日, 6=土
             const slots = [9, 12, 17, 19];
 
-            // V1964: 土日の場合は翌週土曜をデフォルトに
-            if (dayOfWeek === 0 || dayOfWeek === 6) {
-                quickCallDay = 'saturday'; // 翌週土曜
-                quickCallTime = 9;
+            // 次の時間スロットを見つける
+            let nextSlot = slots.find(s => s > hour);
+            if (nextSlot) {
+                quickCallDay = 0; // 今日
+                quickCallTime = nextSlot;
             } else {
-                // 平日の場合は従来通り
-                let nextSlot = slots.find(s => s > hour);
-                if (nextSlot) {
-                    quickCallDay = 'today';
-                    quickCallTime = nextSlot;
-                } else {
-                    quickCallDay = 'tomorrow';
-                    quickCallTime = 9;
-                }
+                quickCallDay = 1; // 明日
+                quickCallTime = 9;
             }
 
-            // V1961: まず全ボタンをリセット
-            document.querySelectorAll('.quick-time-btn').forEach(btn => {
-                btn.classList.remove('border-blue-500', 'bg-blue-50');
-                btn.classList.add('border-gray-300');
-            });
-            document.querySelectorAll('.quick-day-btn').forEach(btn => {
-                btn.classList.remove('border-blue-500', 'bg-blue-50');
-                btn.classList.add('border-gray-300');
+            // 日付ラベルを設定
+            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+            [0, 1, 2, 7].forEach(d => {
+                const date = new Date();
+                date.setDate(date.getDate() + d);
+                const label = document.getElementById(`qDayLabel${d}`);
+                if (label) {
+                    label.textContent = `${date.getMonth() + 1}/${date.getDate()}(${dayNames[date.getDay()]})`;
+                }
             });
 
-            // V1961: data-hour/data-day属性で正確にマッチ（9時と19時の混同バグ修正）
+            // ボタンをリセット
             document.querySelectorAll('.quick-time-btn').forEach(btn => {
-                if (btn.dataset.hour === String(quickCallTime)) {
-                    btn.classList.remove('border-gray-300');
-                    btn.classList.add('border-blue-500', 'bg-blue-50');
+                btn.classList.remove('border-blue-400', 'bg-blue-50');
+                btn.classList.add('border-gray-200');
+            });
+            document.querySelectorAll('.quick-day-btn').forEach(btn => {
+                btn.classList.remove('border-blue-400', 'bg-blue-50');
+                btn.classList.add('border-gray-200');
+            });
+
+            // 選択状態を設定
+            document.querySelectorAll('.quick-time-btn').forEach(btn => {
+                if (parseInt(btn.dataset.qhour) === quickCallTime) {
+                    btn.classList.remove('border-gray-200');
+                    btn.classList.add('border-blue-400', 'bg-blue-50');
                 }
             });
             document.querySelectorAll('.quick-day-btn').forEach(btn => {
-                if (btn.dataset.day === quickCallDay) {
-                    btn.classList.remove('border-gray-300');
-                    btn.classList.add('border-blue-500', 'bg-blue-50');
+                if (btn.dataset.qday === String(quickCallDay)) {
+                    btn.classList.remove('border-gray-200');
+                    btn.classList.add('border-blue-400', 'bg-blue-50');
                 }
             });
 
             updateSelectedNextCallDisplay();
         }
 
-        // V1961: 次回架電日時を計算（分数対応）
+        // V2213: 次回架電日時を計算（数値ベース）
         function calculateNextCallDateTime() {
-            const now = new Date();
-            let target = new Date();
-
-            switch(quickCallDay) {
-                case 'today':
-                    break;
-                case 'tomorrow':
-                    target.setDate(now.getDate() + 1);
-                    break;
-                case 'saturday':
-                    const daysUntilSat = (6 - now.getDay() + 7) % 7 || 7;
-                    target.setDate(now.getDate() + daysUntilSat);
-                    break;
-                case 'sunday':
-                    const daysUntilSun = (7 - now.getDay()) % 7 || 7;
-                    target.setDate(now.getDate() + daysUntilSun);
-                    break;
+            const target = new Date();
+            if (typeof quickCallDay === 'number') {
+                target.setDate(target.getDate() + quickCallDay);
             }
-
-            // V1961: 分数プルダウンから取得
-            const minuteSelect = document.getElementById('quickCallMinute');
-            const minute = minuteSelect ? parseInt(minuteSelect.value) || 0 : 0;
-            target.setHours(quickCallTime, minute, 0, 0);
+            target.setHours(quickCallTime || 9, 0, 0, 0);
             return target.toLocaleString('ja-JP');
         }
 
