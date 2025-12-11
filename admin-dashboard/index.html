@@ -7873,7 +7873,10 @@ window.addEventListener('beforeunload', function(e) {
 
                         <!-- V2214: バッジ行 - タップでモーダル開く -->
                         <div class="flex flex-wrap items-center gap-2 mb-3">
-                            ${counts.callTotal > 0 ? `<span onclick="event.stopPropagation(); openCallLogModal('${caseId}')" class="inline-flex items-center gap-0.5 px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium cursor-pointer hover:bg-blue-100 transition-colors">📞 ${counts.connectedTotal}/${counts.callTotal}</span>` : ''}
+                            <span onclick="event.stopPropagation(); openCallLogModal('${caseId}')" class="relative inline-flex items-center gap-0.5 px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium cursor-pointer hover:bg-blue-100 transition-colors">
+                                📞 ${counts.connectedTotal}/${counts.callTotal}
+                                <span onclick="event.stopPropagation(); callCase('${caseId}')" class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-[10px] shadow-md hover:bg-green-600 transition-colors">📲</span>
+                            </span>
                             ${counts.memoTotal > 0 ? `<span onclick="event.stopPropagation(); openCallHistoryModal('${caseId}')" class="inline-flex items-center gap-0.5 px-2 py-1 bg-amber-50 text-amber-600 rounded-lg text-xs font-medium cursor-pointer hover:bg-amber-100 transition-colors">📝 ${counts.memoTotal}</span>` : ''}
                             ${getDeliveryStatusDisplay(caseData, caseId)}
                             ${caseData.nextCallDate || caseData.label ? `<span onclick="event.stopPropagation(); openNextCallModal('${caseId}')" class="inline-flex items-center gap-1 px-2 py-1 bg-gray-50 text-gray-600 rounded-lg text-xs font-medium cursor-pointer hover:bg-gray-100 transition-colors">${caseData.nextCallDate ? '📅 ' + formatNextCallDate(caseData.nextCallDate) : ''}${caseData.label ? (caseData.nextCallDate ? ' / ' : '') + '🏷️' + caseData.label : ''}</span>` : ''}
@@ -7889,14 +7892,10 @@ window.addEventListener('beforeunload', function(e) {
                             </div>
                         </div>
 
-                        <!-- V2214: アクションバー - シンプル化 -->
-                        <div class="flex justify-between items-center pt-3 border-t border-gray-100">
-                            <div class="flex items-center gap-2">
-                                <button onclick="openCRM('${caseId}')" class="px-3 py-1.5 text-xs font-medium bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">詳細</button>
-                                <button onclick="openSmsModal('${caseId}')" class="px-3 py-1.5 text-xs font-medium bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">💬 SMS</button>
-                            </div>
-                            <button onclick="callCase('${caseId}')" class="px-4 py-1.5 text-sm font-bold bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-1">
-                                📞 発信
+                        <!-- V2214: アクションバー - 詳細ボタンのみ右寄せ -->
+                        <div class="flex justify-end items-center pt-3 border-t border-gray-100">
+                            <button onclick="openCRM('${caseId}')" class="px-4 py-1.5 text-sm font-bold bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                                詳細
                             </button>
                         </div>
                     `;
