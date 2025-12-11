@@ -656,7 +656,11 @@ const SystemRouter = {
         'updateInvoiceStatus',
         'checkPayments',
         'sendReminders',
-        'setupSheets'
+        'setupSheets',
+        'sendPdf',
+        'autoGenerateMonthly',
+        'getReferralHistory',
+        'getFinancialSummary'
       ]
     },
 
