@@ -2484,6 +2484,39 @@ window.addEventListener('beforeunload', function(e) {
         </div>
     </div>
 
+    <!-- V2214: 通話履歴モーダル（📞バッジタップ用） -->
+    <div id="callLogModal" class="fixed inset-0 z-50 hidden">
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeCallLogModal()"></div>
+        <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[80vh] sm:max-h-[70vh] flex flex-col overflow-hidden">
+                <!-- ヘッダー -->
+                <div class="px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white flex-shrink-0 relative">
+                    <button onclick="closeCallLogModal()" class="absolute top-2 right-2 text-white/80 hover:text-white hover:bg-white/20 rounded-full p-1.5 transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <h3 class="text-base font-bold flex items-center gap-2">
+                        <span>📞</span> 通話履歴
+                    </h3>
+                    <p id="callLogTargetName" class="text-xs text-blue-100 mt-0.5">---</p>
+                </div>
+                <!-- リスト -->
+                <div class="flex-1 overflow-y-auto p-4">
+                    <div id="callLogList" class="space-y-2">
+                        <!-- 動的に生成 -->
+                    </div>
+                </div>
+                <!-- フッター -->
+                <div class="p-4 border-t bg-gray-50 flex-shrink-0">
+                    <button onclick="closeCallLogModal()" class="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-300 transition-all">
+                        閉じる
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- V2213: メッセージ送信モーダル（フランチャイズ統一デザイン） -->
     <div id="smsModal" class="fixed inset-0 z-50 hidden">
         <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeSmsModal()"></div>
@@ -9015,9 +9048,12 @@ window.addEventListener('beforeunload', function(e) {
             try {
                 // GASから配信管理データを取得
                 const result = await window.apiClient.postRequest('admin_getDeliveredFranchises', { cvId: caseId });
+                console.log('[openDeliveryDetailModal] API result:', result);
 
-                if (result.success && result.franchises && result.franchises.length > 0) {
-                    const franchises = result.franchises;
+                // V2214: GAS側は deliveredFranchises を返す
+                const franchises = result.deliveredFranchises || result.franchises || [];
+
+                if (result.success && franchises.length > 0) {
                     const desiredCount = parseInt(caseData.companiesCountPreference) || 3;
 
                     // サマリー更新
@@ -9026,14 +9062,15 @@ window.addEventListener('beforeunload', function(e) {
                     // リスト表示
                     listEl.innerHTML = franchises.map((f, idx) => {
                         const statusStyle = getDeliveryDetailStatusStyle(f.detailStatus || '新着');
-                        const deliveredDate = f.deliveredAt ? formatDeliveryDate(f.deliveredAt) : '-';
+                        // V2214: deliveryDate を使う（GAS側のキー名）
+                        const deliveredDate = f.deliveryDate || f.deliveredAt || '-';
 
                         return `
                         <div class="bg-gray-50 rounded-xl p-3 border border-gray-200">
                             <div class="flex justify-between items-start">
                                 <div class="flex-1">
                                     <div class="flex items-center gap-2 mb-1">
-                                        <span class="text-sm font-bold text-gray-800">${idx + 1}. ${f.merchantName || f.franchiseId || '加盟店'}</span>
+                                        <span class="text-sm font-bold text-gray-800">${idx + 1}. ${f.franchiseName || f.merchantName || f.franchiseId || '加盟店'}</span>
                                     </div>
                                     <div class="flex items-center gap-2 flex-wrap">
                                         <span class="text-xs px-2 py-0.5 rounded-full ${statusStyle.bg} ${statusStyle.text} font-medium">${f.detailStatus || '新着'}</span>
@@ -10202,6 +10239,53 @@ window.addEventListener('beforeunload', function(e) {
 
             document.getElementById('callHistoryModal').classList.remove('hidden');
             loadCallHistory();
+        }
+
+        // V2214: 通話履歴モーダル（📞バッジタップ用）
+        function openCallLogModal(caseId) {
+            if (caseId) {
+                currentCaseId = caseId;
+            }
+            const caseData = casesData[currentCaseId];
+            if (!caseData) return;
+
+            const modal = document.getElementById('callLogModal');
+            const nameEl = document.getElementById('callLogTargetName');
+            const listEl = document.getElementById('callLogList');
+
+            if (nameEl) nameEl.textContent = caseData.name || caseData.customerName || '---';
+
+            // 通話履歴のみ抽出（📞または📵で始まるもの）
+            const history = caseData.callHistory || [];
+            const callLogs = history.filter(item => {
+                const note = item.note || '';
+                return note.startsWith('📞') || note.startsWith('📵');
+            });
+
+            if (listEl) {
+                if (callLogs.length === 0) {
+                    listEl.innerHTML = '<p class="text-gray-400 text-sm text-center py-4">通話履歴がありません</p>';
+                } else {
+                    listEl.innerHTML = callLogs.map(item => {
+                        const isConnected = (item.note || '').includes('接続');
+                        const bgClass = isConnected ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200';
+                        return `
+                            <div class="p-3 ${bgClass} border rounded-lg">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium">${item.note || ''}</span>
+                                    <span class="text-xs text-gray-400">${item.timestamp || item.date || ''}</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+
+            modal?.classList.remove('hidden');
+        }
+
+        function closeCallLogModal() {
+            document.getElementById('callLogModal')?.classList.add('hidden');
         }
 
         // V2057: 接続時専用のメモモーダル
