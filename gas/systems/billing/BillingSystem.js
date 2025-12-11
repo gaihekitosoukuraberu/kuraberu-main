@@ -2014,7 +2014,8 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
     }
 
     try {
-      const ss = SpreadsheetApp.openById(this.SPREADSHEET_ID);
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
 
       // 配信管理シートから成約データ取得
       const deliverySheet = ss.getSheetByName(this.SHEETS.DELIVERY);
@@ -2140,7 +2141,8 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
     }
 
     try {
-      const ss = SpreadsheetApp.openById(this.SPREADSHEET_ID);
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
       const billingSheet = ss.getSheetByName(this.SHEETS.BILLING);
 
       if (!billingSheet) {
@@ -2264,7 +2266,8 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
     }
 
     try {
-      const ss = SpreadsheetApp.openById(this.SPREADSHEET_ID);
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
 
       // 配信管理シートから成約・売上データ取得
       const deliverySheet = ss.getSheetByName(this.SHEETS.DELIVERY);
@@ -2444,7 +2447,8 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
     }
 
     try {
-      const ss = SpreadsheetApp.openById(this.SPREADSHEET_ID);
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
       const billingSheet = ss.getSheetByName(this.SHEETS.BILLING);
 
       if (!billingSheet) {
