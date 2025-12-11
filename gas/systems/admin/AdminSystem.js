@@ -3262,7 +3262,8 @@ info@gaihekikuraberu.com
         deliveryStatus: deliveryHeaders.indexOf('配信ステータス'),
         detailStatus: deliveryHeaders.indexOf('詳細ステータス'),
         deliveredAt: deliveryHeaders.indexOf('配信日時'),
-        contractAmount: deliveryHeaders.indexOf('成約金額')
+        contractAmount: deliveryHeaders.indexOf('成約金額'),
+        deliveryAmount: deliveryHeaders.indexOf('配信金額')  // V2213: 紹介料計算用
       };
 
       const merchantColIdx = {
@@ -3293,7 +3294,9 @@ info@gaihekikuraberu.com
         quoteWaiting: 0,      // 見積提出待ち
         monthlyContract: 0,   // 今月成約件数
         monthlyContractAmount: 0, // 今月成約金額
-        monthlyReferral: 0    // 今月紹介料
+        monthlyReferral: 0,   // 今月紹介料
+        todayReferral: 0,     // V2213: 今日の紹介料（配信金額合計）
+        todayDeliveryCount: 0 // V2213: 今日の配信数
       };
 
       // ステータス別カウント
@@ -3351,6 +3354,19 @@ info@gaihekikuraberu.com
         const detailStatus = row[deliveryColIdx.detailStatus] || '';
         const merchantId = row[deliveryColIdx.merchantId] || '';
         const contractAmount = parseFloat(row[deliveryColIdx.contractAmount]) || 0;
+        const deliveryAmount = parseFloat(row[deliveryColIdx.deliveryAmount]) || 0;
+        const deliveredAt = row[deliveryColIdx.deliveredAt] ? new Date(row[deliveryColIdx.deliveredAt]) : null;
+
+        // V2213: 今日の紹介料（配信金額）を集計
+        if (deliveredAt && deliveredAt >= today) {
+          stats.todayReferral += deliveryAmount;
+          stats.todayDeliveryCount++;
+        }
+
+        // 今月の紹介料を集計
+        if (deliveredAt && deliveredAt >= thisMonth) {
+          stats.monthlyReferral += deliveryAmount;
+        }
 
         // 配信中案件
         if (deliveryStatus === '配信済み' && !endedStatuses.includes(detailStatus) && !contractStatuses.some(s => detailStatus.includes(s))) {

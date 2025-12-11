@@ -3380,17 +3380,20 @@ window.addEventListener('beforeunload', function(e) {
             }
 
             // KPIカード
-            // 未振分案件
-            const unassignedCountEl = document.getElementById('dashUnassignedCount');
-            const unassignedSubEl = document.getElementById('dashUnassignedSub');
-            const unassignedBadgeEl = document.getElementById('dashUnassignedBadge');
-            if (unassignedCountEl) unassignedCountEl.textContent = stats.unassigned || 0;
-            if (unassignedSubEl) unassignedSubEl.textContent = `直近1時間: +${stats.unassignedRecent || 0}`;
-            if (unassignedBadgeEl) {
-                if (stats.unassigned > 0) {
-                    unassignedBadgeEl.classList.remove('hidden');
+            // V2213: 今日の売上（紹介料）
+            const todayReferralEl = document.getElementById('dashTodayReferral');
+            const todayReferralSubEl = document.getElementById('dashTodayReferralSub');
+            const todayDeliveryBadgeEl = document.getElementById('dashTodayDeliveryBadge');
+            const todayReferral = stats.todayReferral || 0;
+            const todayDeliveryCount = stats.todayDeliveryCount || 0;
+            if (todayReferralEl) todayReferralEl.textContent = `¥${todayReferral.toLocaleString()}`;
+            if (todayReferralSubEl) todayReferralSubEl.textContent = `今月累計: ¥${(stats.monthlyReferral || 0).toLocaleString()}`;
+            if (todayDeliveryBadgeEl) {
+                if (todayDeliveryCount > 0) {
+                    todayDeliveryBadgeEl.textContent = `${todayDeliveryCount}件`;
+                    todayDeliveryBadgeEl.classList.remove('hidden');
                 } else {
-                    unassignedBadgeEl.classList.add('hidden');
+                    todayDeliveryBadgeEl.classList.add('hidden');
                 }
             }
 
@@ -3654,17 +3657,17 @@ window.addEventListener('beforeunload', function(e) {
 
                         <!-- KPIカード（2x2グリッド → PC4列） -->
                         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
-                            <!-- 未振分案件 -->
-                            <div onclick="showSection('cases')" class="bg-white rounded-xl p-4 md:p-5 border border-gray-200 hover:shadow-lg hover:border-red-200 transition-all cursor-pointer group">
+                            <!-- V2213: 今日の売上（紹介料） -->
+                            <div onclick="showSection('financial')" class="bg-white rounded-xl p-4 md:p-5 border border-gray-200 hover:shadow-lg hover:border-emerald-200 transition-all cursor-pointer group">
                                 <div class="flex items-center justify-between mb-3">
-                                    <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center group-hover:bg-red-200 transition-colors">
-                                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center group-hover:bg-emerald-200 transition-colors">
+                                        <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     </div>
-                                    <span id="dashUnassignedBadge" class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full animate-pulse hidden">要対応</span>
+                                    <span id="dashTodayDeliveryBadge" class="text-xs bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-full hidden">--件</span>
                                 </div>
-                                <div class="text-2xl md:text-3xl font-bold text-gray-800" id="dashUnassignedCount">-</div>
-                                <div class="text-xs text-gray-500 mt-1">未振分案件</div>
-                                <div class="text-xs text-gray-400 mt-2" id="dashUnassignedSub">--</div>
+                                <div class="text-2xl md:text-3xl font-bold text-emerald-600" id="dashTodayReferral">¥-</div>
+                                <div class="text-xs text-gray-500 mt-1">今日の売上</div>
+                                <div class="text-xs text-gray-400 mt-2" id="dashTodayReferralSub">--</div>
                             </div>
 
                             <!-- 本日新規CV -->
