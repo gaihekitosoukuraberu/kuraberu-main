@@ -16637,12 +16637,10 @@
                 // メニューのアクティブ状態を更新
                 updateActiveMenu(sectionName);
 
-                // カレンダーセクションの場合は実データを読み込んで初期化
-                if (sectionName === 'calendar') {
-                    loadCalendarEvents().then(() => {
-                        renderCalendar();
-                        renderMiniCalendar();
-                    });
+                // V2198: ダッシュボードセクションの場合、データを読み込む
+                if (sectionName === 'dashboard') {
+                    loadDashboardStats();
+                    loadScheduleEvents();
                 }
 
                 // 会社情報セクションの場合、加盟店データを読み込み
