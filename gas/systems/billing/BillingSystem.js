@@ -1148,18 +1148,87 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
 
   _calculateDueDate: function(paymentMethod, month) {
     const [year, monthNum] = month.split('-').map(Number);
+    const nextMonth = monthNum === 12 ? 1 : monthNum + 1;
+    const nextYear = monthNum === 12 ? year + 1 : year;
 
+    let dueDate;
     if (paymentMethod === '口座振替') {
       // 翌月27日
-      const nextMonth = monthNum === 12 ? 1 : monthNum + 1;
-      const nextYear = monthNum === 12 ? year + 1 : year;
-      return new Date(nextYear, nextMonth - 1, 27);
+      dueDate = new Date(nextYear, nextMonth - 1, 27);
     } else {
       // 翌月15日（振込）
-      const nextMonth = monthNum === 12 ? 1 : monthNum + 1;
-      const nextYear = monthNum === 12 ? year + 1 : year;
-      return new Date(nextYear, nextMonth - 1, 15);
+      dueDate = new Date(nextYear, nextMonth - 1, 15);
     }
+
+    // 土日祝なら翌営業日に調整
+    return this._adjustToBusinessDay(dueDate);
+  },
+
+  /**
+   * 土日祝なら翌営業日に調整
+   */
+  _adjustToBusinessDay: function(date) {
+    const result = new Date(date);
+    const holidays = this._getJapaneseHolidays(result.getFullYear());
+
+    // 土日または祝日の間はずらす
+    while (this._isWeekend(result) || this._isHoliday(result, holidays)) {
+      result.setDate(result.getDate() + 1);
+      // 年をまたぐ場合は祝日リストを更新
+      if (result.getFullYear() !== date.getFullYear()) {
+        holidays.push(...this._getJapaneseHolidays(result.getFullYear()));
+      }
+    }
+    return result;
+  },
+
+  _isWeekend: function(date) {
+    const day = date.getDay();
+    return day === 0 || day === 6; // 日曜=0, 土曜=6
+  },
+
+  _isHoliday: function(date, holidays) {
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    return holidays.includes(dateStr);
+  },
+
+  /**
+   * 日本の祝日リスト（簡易版）
+   * 実運用では祝日APIを使うべき
+   */
+  _getJapaneseHolidays: function(year) {
+    // 固定祝日
+    const holidays = [
+      `${year}-01-01`, // 元日
+      `${year}-02-11`, // 建国記念の日
+      `${year}-02-23`, // 天皇誕生日
+      `${year}-04-29`, // 昭和の日
+      `${year}-05-03`, // 憲法記念日
+      `${year}-05-04`, // みどりの日
+      `${year}-05-05`, // こどもの日
+      `${year}-08-11`, // 山の日
+      `${year}-11-03`, // 文化の日
+      `${year}-11-23`, // 勤労感謝の日
+    ];
+
+    // ハッピーマンデー（第2月曜など）
+    holidays.push(this._getNthMonday(year, 1, 2));  // 成人の日: 1月第2月曜
+    holidays.push(this._getNthMonday(year, 7, 3));  // 海の日: 7月第3月曜
+    holidays.push(this._getNthMonday(year, 9, 3));  // 敬老の日: 9月第3月曜
+    holidays.push(this._getNthMonday(year, 10, 2)); // スポーツの日: 10月第2月曜
+
+    // 春分の日・秋分の日（近似計算）
+    holidays.push(`${year}-03-${Math.floor(20.8431 + 0.242194 * (year - 1980)) - Math.floor((year - 1980) / 4)}`);
+    holidays.push(`${year}-09-${Math.floor(23.2488 + 0.242194 * (year - 1980)) - Math.floor((year - 1980) / 4)}`);
+
+    return holidays;
+  },
+
+  _getNthMonday: function(year, month, n) {
+    const firstDay = new Date(year, month - 1, 1);
+    const firstMonday = 1 + (8 - firstDay.getDay()) % 7;
+    const nthMonday = firstMonday + (n - 1) * 7;
+    return `${year}-${String(month).padStart(2, '0')}-${String(nthMonday).padStart(2, '0')}`;
   },
 
   _addBusinessDays: function(date, days) {
@@ -1783,7 +1852,7 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
         history.push({
           cvId: cvId,
           referralDate: this._formatDateForApi(date),
-          customerName: this._maskName(cvInfo.customerName),
+          customerName: cvInfo.customerName || '名前なし',
           propertyType: cvInfo.propertyType,
           workContent: cvInfo.workContent,
           referralFee: referralFee,

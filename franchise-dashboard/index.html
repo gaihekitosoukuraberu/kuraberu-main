@@ -2940,16 +2940,9 @@
                     <!-- 紹介料履歴タブ（JSで動的に生成） -->
                     <div id="purchaseTab" class="billing-tab-content p-4 md:p-6">
                         <!-- ローディング -->
-                        <div id="billingLoader" class="flex justify-center items-center py-12" style="display: none;">
-                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                            <span class="ml-3 text-gray-600">読み込み中...</span>
-                        </div>
-                        <!-- 初期表示（API読み込み前のプレースホルダー） -->
-                        <div class="text-center py-8 text-gray-500">
-                            <svg class="w-12 h-12 mx-auto mb-4 text-gray-300 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            <p class="text-sm">データを読み込んでいます...</p>
+                        <div id="billingLoader" class="flex flex-col justify-center items-center py-12">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
+                            <span class="text-gray-600">読み込み中...</span>
                         </div>
                     </div>
 
