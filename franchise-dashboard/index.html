@@ -690,15 +690,15 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
                                 <span id="unifiedFilterLabel">絞込</span>
                             </button>
+                            <!-- V2204: 案件振り分けボタン - 管理者のみ表示（カラー統一）順番変更: 終了より前に -->
+                            <button id="assignPanelBtn" onclick="openAssignPanel()" class="hidden items-center gap-1 px-3 h-10 bg-indigo-50 text-indigo-600 border-2 border-indigo-200 rounded-xl shadow-sm hover:bg-indigo-100 transition-all font-medium whitespace-nowrap flex-shrink-0 text-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <span>振分</span>
+                            </button>
                             <!-- V2204: 終了案件表示切り替えボタン -->
                             <button id="toggleEndedCasesBtn" onclick="toggleShowEndedCases()" class="flex items-center gap-1 px-3 h-10 bg-gray-50 text-gray-600 border-2 border-gray-200 rounded-xl shadow-sm hover:bg-gray-100 transition-all font-medium whitespace-nowrap flex-shrink-0 text-sm">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
                                 <span>終了</span>
-                            </button>
-                            <!-- V2204: 案件振り分けボタン - 管理者のみ表示（カラー統一） -->
-                            <button id="assignPanelBtn" onclick="openAssignPanel()" class="hidden items-center gap-1 px-3 h-10 bg-indigo-50 text-indigo-600 border-2 border-indigo-200 rounded-xl shadow-sm hover:bg-indigo-100 transition-all font-medium whitespace-nowrap flex-shrink-0 text-sm">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                <span>振分</span>
                             </button>
                         </div>
 
