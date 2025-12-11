@@ -21,14 +21,14 @@ const ENV = {
   // 🎯 URL設定（完全一元管理）
   // ============================================
 
-  // プライマリGAS URL（メイン運用）- V2222 @2243
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbwjIvZUE96HAedQmWRcmZPrLv8A0nE2Wdanfy6qBP7R4RDF4j-LTrWLAXZluGAVaWEFiQ/exec',
+  // プライマリGAS URL（メイン運用）- V2228 @2248
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbyFt99gxe6C-07nY69PIKQbKLDgaDBnHc9TnkV4Xndhe2oIigqNLn8OJdw9nZDYwgK70g/exec',
 
-  // フォールバックGAS URL（バックアップ）- V2222 @2243
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbwjIvZUE96HAedQmWRcmZPrLv8A0nE2Wdanfy6qBP7R4RDF4j-LTrWLAXZluGAVaWEFiQ/exec',
+  // フォールバックGAS URL（バックアップ）- V2228 @2248
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbyFt99gxe6C-07nY69PIKQbKLDgaDBnHc9TnkV4Xndhe2oIigqNLn8OJdw9nZDYwgK70g/exec',
 
-  // 緊急時URL（最終フォールバック）- V2222 @2243
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbwjIvZUE96HAedQmWRcmZPrLv8A0nE2Wdanfy6qBP7R4RDF4j-LTrWLAXZluGAVaWEFiQ/exec',
+  // 緊急時URL（最終フォールバック）- V2228 @2248
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbyFt99gxe6C-07nY69PIKQbKLDgaDBnHc9TnkV4Xndhe2oIigqNLn8OJdw9nZDYwgK70g/exec',
 
   // ============================================
   // 🔧 システム設定
@@ -70,4 +70,4 @@ if (typeof window !== 'undefined') {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = ENV;
 }
-// Force FTP re-upload 1765469700
+// Force FTP re-upload 1765474500
