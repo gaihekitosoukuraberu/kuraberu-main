@@ -2622,11 +2622,11 @@ window.addEventListener('beforeunload', function(e) {
         </div>
     </div>
 
-    <!-- V2216: ステータス変更通知モーダル（全ステータス対応） -->
+    <!-- V2218: ステータス変更通知モーダル（キャンセルタイプ・課金返金設定対応） -->
     <div id="statusChangeNotifyModal" class="fixed inset-0 z-50 hidden">
         <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeStatusChangeNotifyModal()"></div>
         <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden">
                 <!-- ヘッダー -->
                 <div class="px-5 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 flex-shrink-0 relative">
                     <button onclick="closeStatusChangeNotifyModal()" class="absolute top-3 right-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
@@ -2634,16 +2634,46 @@ window.addEventListener('beforeunload', function(e) {
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
-                    <h3 class="text-base font-bold text-white">📧 加盟店への通知</h3>
+                    <h3 class="text-base font-bold text-white">📧 キャンセル通知設定</h3>
                     <p id="statusChangeNotifyTargetName" class="text-sm text-purple-100 mt-0.5">---</p>
                     <p id="statusChangeNotifyNewStatus" class="text-xs text-purple-200 mt-1">変更先: ---</p>
                 </div>
 
-                <!-- 配信先一覧 -->
+                <!-- V2218: キャンセルタイプ選択 -->
+                <div class="p-4 bg-purple-50 border-b flex-shrink-0">
+                    <p class="text-xs font-bold text-purple-700 mb-2">📋 キャンセルタイプ:</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="selectCancelType('all_refund')" id="cancelTypeAllRefund" class="cancel-type-btn px-3 py-2 bg-white border-2 border-purple-300 rounded-lg text-xs font-medium text-purple-700 hover:bg-purple-100 transition-all">
+                            🔄 全社キャンセル<br><span class="text-purple-400 text-[10px]">（返金あり）</span>
+                        </button>
+                        <button onclick="selectCancelType('all_no_refund')" id="cancelTypeAllNoRefund" class="cancel-type-btn px-3 py-2 bg-white border-2 border-gray-300 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-100 transition-all">
+                            ❌ 全社キャンセル<br><span class="text-gray-400 text-[10px]">（返金なし）</span>
+                        </button>
+                        <button onclick="selectCancelType('one_contract')" id="cancelTypeOneContract" class="cancel-type-btn px-3 py-2 bg-white border-2 border-gray-300 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-100 transition-all">
+                            ✅ 1社契約<br><span class="text-gray-400 text-[10px]">（他社お断り）</span>
+                        </button>
+                        <button onclick="selectCancelType('custom')" id="cancelTypeCustom" class="cancel-type-btn px-3 py-2 bg-white border-2 border-gray-300 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-100 transition-all">
+                            ⚙️ カスタム<br><span class="text-gray-400 text-[10px]">（個別設定）</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- V2218: 加盟店個別設定（カスタムモード時のみ表示） -->
+                <div id="cancelFranchiseSettings" class="p-4 bg-gray-50 border-b flex-shrink-0 hidden">
+                    <p class="text-xs font-bold text-gray-500 mb-2">🏢 加盟店個別設定:</p>
+                    <div id="cancelFranchiseSettingsList" class="space-y-2 max-h-40 overflow-y-auto">
+                        <!-- 動的に生成 -->
+                    </div>
+                </div>
+
+                <!-- 配信先サマリー -->
                 <div class="p-4 bg-gray-50 border-b flex-shrink-0">
-                    <p class="text-xs font-bold text-gray-500 mb-2">配信済み加盟店:</p>
+                    <p class="text-xs font-bold text-gray-500 mb-2">📤 通知対象:</p>
                     <div id="statusChangeNotifyFranchiseList" class="flex flex-wrap gap-2">
                         <!-- 動的に生成 -->
+                    </div>
+                    <div id="cancelBillingSummary" class="mt-2 text-xs text-gray-600 hidden">
+                        <!-- 課金/返金サマリー -->
                     </div>
                 </div>
 
@@ -8465,15 +8495,242 @@ window.addEventListener('beforeunload', function(e) {
         }
         // ===== キャンセルフロー関連関数 END =====
 
-        // ===== V2216: ステータス変更通知フロー（キャンセル系用） =====
+        // ===== V2218: ステータス変更通知フロー（キャンセルタイプ・課金返金対応） =====
         let statusChangeFlowCaseId = null;
         let statusChangeFlowNewStatus = null;
         let statusChangeFlowFranchises = [];
+        let cancelType = 'all_refund'; // all_refund, all_no_refund, one_contract, custom
+        let franchiseBillingSettings = {}; // { franchiseId: { notify: true, billing: 'refund'/'charge'/'none', status: 'cancel' } }
+
+        // 48時間以内かどうかを判定
+        function isWithin48Hours(deliveryDate) {
+            if (!deliveryDate) return true; // 日付がない場合はデフォルトで返金可能
+            const delivery = new Date(deliveryDate);
+            const now = new Date();
+            const hoursDiff = (now - delivery) / (1000 * 60 * 60);
+            return hoursDiff <= 48;
+        }
+
+        // キャンセルタイプを選択
+        function selectCancelType(type) {
+            cancelType = type;
+
+            // ボタンの見た目を更新
+            document.querySelectorAll('.cancel-type-btn').forEach(btn => {
+                btn.classList.remove('border-purple-500', 'bg-purple-50', 'text-purple-700');
+                btn.classList.add('border-gray-300', 'text-gray-700');
+            });
+            const selectedBtn = document.getElementById('cancelType' + type.split('_').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(''));
+            if (selectedBtn) {
+                selectedBtn.classList.remove('border-gray-300', 'text-gray-700');
+                selectedBtn.classList.add('border-purple-500', 'bg-purple-50', 'text-purple-700');
+            }
+
+            // 個別設定エリアの表示/非表示
+            const settingsEl = document.getElementById('cancelFranchiseSettings');
+            if (type === 'custom') {
+                settingsEl.classList.remove('hidden');
+            } else {
+                settingsEl.classList.add('hidden');
+            }
+
+            // タイプに応じて課金設定を自動適用
+            applyBillingSettingsByType(type);
+            updateFranchiseListDisplay();
+            updateBillingSummary();
+            updateCancelMessage();
+        }
+
+        // タイプに応じた課金設定を適用
+        function applyBillingSettingsByType(type) {
+            statusChangeFlowFranchises.forEach(f => {
+                const id = f.franchiseId;
+                if (!franchiseBillingSettings[id]) {
+                    franchiseBillingSettings[id] = { notify: true, billing: 'none', status: 'cancel' };
+                }
+
+                switch (type) {
+                    case 'all_refund':
+                        // 全社キャンセル返金あり: 48時間以内なら返金、それ以外は課金なし
+                        franchiseBillingSettings[id].notify = true;
+                        franchiseBillingSettings[id].billing = isWithin48Hours(f.deliveryDate) ? 'refund' : 'none';
+                        franchiseBillingSettings[id].status = 'cancel';
+                        break;
+                    case 'all_no_refund':
+                        // 全社キャンセル返金なし: 全社課金扱い
+                        franchiseBillingSettings[id].notify = true;
+                        franchiseBillingSettings[id].billing = 'charge';
+                        franchiseBillingSettings[id].status = 'cancel';
+                        break;
+                    case 'one_contract':
+                        // 1社契約: 最初の1社を契約、残りはお断り（返金）
+                        const isFirstFranchise = statusChangeFlowFranchises.indexOf(f) === 0;
+                        franchiseBillingSettings[id].notify = !isFirstFranchise;
+                        franchiseBillingSettings[id].billing = isFirstFranchise ? 'charge' : 'refund';
+                        franchiseBillingSettings[id].status = isFirstFranchise ? 'contract' : 'declined';
+                        break;
+                    case 'custom':
+                        // カスタム: 現状維持
+                        break;
+                }
+            });
+        }
+
+        // 個別設定を更新
+        function updateFranchiseBillingSetting(franchiseId, field, value) {
+            if (!franchiseBillingSettings[franchiseId]) {
+                franchiseBillingSettings[franchiseId] = { notify: true, billing: 'none', status: 'cancel' };
+            }
+            franchiseBillingSettings[franchiseId][field] = value;
+            updateFranchiseListDisplay();
+            updateBillingSummary();
+        }
+
+        // 配信先一覧の表示を更新
+        function updateFranchiseListDisplay() {
+            const listEl = document.getElementById('statusChangeNotifyFranchiseList');
+            if (statusChangeFlowFranchises.length > 0) {
+                listEl.innerHTML = statusChangeFlowFranchises.map(f => {
+                    const settings = franchiseBillingSettings[f.franchiseId] || { notify: true, billing: 'none', status: 'cancel' };
+                    const billingIcon = settings.billing === 'refund' ? '🔄' : settings.billing === 'charge' ? '💰' : '➖';
+                    const notifyClass = settings.notify ? 'bg-purple-100 border-purple-300 text-purple-700' : 'bg-gray-100 border-gray-300 text-gray-400 line-through';
+                    return `<span class="px-2 py-1 border rounded-lg text-xs font-medium ${notifyClass}">
+                        ${billingIcon} ${f.franchiseName || f.franchiseId}
+                    </span>`;
+                }).join('');
+            } else {
+                listEl.innerHTML = '<span class="text-xs text-gray-400">配信先がありません</span>';
+            }
+        }
+
+        // 課金/返金サマリーを更新
+        function updateBillingSummary() {
+            const summaryEl = document.getElementById('cancelBillingSummary');
+            let refundCount = 0, chargeCount = 0, noneCount = 0;
+
+            Object.values(franchiseBillingSettings).forEach(s => {
+                if (s.billing === 'refund') refundCount++;
+                else if (s.billing === 'charge') chargeCount++;
+                else noneCount++;
+            });
+
+            if (refundCount > 0 || chargeCount > 0) {
+                summaryEl.classList.remove('hidden');
+                let html = '<div class="flex flex-wrap gap-2">';
+                if (refundCount > 0) html += `<span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">🔄 返金: ${refundCount}社</span>`;
+                if (chargeCount > 0) html += `<span class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs">💰 課金: ${chargeCount}社</span>`;
+                if (noneCount > 0) html += `<span class="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">➖ 変更なし: ${noneCount}社</span>`;
+                html += '</div>';
+                summaryEl.innerHTML = html;
+            } else {
+                summaryEl.classList.add('hidden');
+            }
+        }
+
+        // メッセージをタイプに応じて更新
+        function updateCancelMessage() {
+            const caseData = casesData[statusChangeFlowCaseId];
+            if (!caseData) return;
+            const customerName = caseData.name || caseData.customerName || 'お客様';
+
+            let message = '';
+            switch (cancelType) {
+                case 'all_refund':
+                    message = `いつもお世話になっております。
+外壁塗装くらべる運営事務局です。
+
+ご紹介済みの「${customerName}」様の案件につきまして、お客様のご都合によりキャンセルとなりましたのでご連絡申し上げます。
+
+本案件につきましては、紹介料等の費用は一切発生いたしませんのでご安心ください。
+
+つきましては、大変恐れ入りますが、本案件に関する情報は削除いただき、ご対応はなさらないようお願いいたします。
+
+ご不便をおかけして申し訳ございませんが、何卒よろしくお願い申し上げます。
+
+外壁塗装くらべる運営事務局`;
+                    break;
+                case 'all_no_refund':
+                    message = `いつもお世話になっております。
+外壁塗装くらべる運営事務局です。
+
+ご紹介済みの「${customerName}」様の案件につきまして、お客様のご都合によりキャンセルとなりましたのでご連絡申し上げます。
+
+なお、本案件につきましては規定に基づき、紹介料が発生いたしますのでご了承ください。
+
+つきましては、大変恐れ入りますが、本案件に関する情報は削除いただき、ご対応はなさらないようお願いいたします。
+
+ご不便をおかけして申し訳ございませんが、何卒よろしくお願い申し上げます。
+
+外壁塗装くらべる運営事務局`;
+                    break;
+                case 'one_contract':
+                    message = `いつもお世話になっております。
+外壁塗装くらべる運営事務局です。
+
+ご紹介済みの「${customerName}」様の案件につきまして、他社様とのご契約が決まりましたのでご連絡申し上げます。
+
+本案件につきましては、紹介料等の費用は一切発生いたしませんのでご安心ください。
+
+つきましては、大変恐れ入りますが、本案件に関する情報は削除いただき、ご対応はなさらないようお願いいたします。
+
+ご協力いただきありがとうございました。今後とも何卒よろしくお願い申し上げます。
+
+外壁塗装くらべる運営事務局`;
+                    break;
+                default:
+                    message = document.getElementById('statusChangeNotifyMessage').value;
+            }
+            document.getElementById('statusChangeNotifyMessage').value = message;
+        }
+
+        // 個別設定リストを描画
+        function renderFranchiseSettingsList() {
+            const listEl = document.getElementById('cancelFranchiseSettingsList');
+            listEl.innerHTML = statusChangeFlowFranchises.map(f => {
+                const id = f.franchiseId;
+                const settings = franchiseBillingSettings[id] || { notify: true, billing: 'none', status: 'cancel' };
+                const isRefundable = isWithin48Hours(f.deliveryDate);
+                const refundBadge = isRefundable
+                    ? '<span class="text-[10px] text-green-600 bg-green-100 px-1 rounded">48h以内</span>'
+                    : '<span class="text-[10px] text-red-600 bg-red-100 px-1 rounded">48h超過</span>';
+
+                return `
+                <div class="p-2 bg-white rounded-lg border border-gray-200">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox"
+                                id="notify_${id}"
+                                ${settings.notify ? 'checked' : ''}
+                                onchange="updateFranchiseBillingSetting('${id}', 'notify', this.checked)"
+                                class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
+                            <label for="notify_${id}" class="text-xs font-medium text-gray-700">${f.franchiseName || id}</label>
+                        </div>
+                        ${refundBadge}
+                    </div>
+                    <div class="flex gap-2">
+                        <select onchange="updateFranchiseBillingSetting('${id}', 'billing', this.value)"
+                            class="flex-1 text-[10px] p-1 border border-gray-200 rounded">
+                            <option value="refund" ${settings.billing === 'refund' ? 'selected' : ''}>🔄 返金</option>
+                            <option value="charge" ${settings.billing === 'charge' ? 'selected' : ''}>💰 課金</option>
+                            <option value="none" ${settings.billing === 'none' ? 'selected' : ''}>➖ 変更なし</option>
+                        </select>
+                        <select onchange="updateFranchiseBillingSetting('${id}', 'status', this.value)"
+                            class="flex-1 text-[10px] p-1 border border-gray-200 rounded">
+                            <option value="cancel" ${settings.status === 'cancel' ? 'selected' : ''}>キャンセル</option>
+                            <option value="declined" ${settings.status === 'declined' ? 'selected' : ''}>お断り</option>
+                            <option value="contract" ${settings.status === 'contract' ? 'selected' : ''}>契約</option>
+                        </select>
+                    </div>
+                </div>`;
+            }).join('');
+        }
 
         // ステータス変更通知モーダルを表示
         async function showStatusChangeNotifyModal(caseId, newStatus) {
             statusChangeFlowCaseId = caseId;
             statusChangeFlowNewStatus = newStatus;
+            franchiseBillingSettings = {};
+            cancelType = 'all_refund';
 
             const caseData = casesData[caseId];
             if (!caseData) return;
@@ -8487,34 +8744,31 @@ window.addEventListener('beforeunload', function(e) {
                 statusChangeFlowFranchises = [];
             }
 
+            // 初期課金設定を作成
+            statusChangeFlowFranchises.forEach(f => {
+                franchiseBillingSettings[f.franchiseId] = {
+                    notify: true,
+                    billing: isWithin48Hours(f.deliveryDate) ? 'refund' : 'none',
+                    status: 'cancel'
+                };
+            });
+
             // ヘッダー情報
             document.getElementById('statusChangeNotifyTargetName').textContent = `${caseData.name || caseData.customerName || '---'} 様`;
             document.getElementById('statusChangeNotifyNewStatus').textContent = `変更先: ${newStatus}`;
 
+            // キャンセルタイプボタンを初期化
+            selectCancelType('all_refund');
+
+            // 個別設定リストを描画
+            renderFranchiseSettingsList();
+
             // 配信先一覧を表示
-            const listEl = document.getElementById('statusChangeNotifyFranchiseList');
-            if (statusChangeFlowFranchises.length > 0) {
-                listEl.innerHTML = statusChangeFlowFranchises.map(f => `
-                    <span class="px-2 py-1 bg-white border border-gray-300 rounded-lg text-xs font-medium text-gray-700">${f.franchiseName || f.franchiseId}</span>
-                `).join('');
-            } else {
-                listEl.innerHTML = '<span class="text-xs text-gray-400">配信先がありません</span>';
-            }
+            updateFranchiseListDisplay();
+            updateBillingSummary();
 
-            // デフォルトメッセージを設定（キャンセル系）
-            const customerName = caseData.name || caseData.customerName || 'お客様';
-            document.getElementById('statusChangeNotifyMessage').value = `いつもお世話になっております。
-外壁塗装くらべる運営事務局です。
-
-ご紹介済みの「${customerName}」様の案件につきまして、お客様のご都合によりキャンセルとなりましたのでご連絡申し上げます。
-
-本案件につきましては、紹介料等の費用は一切発生いたしませんのでご安心ください。
-
-つきましては、大変恐れ入りますが、本案件に関する情報は削除いただき、ご対応はなさらないようお願いいたします。
-
-ご不便をおかけして申し訳ございませんが、何卒よろしくお願い申し上げます。
-
-外壁塗装くらべる運営事務局`;
+            // デフォルトメッセージを設定
+            updateCancelMessage();
 
             document.getElementById('statusChangeNotifyModal').classList.remove('hidden');
         }
@@ -8526,6 +8780,27 @@ window.addEventListener('beforeunload', function(e) {
         // 通知なしでステータス変更のみ
         async function sendStatusChangeWithoutNotify() {
             try {
+                showToast('処理中...', 'info');
+
+                // V2218: 課金/返金設定を含むバルク更新
+                const cancelStatuses = ['現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', '顧客クレーム'];
+                if (cancelStatuses.includes(statusChangeFlowNewStatus) && statusChangeFlowFranchises.length > 0) {
+                    // 加盟店個別設定を送信
+                    const merchantSettings = statusChangeFlowFranchises.map(f => ({
+                        franchiseId: f.franchiseId,
+                        franchiseName: f.franchiseName,
+                        ...franchiseBillingSettings[f.franchiseId]
+                    }));
+
+                    await window.apiClient.postRequest('admin_bulkUpdateDeliveryStatus', {
+                        cvId: statusChangeFlowCaseId,
+                        newStatus: statusChangeFlowNewStatus,
+                        cancelType: cancelType,
+                        merchantSettings: merchantSettings
+                    });
+                    console.log('[V2218] 配信管理シート一括更新完了（課金設定込み）');
+                }
+
                 // ステータスのみ更新
                 await updateCaseStatusAfterCancel(statusChangeFlowCaseId, statusChangeFlowNewStatus);
                 showToast(`ステータスを「${statusChangeFlowNewStatus}」に変更しました`, 'success');
@@ -8545,21 +8820,64 @@ window.addEventListener('beforeunload', function(e) {
                 return;
             }
 
+            // 通知対象が0社の場合は確認
+            const notifyTargets = statusChangeFlowFranchises.filter(f => franchiseBillingSettings[f.franchiseId]?.notify);
+            if (notifyTargets.length === 0) {
+                if (!confirm('通知対象が0社です。通知なしで処理を続けますか？')) {
+                    return;
+                }
+            }
+
             try {
                 showToast('通知を送信中...', 'info');
 
-                // GAS APIで通知送信
-                const result = await window.apiClient.postRequest('admin_sendCancelNotify', {
+                // V2218: 課金/返金設定を含むバルク更新
+                const cancelStatuses = ['現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', '顧客クレーム'];
+                if (cancelStatuses.includes(statusChangeFlowNewStatus) && statusChangeFlowFranchises.length > 0) {
+                    // 加盟店個別設定を送信
+                    const merchantSettings = statusChangeFlowFranchises.map(f => ({
+                        franchiseId: f.franchiseId,
+                        franchiseName: f.franchiseName,
+                        ...franchiseBillingSettings[f.franchiseId]
+                    }));
+
+                    await window.apiClient.postRequest('admin_bulkUpdateDeliveryStatus', {
+                        cvId: statusChangeFlowCaseId,
+                        newStatus: statusChangeFlowNewStatus,
+                        cancelType: cancelType,
+                        merchantSettings: merchantSettings
+                    });
+                    console.log('[V2218] 配信管理シート一括更新完了（課金設定込み）');
+                }
+
+                // GAS APIで通知送信（通知対象のみ）
+                const result = await window.apiClient.postRequest('admin_sendCancelNotifyV2', {
                     cvId: statusChangeFlowCaseId,
                     message: message,
-                    franchises: statusChangeFlowFranchises.map(f => f.franchiseId),
-                    cancelDelivery: false
+                    cancelType: cancelType,
+                    franchiseSettings: Object.entries(franchiseBillingSettings).map(([id, settings]) => ({
+                        franchiseId: id,
+                        franchiseName: statusChangeFlowFranchises.find(f => f.franchiseId === id)?.franchiseName || id,
+                        ...settings
+                    }))
                 });
 
                 if (result.success) {
                     // ステータス更新
                     await updateCaseStatusAfterCancel(statusChangeFlowCaseId, statusChangeFlowNewStatus);
-                    showToast(`通知送信＆ステータスを「${statusChangeFlowNewStatus}」に変更しました`, 'success');
+
+                    // 結果サマリーを表示
+                    let summaryMsg = `ステータスを「${statusChangeFlowNewStatus}」に変更しました`;
+                    if (result.notifiedCount > 0) {
+                        summaryMsg += `\n通知: ${result.notifiedCount}社`;
+                    }
+                    if (result.refundCount > 0) {
+                        summaryMsg += ` / 返金: ${result.refundCount}社`;
+                    }
+                    if (result.chargeCount > 0) {
+                        summaryMsg += ` / 課金: ${result.chargeCount}社`;
+                    }
+                    showToast(summaryMsg, 'success');
                     closeStatusChangeNotifyModal();
                     initializeListView();
                 } else {
