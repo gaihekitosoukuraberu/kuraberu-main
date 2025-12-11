@@ -586,67 +586,51 @@
             <!-- ダッシュボード -->
             <div id="dashboardSection" class="section" style="display: none;">
                 <h2 class="text-2xl font-bold text-gray-900 mb-6">ダッシュボード</h2>
-                
+
+                <!-- V2198: 売上サマリー（上部に配置） -->
+                <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow-lg p-4 md:p-6 mb-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-blue-100 text-sm">今月の売上</p>
+                            <p class="text-2xl md:text-3xl font-bold" id="dashRevenue">¥0</p>
+                        </div>
+                        <button onclick="showSection('billing')" class="text-xs bg-white/20 hover:bg-white/30 px-3 py-1 rounded transition">
+                            詳細 →
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <p class="text-blue-200">紹介料支出</p>
+                            <p class="text-lg font-semibold" id="dashCost">¥0</p>
+                        </div>
+                        <div>
+                            <p class="text-blue-200">粗利</p>
+                            <p class="text-lg font-semibold" id="dashProfit">¥0</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 統計カードとミニカレンダー -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    <!-- 統計カード -->
+                    <!-- 統計カード（4つ→横並び） -->
                     <div class="lg:col-span-2">
-                        <div class="grid grid-cols-2 gap-3 md:gap-6">
-                    <div class="bg-white p-4 md:p-6 rounded-lg shadow">
-                        <div class="flex items-center">
-                            <div class="p-2 md:p-3 bg-blue-100 rounded-full">
-                                <svg class="h-6 w-6 md:h-8 md:w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                </svg>
+                        <div class="grid grid-cols-4 gap-2 md:gap-4">
+                            <div class="bg-white p-3 md:p-4 rounded-lg shadow text-center">
+                                <p class="text-xs text-gray-500 mb-1">新規</p>
+                                <p class="text-xl md:text-2xl font-bold text-blue-600" id="dashNewCases">0</p>
                             </div>
-                            <div class="ml-3 md:ml-4">
-                                <p class="text-xs md:text-sm font-medium text-gray-500">新規案件</p>
-                                <p class="text-xl md:text-2xl font-semibold text-gray-900" id="dashNewCases">0</p>
+                            <div class="bg-white p-3 md:p-4 rounded-lg shadow text-center">
+                                <p class="text-xs text-gray-500 mb-1">成約率</p>
+                                <p class="text-xl md:text-2xl font-bold text-green-600" id="dashContractRate">0%</p>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-4 md:p-6 rounded-lg shadow">
-                        <div class="flex items-center">
-                            <div class="p-2 md:p-3 bg-green-100 rounded-full">
-                                <svg class="h-6 w-6 md:h-8 md:w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
+                            <div class="bg-white p-3 md:p-4 rounded-lg shadow text-center">
+                                <p class="text-xs text-gray-500 mb-1">対応中</p>
+                                <p class="text-xl md:text-2xl font-bold text-yellow-600" id="dashInProgress">0</p>
                             </div>
-                            <div class="ml-3 md:ml-4">
-                                <p class="text-xs md:text-sm font-medium text-gray-500">成約率</p>
-                                <p class="text-xl md:text-2xl font-semibold text-gray-900" id="dashContractRate">0%</p>
+                            <div class="bg-white p-3 md:p-4 rounded-lg shadow text-center">
+                                <p class="text-xs text-gray-500 mb-1">メンバー</p>
+                                <p class="text-xl md:text-2xl font-bold text-purple-600" id="dashMemberCount">1</p>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-4 md:p-6 rounded-lg shadow">
-                        <div class="flex items-center">
-                            <div class="p-2 md:p-3 bg-yellow-100 rounded-full">
-                                <svg class="h-6 w-6 md:h-8 md:w-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                            </div>
-                            <div class="ml-3 md:ml-4">
-                                <p class="text-xs md:text-sm font-medium text-gray-500">対応中</p>
-                                <p class="text-xl md:text-2xl font-semibold text-gray-900" id="dashInProgress">0</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-4 md:p-6 rounded-lg shadow">
-                        <div class="flex items-center">
-                            <div class="p-2 md:p-3 bg-purple-100 rounded-full">
-                                <svg class="h-6 w-6 md:h-8 md:w-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                                </svg>
-                            </div>
-                            <div class="ml-3 md:ml-4">
-                                <p class="text-xs md:text-sm font-medium text-gray-500">メンバー</p>
-                                <p class="text-xl md:text-2xl font-semibold text-gray-900" id="dashMemberCount">1</p>
-                            </div>
-                        </div>
-                    </div>
                         </div>
                     </div>
                     
@@ -654,7 +638,7 @@
                     <div class="bg-white p-6 rounded-lg shadow">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-semibold text-gray-900">今月の予定</h3>
-                            <button onclick="showSection('calendar')" class="text-sm text-blue-600 hover:text-blue-800">全て表示</button>
+                            <span id="selectedDateLabel" class="text-sm text-gray-500"></span>
                         </div>
                         <div id="miniCalendar" class="text-sm"><div class="grid grid-cols-7 gap-1 text-xs"><div class="text-center font-medium text-gray-500 py-1">日</div><div class="text-center font-medium text-gray-500 py-1">月</div><div class="text-center font-medium text-gray-500 py-1">火</div><div class="text-center font-medium text-gray-500 py-1">水</div><div class="text-center font-medium text-gray-500 py-1">木</div><div class="text-center font-medium text-gray-500 py-1">金</div><div class="text-center font-medium text-gray-500 py-1">土</div><div></div><div></div><div></div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-01')">1</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-02')">2</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-03')">3</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-04')">4</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded bg-blue-500 text-white hover:bg-blue-600" onclick="goToDate('2025-10-05')">5</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded font-bold text-blue-600" onclick="goToDate('2025-10-06')">6</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-07')">7</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded font-bold text-blue-600" onclick="goToDate('2025-10-08')">8</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-09')">9</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-10')">10</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-11')">11</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-12')">12</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-13')">13</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-14')">14</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-15')">15</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-16')">16</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-17')">17</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-18')">18</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-19')">19</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-20')">20</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-21')">21</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-22')">22</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-23')">23</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-24')">24</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-25')">25</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-26')">26</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-27')">27</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-28')">28</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-29')">29</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-30')">30</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-31')">31</div></div></div>
                         <div id="dashScheduleList" class="mt-4 space-y-2">
@@ -3940,314 +3924,7 @@
                 </div>
             </div><!-- reportsSectionの終了 -->
 
-            <!-- カレンダーセクション -->
-            <div id="calendarSection" class="section" style="display: none;">
-                <div class="mb-6">
-                    <h2 class="text-2xl font-bold text-gray-900">カレンダー</h2>
-                </div>
-                
-                <!-- カレンダーナビゲーション -->
-                <div class="bg-white rounded-lg shadow mb-4">
-                    <div class="p-4 flex justify-between items-center border-b">
-                        <button onclick="previousMonth()" class="p-2 hover:bg-gray-100 rounded">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                            </svg>
-                        </button>
-                        <h3 id="currentMonth" class="text-lg font-semibold text-gray-900">2025年10月</h3>
-                        <button onclick="nextMonth()" class="p-2 hover:bg-gray-100 rounded">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                            </svg>
-                        </button>
-                    </div>
-                    
-                    <!-- 月表示カレンダー -->
-                    <div id="calendarMonthView" class="p-4">
-                        <div class="grid grid-cols-7 mb-2">
-                            <div class="text-center text-sm font-medium text-gray-700 py-2 border-b">日</div>
-                            <div class="text-center text-sm font-medium text-gray-700 py-2 border-b">月</div>
-                            <div class="text-center text-sm font-medium text-gray-700 py-2 border-b">火</div>
-                            <div class="text-center text-sm font-medium text-gray-700 py-2 border-b">水</div>
-                            <div class="text-center text-sm font-medium text-gray-700 py-2 border-b">木</div>
-                            <div class="text-center text-sm font-medium text-gray-700 py-2 border-b">金</div>
-                            <div class="text-center text-sm font-medium text-gray-700 py-2 border-b">土</div>
-                        </div>
-                        <div id="calendarGrid" style="display: grid; grid-template-columns: repeat(7, 1fr);">
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white; color: #9ca3af; background: #f9fafb;" data-date="28">
-                                <div style="font-weight: 500; font-size: 14px;">28</div>
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white; color: #9ca3af; background: #f9fafb;" data-date="29">
-                                <div style="font-weight: 500; font-size: 14px;">29</div>
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white; color: #9ca3af; background: #f9fafb;" data-date="30">
-                                <div style="font-weight: 500; font-size: 14px;">30</div>
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;" data-date="1" data-full-date="2025-10-01" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px; ">1</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;" data-date="2" data-full-date="2025-10-02" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px; ">2</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;" data-date="3" data-full-date="2025-10-03" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px; ">3</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white; background: #e0f2fe;" data-date="4" data-full-date="2025-10-04" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'">
-                                <div style="font-weight: 500; font-size: 14px; color: #0284c7;">4</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: #eff6ff; background: #fee2e2; border: 2px solid #3b82f6;" data-date="5" data-full-date="2025-10-05" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
-                                <div style="font-weight: 500; font-size: 14px; color: #dc2626;">5</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;" data-date="6" data-full-date="2025-10-06" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px; ">6</div>
-                                
-                                <div class="mt-1 space-y-1">
-                                    <div class="text-xs p-1 bg-gray-500 text-white rounded truncate cursor-pointer hover:opacity-80 event-item" draggable="true" data-event-id="case-4" onclick="showEventDetail(case-4)" oncontextmenu="showEventMenu(event, case-4)" ondragstart="handleDragStart(event, case-4)" title="見積作成中: undefined様">
-                                        10:00 見積作成中: undefined様
-                                    </div>
-                                </div>
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;" data-date="7" data-full-date="2025-10-07" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px; ">7</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;" data-date="8" data-full-date="2025-10-08" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px; ">8</div>
-                                
-                                <div class="mt-1 space-y-1">
-                                    <div class="text-xs p-1 bg-gray-500 text-white rounded truncate cursor-pointer hover:opacity-80 event-item" draggable="true" data-event-id="case-1" onclick="showEventDetail(case-1)" oncontextmenu="showEventMenu(event, case-1)" ondragstart="handleDragStart(event, case-1)" title="2024/01/18 14:00 電話フォロー: undefined様">
-                                        10:00 2024/01/18 14:00 電話フォロー: undefined様
-                                    </div>
-                                
-                                    <div class="text-xs p-1 bg-gray-500 text-white rounded truncate cursor-pointer hover:opacity-80 event-item" draggable="true" data-event-id="case-2" onclick="showEventDetail(case-2)" oncontextmenu="showEventMenu(event, case-2)" ondragstart="handleDragStart(event, case-2)" title="2024/01/20 14:00 現地調査: undefined様">
-                                        10:00 2024/01/20 14:00 現地調査: undefined様
-                                    </div>
-                                
-                                    <div class="text-xs p-1 bg-gray-500 text-white rounded truncate cursor-pointer hover:opacity-80 event-item" draggable="true" data-event-id="case-3" onclick="showEventDetail(case-3)" oncontextmenu="showEventMenu(event, case-3)" ondragstart="handleDragStart(event, case-3)" title="2024/01/22 10:00 見積説明訪問: undefined様">
-                                        10:00 2024/01/22 10:00 見積説明訪問: undefined様
-                                    </div>
-                                
-                                    <div class="text-xs p-1 bg-gray-500 text-white rounded truncate cursor-pointer hover:opacity-80 event-item" draggable="true" data-event-id="case-5" onclick="showEventDetail(case-5)" oncontextmenu="showEventMenu(event, case-5)" ondragstart="handleDragStart(event, case-5)" title="2024/01/25 工事開始: undefined様">
-                                        10:00 2024/01/25 工事開始: undefined様
-                                    </div>
-                                </div>
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;" data-date="9" data-full-date="2025-10-09" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px; ">9</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;" data-date="10" data-full-date="2025-10-10" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px; ">10</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white; background: #e0f2fe;" data-date="11" data-full-date="2025-10-11" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'">
-                                <div style="font-weight: 500; font-size: 14px; color: #0284c7;">11</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white; background: #fee2e2;" data-date="12" data-full-date="2025-10-12" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
-                                <div style="font-weight: 500; font-size: 14px; color: #dc2626;">12</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white; background: #fee2e2;" data-date="13" data-full-date="2025-10-13" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
-                                <div style="font-weight: 500; font-size: 14px; color: #dc2626;">13</div>
-                                <div style="font-size: 10px; color: #dc2626; font-weight: 500;">スポーツの日</div>
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;" data-date="14" data-full-date="2025-10-14" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px; ">14</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;" data-date="15" data-full-date="2025-10-15" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px; ">15</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;" data-date="16" data-full-date="2025-10-16" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px; ">16</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;" data-date="17" data-full-date="2025-10-17" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px; ">17</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white; background: #e0f2fe;" data-date="18" data-full-date="2025-10-18" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'">
-                                <div style="font-weight: 500; font-size: 14px; color: #0284c7;">18</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white; background: #fee2e2;" data-date="19" data-full-date="2025-10-19" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
-                                <div style="font-weight: 500; font-size: 14px; color: #dc2626;">19</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;" data-date="20" data-full-date="2025-10-20" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px; ">20</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;" data-date="21" data-full-date="2025-10-21" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px; ">21</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;" data-date="22" data-full-date="2025-10-22" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px; ">22</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;" data-date="23" data-full-date="2025-10-23" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px; ">23</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;" data-date="24" data-full-date="2025-10-24" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px; ">24</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white; background: #e0f2fe;" data-date="25" data-full-date="2025-10-25" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'">
-                                <div style="font-weight: 500; font-size: 14px; color: #0284c7;">25</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white; background: #fee2e2;" data-date="26" data-full-date="2025-10-26" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
-                                <div style="font-weight: 500; font-size: 14px; color: #dc2626;">26</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;" data-date="27" data-full-date="2025-10-27" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px; ">27</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;" data-date="28" data-full-date="2025-10-28" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px; ">28</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;" data-date="29" data-full-date="2025-10-29" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px; ">29</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;" data-date="30" data-full-date="2025-10-30" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px; ">30</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white;" data-date="31" data-full-date="2025-10-31" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="handleCellClick(event)" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                <div style="font-weight: 500; font-size: 14px; ">31</div>
-                                
-                                
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white; color: #9ca3af; background: #f9fafb;" data-date="1">
-                                <div style="font-weight: 500; font-size: 14px;">1</div>
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white; color: #9ca3af; background: #f9fafb;" data-date="2">
-                                <div style="font-weight: 500; font-size: 14px;">2</div>
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white; color: #9ca3af; background: #f9fafb;" data-date="3">
-                                <div style="font-weight: 500; font-size: 14px;">3</div>
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white; color: #9ca3af; background: #f9fafb;" data-date="4">
-                                <div style="font-weight: 500; font-size: 14px;">4</div>
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white; color: #9ca3af; background: #f9fafb;" data-date="5">
-                                <div style="font-weight: 500; font-size: 14px;">5</div>
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white; color: #9ca3af; background: #f9fafb;" data-date="6">
-                                <div style="font-weight: 500; font-size: 14px;">6</div>
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white; color: #9ca3af; background: #f9fafb;" data-date="7">
-                                <div style="font-weight: 500; font-size: 14px;">7</div>
-                            </div>
-                        
-                            <div style="border: 1px solid #e5e7eb; padding: 8px; min-height: 100px; position: relative; background: white; color: #9ca3af; background: #f9fafb;" data-date="8">
-                                <div style="font-weight: 500; font-size: 14px;">8</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- 週表示（初期は非表示） -->
-                    <div id="calendarWeekView" class="p-4 hidden">
-                        <div id="weekGrid" class="grid grid-cols-8 gap-0 border">
-                            <!-- Week view content will be rendered here -->
-                        </div>
-                    </div>
-                    
-                    <!-- 日表示（初期は非表示） -->
-                    <div id="calendarDayView" class="p-4 hidden">
-                        <div class="bg-white rounded-lg shadow">
-                            <div class="p-4 border-b">
-                                <h3 id="dayViewDate" class="text-lg font-semibold">2024年1月15日（月）</h3>
-                            </div>
-                            <div id="dayTimeSlots" class="p-4">
-                                <!-- Day view time slots will be rendered here -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- V2197: 凡例削除（実データに合わせた色分けに変更） -->
-            </div><!-- calendarSectionの終了 -->
+            <!-- V2198: カレンダーセクション削除（ダッシュボードのみに統合） -->
 
             <!-- 自動配信設定セクション -->
             <div id="autodeliverySection" class="section" style="display: none;">
@@ -19428,11 +19105,53 @@
         }
         
         // 特定の日付へジャンプ
+        // V2198: ダッシュボードの予定データ保持用
+        let dashboardEventsCache = [];
+
         function goToDate(dateStr) {
-            const [year, month, day] = dateStr.split('-').map(Number);
-            currentDate = new Date(year, month - 1, day);
-            showSection('calendar');
-            renderCalendar();
+            // V2198: カレンダーセクションは削除されたので、ダッシュボード内でその日の予定を表示
+            const dateObj = new Date(dateStr);
+            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+            const dateLabel = `${dateObj.getMonth()+1}/${dateObj.getDate()}(${dayNames[dateObj.getDay()]})`;
+
+            // ラベル更新
+            const labelEl = document.getElementById('selectedDateLabel');
+            if (labelEl) labelEl.textContent = dateLabel + 'の予定';
+
+            // その日の予定をフィルタ
+            const dayEvents = dashboardEventsCache.filter(e => e.date === dateStr);
+
+            const container = document.getElementById('dashScheduleList');
+            if (!container) return;
+
+            if (dayEvents.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-400 text-sm py-4">
+                        ${dateLabel}の予定はありません
+                    </div>`;
+            } else {
+                const colorMap = {
+                    blue: { bg: 'bg-blue-50', dot: 'bg-blue-500' },
+                    green: { bg: 'bg-green-50', dot: 'bg-green-500' },
+                    purple: { bg: 'bg-purple-50', dot: 'bg-purple-500' },
+                    orange: { bg: 'bg-orange-50', dot: 'bg-orange-500' }
+                };
+                container.innerHTML = dayEvents.map(e => {
+                    const colors = colorMap[e.color] || colorMap.blue;
+                    const timeStr = e.time ? ` ${e.time}` : '';
+                    return `
+                    <div class="flex items-center p-2 ${colors.bg} rounded cursor-pointer hover:opacity-80 transition-opacity" onclick="openDetailModal('${e.cvId}')" title="担当: ${e.staffName || '未設定'}">
+                        <div class="w-2 h-2 ${colors.dot} rounded-full mr-2"></div>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium">${e.customerName} ${e.type}</div>
+                            <div class="text-xs text-gray-500">${timeStr}${e.staffName ? ` / ${e.staffName}` : ''}</div>
+                        </div>
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>`;
+                }).join('');
+            }
         }
         
         // イベント詳細表示
@@ -29553,7 +29272,11 @@
                     document.getElementById('dashInProgress').textContent = stats.inProgress || 0;
                     document.getElementById('dashMemberCount').textContent = stats.memberCount || 1;
 
-                    // V2198: 最近の案件は削除されたため、更新処理を削除
+                    // V2198: 売上サマリー更新
+                    const formatYen = (n) => '¥' + (n || 0).toLocaleString();
+                    document.getElementById('dashRevenue').textContent = formatYen(stats.thisMonthRevenue);
+                    document.getElementById('dashCost').textContent = formatYen(stats.thisMonthCost);
+                    document.getElementById('dashProfit').textContent = formatYen(stats.thisMonthProfit);
                     console.log('[loadDashboardStats] 表示更新完了');
                 } else {
                     console.error('[loadDashboardStats] エラー:', result.error);
@@ -29574,50 +29297,70 @@
             try {
                 console.log('[loadScheduleEvents] 読み込み開始:', merchantId);
                 const now = new Date();
-                const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-                const result = await callGasApi('billing_getScheduleEvents', { merchantId, month });
-                console.log('[loadScheduleEvents] 結果:', result);
+                const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+                // V2198: 今月と来月の両方を取得（月末でも翌日の予定が出るように）
+                const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+                const nextMonth = `${nextMonthDate.getFullYear()}-${String(nextMonthDate.getMonth() + 1).padStart(2, '0')}`;
+
+                const [thisMonthResult, nextMonthResult] = await Promise.all([
+                    callGasApi('billing_getScheduleEvents', { merchantId, month: thisMonth }),
+                    callGasApi('billing_getScheduleEvents', { merchantId, month: nextMonth })
+                ]);
+                console.log('[loadScheduleEvents] 今月結果:', thisMonthResult);
+                console.log('[loadScheduleEvents] 来月結果:', nextMonthResult);
 
                 const container = document.getElementById('dashScheduleList');
                 if (!container) return;
 
-                if (result.success) {
-                    const events = result.events || [];
-                    if (events.length === 0) {
-                        container.innerHTML = `
-                            <div class="text-center text-gray-400 text-sm py-4">
-                                今月の予定はありません
-                            </div>`;
-                    } else {
-                        // 直近3件だけ表示
-                        const displayEvents = events.slice(0, 3);
-                        const colorMap = {
-                            blue: { bg: 'bg-blue-50', dot: 'bg-blue-500' },
-                            green: { bg: 'bg-green-50', dot: 'bg-green-500' },
-                            purple: { bg: 'bg-purple-50', dot: 'bg-purple-500' },
-                            orange: { bg: 'bg-orange-50', dot: 'bg-orange-500' }
-                        };
-                        container.innerHTML = displayEvents.map(e => {
-                            const colors = colorMap[e.color] || colorMap.blue;
-                            const timeStr = e.time ? ` ${e.time}` : '';
-                            return `
-                            <div class="flex items-center p-2 ${colors.bg} rounded cursor-pointer hover:opacity-80 transition-opacity" onclick="openDetailModal('${e.cvId}')" title="担当: ${e.staffName || '未設定'}">
-                                <div class="w-2 h-2 ${colors.dot} rounded-full mr-2"></div>
-                                <div class="flex-1">
-                                    <div class="text-sm font-medium">${e.customerName} ${e.type}</div>
-                                    <div class="text-xs text-gray-500">${e.date}${timeStr}${e.staffName ? ` / ${e.staffName}` : ''}</div>
-                                </div>
-                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </div>`;
-                        }).join('');
-                    }
-                } else {
+                // 両月のイベントを結合
+                let allEvents = [];
+                if (thisMonthResult.success) allEvents = allEvents.concat(thisMonthResult.events || []);
+                if (nextMonthResult.success) allEvents = allEvents.concat(nextMonthResult.events || []);
+
+                // V2198: ダッシュボードのキャッシュに保存（日付タップ用）
+                dashboardEventsCache = allEvents;
+
+                // 今日以降の予定のみフィルタ
+                const today = now.toISOString().split('T')[0];
+                const upcomingEvents = allEvents.filter(e => e.date >= today).sort((a, b) => {
+                    if (a.date !== b.date) return a.date.localeCompare(b.date);
+                    return (a.time || '').localeCompare(b.time || '');
+                });
+
+                if (upcomingEvents.length === 0) {
                     container.innerHTML = `
                         <div class="text-center text-gray-400 text-sm py-4">
-                            予定の取得に失敗しました
+                            予定はありません
                         </div>`;
+                } else {
+                    // 直近3件だけ表示
+                    const displayEvents = upcomingEvents.slice(0, 3);
+                    const colorMap = {
+                        blue: { bg: 'bg-blue-50', dot: 'bg-blue-500' },
+                        green: { bg: 'bg-green-50', dot: 'bg-green-500' },
+                        purple: { bg: 'bg-purple-50', dot: 'bg-purple-500' },
+                        orange: { bg: 'bg-orange-50', dot: 'bg-orange-500' }
+                    };
+                    container.innerHTML = displayEvents.map(e => {
+                        const colors = colorMap[e.color] || colorMap.blue;
+                        const timeStr = e.time ? ` ${e.time}` : '';
+                        // 日付を「12/12(木)」形式に
+                        const dateObj = new Date(e.date);
+                        const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+                        const dateLabel = `${dateObj.getMonth()+1}/${dateObj.getDate()}(${dayNames[dateObj.getDay()]})`;
+                        return `
+                        <div class="flex items-center p-2 ${colors.bg} rounded cursor-pointer hover:opacity-80 transition-opacity" onclick="openDetailModal('${e.cvId}')" title="担当: ${e.staffName || '未設定'}">
+                            <div class="w-2 h-2 ${colors.dot} rounded-full mr-2"></div>
+                            <div class="flex-1">
+                                <div class="text-sm font-medium">${e.customerName} ${e.type}</div>
+                                <div class="text-xs text-gray-500">${dateLabel}${timeStr}${e.staffName ? ` / ${e.staffName}` : ''}</div>
+                            </div>
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </div>`;
+                    }).join('');
                 }
             } catch (e) {
                 console.error('[loadScheduleEvents] 例外:', e);
