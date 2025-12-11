@@ -3448,14 +3448,14 @@ window.addEventListener('beforeunload', function(e) {
         let currentSection = 'assignment'; // デフォルトは案件管理
 
         function showSection(sectionName) {
-            // 未保存変更チェック
-            if (unsavedChanges.size > 0 && sectionName !== currentSection) {
-                console.log('[showSection] 未保存の変更があります:', unsavedChanges.size, '件');
-                showSectionNavigationWarning(sectionName);
-                // 元のハッシュに戻す
-                window.location.hash = '#' + currentSection;
-                return;
-            }
+            // V2213: 未保存変更チェックを無効化（ステータス変更は自動保存されるため）
+            // if (unsavedChanges.size > 0 && sectionName !== currentSection) {
+            //     console.log('[showSection] 未保存の変更があります:', unsavedChanges.size, '件');
+            //     showSectionNavigationWarning(sectionName);
+            //     // 元のハッシュに戻す
+            //     window.location.hash = '#' + currentSection;
+            //     return;
+            // }
 
             // 現在のセクションを更新
             currentSection = sectionName;
@@ -11276,12 +11276,12 @@ window.addEventListener('beforeunload', function(e) {
         function switchView(view) {
             console.log('switchView called with view:', view);
 
-            // ページ内遷移時の未保存変更チェック
-            if (unsavedChanges.size > 0) {
-                console.log('[switchView] 未保存の変更があります:', unsavedChanges.size, '件');
-                showInternalNavigationWarning(view);
-                return; // 遷移を一時停止
-            }
+            // V2213: 未保存チェックを無効化（ステータス変更は自動保存されるため）
+            // if (unsavedChanges.size > 0) {
+            //     console.log('[switchView] 未保存の変更があります:', unsavedChanges.size, '件');
+            //     showInternalNavigationWarning(view);
+            //     return; // 遷移を一時停止
+            // }
 
             performViewSwitch(view);
         }
