@@ -1292,7 +1292,8 @@ var MerchantContractReport = {
         franchiseId: headers.indexOf('加盟店ID'),
         detailStatus: headers.indexOf('詳細ステータス'),
         deliveryStatus: headers.indexOf('配信ステータス'),
-        caseMemo: headers.indexOf('加盟店メモ')
+        caseMemo: headers.indexOf('加盟店メモ'),
+        contractAt: headers.indexOf('成約日時')  // V2213: 成約日時自動記録用
       };
 
       // merchantIdから会社名を取得（getMerchantCasesと同じロジック）
@@ -1322,8 +1323,16 @@ var MerchantContractReport = {
 
           deliverySheet.getRange(i + 1, colIdx.detailStatus + 1).setValue(status);
 
-          if (status === '成約') {
-            deliverySheet.getRange(i + 1, colIdx.deliveryStatus + 1).setValue('成約');
+          // V2213: 成約系ステータスに変更された場合、成約日時を自動記録
+          const contractStatuses = ['入金予定・未着工', '入金予定・施工中', '入金予定・工事済', '入金済・未着工', '入金済・施工中', '完了'];
+          if (contractStatuses.some(s => status.includes(s)) && colIdx.contractAt >= 0) {
+            // 既存の成約日時がなければ記録
+            const existingContractAt = row[colIdx.contractAt];
+            if (!existingContractAt) {
+              const now = new Date();
+              deliverySheet.getRange(i + 1, colIdx.contractAt + 1).setValue(now);
+              console.log('[updateCaseStatus] 成約日時を記録:', now);
+            }
           }
 
           // ステータス変更履歴をメモに追加（oldStatusが異なる場合のみ）

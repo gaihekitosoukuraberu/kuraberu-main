@@ -3263,7 +3263,8 @@ info@gaihekikuraberu.com
         detailStatus: deliveryHeaders.indexOf('詳細ステータス'),
         deliveredAt: deliveryHeaders.indexOf('配信日時'),
         contractAmount: deliveryHeaders.indexOf('成約金額'),
-        deliveryAmount: deliveryHeaders.indexOf('配信金額')  // V2213: 紹介料計算用
+        deliveryAmount: deliveryHeaders.indexOf('配信金額'),  // V2213: 紹介料計算用
+        contractAt: deliveryHeaders.indexOf('成約日時')  // V2213: 成約率計算用
       };
 
       const merchantColIdx = {
@@ -3345,11 +3346,7 @@ info@gaihekikuraberu.com
           stats.yesterdayCv++;
         }
 
-        // 今月成約
-        if (contractAt && contractAt >= thisMonth) {
-          stats.monthlyContract++;
-          stats.monthlyContractAmount += contractAmount;
-        }
+        // 今月成約はユーザー登録シートからではなく、配信管理シートからカウント（下のループ参照）
       }
 
       // 配信管理シートから配信中案件を集計
@@ -3387,6 +3384,20 @@ info@gaihekikuraberu.com
           // 見積提出待ち
           if (detailStatus === '現調済') {
             stats.quoteWaiting++;
+          }
+        }
+
+        // V2213: 配信管理シートから今月成約をカウント（詳細ステータスが成約系）
+        const contractAt = row[deliveryColIdx.contractAt] ? new Date(row[deliveryColIdx.contractAt]) : null;
+        if (contractStatuses.some(s => detailStatus.includes(s))) {
+          // 成約日時があれば今月判定、なければ詳細ステータスで成約カウント
+          if (contractAt && contractAt >= thisMonth) {
+            stats.monthlyContract++;
+            stats.monthlyContractAmount += parseFloat(row[deliveryColIdx.contractAmount]) || 0;
+          } else if (!contractAt) {
+            // 成約日時がなくても成約系ステータスならカウント（既存データ用）
+            stats.monthlyContract++;
+            stats.monthlyContractAmount += parseFloat(row[deliveryColIdx.contractAmount]) || 0;
           }
         }
 
