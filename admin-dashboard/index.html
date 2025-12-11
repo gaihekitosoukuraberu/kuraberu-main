@@ -2394,17 +2394,29 @@ window.addEventListener('beforeunload', function(e) {
                     <p id="statusTargetName" class="text-xs text-purple-200 mt-0.5">---</p>
                 </div>
 
-                <!-- V2214: 配信前ステータス（8種）- 配信中/配信済は自動設定のため削除 -->
+                <!-- V2214: 配信前ステータス - 左右で追客/終了を明確に分離 -->
                 <div class="p-4">
-                    <div class="grid grid-cols-2 gap-2">
-                        <button onclick="selectListStatus('新規')" class="py-3 px-2 bg-white border-2 border-blue-300 rounded-xl text-blue-700 font-bold text-sm hover:bg-blue-50 hover:shadow-md transition-all">新規</button>
-                        <button onclick="selectListStatus('不在')" class="py-3 px-2 bg-white border-2 border-gray-300 rounded-xl text-gray-700 font-bold text-sm hover:bg-gray-100 hover:shadow-md transition-all">不在</button>
-                        <button onclick="selectListStatus('再架電')" class="py-3 px-2 bg-white border-2 border-yellow-300 rounded-xl text-yellow-700 font-bold text-sm hover:bg-yellow-50 hover:shadow-md transition-all">再架電</button>
-                        <button onclick="selectListStatus('見込み')" class="py-3 px-2 bg-white border-2 border-orange-300 rounded-xl text-orange-700 font-bold text-sm hover:bg-orange-50 hover:shadow-md transition-all">見込み</button>
-                        <button onclick="selectListStatus('ロスト')" class="py-3 px-2 bg-white border-2 border-gray-400 rounded-xl text-gray-700 font-bold text-sm hover:bg-gray-200 hover:shadow-md transition-all">ロスト</button>
-                        <button onclick="selectListStatus('他社契約済')" class="py-3 px-2 bg-white border-2 border-slate-300 rounded-xl text-slate-700 font-bold text-xs hover:bg-slate-100 hover:shadow-md transition-all">他社契約済</button>
-                        <button onclick="selectListStatus('無効')" class="py-3 px-2 bg-white border-2 border-gray-300 rounded-xl text-gray-600 font-bold text-sm hover:bg-gray-100 hover:shadow-md transition-all">無効</button>
-                        <button onclick="selectListStatus('クレーム')" class="py-3 px-2 bg-white border-2 border-red-300 rounded-xl text-red-700 font-bold text-sm hover:bg-red-50 hover:shadow-md transition-all">クレーム</button>
+                    <div class="flex gap-3">
+                        <!-- 左: 追客中ステータス -->
+                        <div class="flex-1">
+                            <div class="text-xs font-bold text-blue-600 mb-2 text-center">📞 追客中</div>
+                            <div class="flex flex-col gap-2">
+                                <button onclick="selectListStatus('新規')" class="py-3 px-2 bg-white border-2 border-blue-300 rounded-xl text-blue-700 font-bold text-sm hover:bg-blue-50 hover:shadow-md transition-all">新規</button>
+                                <button onclick="selectListStatus('不在')" class="py-3 px-2 bg-white border-2 border-gray-300 rounded-xl text-gray-700 font-bold text-sm hover:bg-gray-100 hover:shadow-md transition-all">不在</button>
+                                <button onclick="selectListStatus('再架電')" class="py-3 px-2 bg-white border-2 border-yellow-300 rounded-xl text-yellow-700 font-bold text-sm hover:bg-yellow-50 hover:shadow-md transition-all">再架電</button>
+                                <button onclick="selectListStatus('見込み')" class="py-3 px-2 bg-white border-2 border-orange-300 rounded-xl text-orange-700 font-bold text-sm hover:bg-orange-50 hover:shadow-md transition-all">見込み</button>
+                            </div>
+                        </div>
+                        <!-- 右: 終了ステータス -->
+                        <div class="flex-1">
+                            <div class="text-xs font-bold text-gray-500 mb-2 text-center">🚫 終了</div>
+                            <div class="flex flex-col gap-2">
+                                <button onclick="selectListStatus('ロスト')" class="py-3 px-2 bg-gray-50 border-2 border-gray-400 rounded-xl text-gray-700 font-bold text-sm hover:bg-gray-200 hover:shadow-md transition-all">ロスト</button>
+                                <button onclick="selectListStatus('他社契約済')" class="py-3 px-2 bg-gray-50 border-2 border-slate-400 rounded-xl text-slate-700 font-bold text-xs hover:bg-slate-100 hover:shadow-md transition-all">他社契約済</button>
+                                <button onclick="selectListStatus('無効')" class="py-3 px-2 bg-gray-50 border-2 border-gray-400 rounded-xl text-gray-600 font-bold text-sm hover:bg-gray-100 hover:shadow-md transition-all">無効</button>
+                                <button onclick="selectListStatus('クレーム')" class="py-3 px-2 bg-gray-50 border-2 border-red-400 rounded-xl text-red-700 font-bold text-sm hover:bg-red-50 hover:shadow-md transition-all">クレーム</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
