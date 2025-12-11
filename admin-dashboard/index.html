@@ -1804,81 +1804,93 @@ window.addEventListener('beforeunload', function(e) {
 </script>
     </main>
 
-    <!-- V2065: ステータス選択モーダル（3列グリッド・ソートモーダルと統一デザイン） -->
+    <!-- V2214: CRMステータス変更モーダル（紫グラデ統一デザイン） -->
     <div id="statusModal" class="fixed inset-0 z-50 hidden">
-        <div class="fixed inset-0 bg-black/50" onclick="hideStatusModal()"></div>
-        <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[85vh] flex flex-col">
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="hideStatusModal()"></div>
+        <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[90vh] sm:max-h-[85vh] flex flex-col overflow-hidden">
                 <!-- ヘッダー -->
-                <div class="flex justify-between items-center p-5 pb-3 flex-shrink-0">
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-900">ステータス変更</h3>
-                        <p id="currentStatusLabel" class="text-sm text-gray-500">現在のステータスを選択</p>
-                    </div>
-                    <button onclick="hideStatusModal()" class="text-gray-400 hover:text-gray-600 p-1">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="px-5 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 flex-shrink-0 relative">
+                    <button onclick="hideStatusModal()" class="absolute top-3 right-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
+                    <h3 class="text-base font-bold text-white">ステータス変更</h3>
+                    <p id="crmStatusTargetName" class="text-sm text-purple-100 mt-0.5">---</p>
                 </div>
 
                 <!-- スクロール可能なコンテンツエリア -->
-                <div class="flex-1 overflow-y-auto px-5 pb-5">
-                    <!-- 配信前ステータス -->
-                    <div class="mb-4">
-                        <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <div class="flex-1 overflow-y-auto p-4">
+                    <!-- 配信前ステータス（配信済みの場合は非表示） -->
+                    <div id="crmPreDeliverySection" class="mb-4">
+                        <h4 class="text-xs font-bold text-gray-500 mb-2 flex items-center gap-2">
                             <span class="w-2 h-2 bg-indigo-500 rounded-full"></span>
                             配信前ステータス
                         </h4>
-                        <div class="grid grid-cols-3 gap-1.5">
-                            <button onclick="selectCRMStatus('新規')" class="status-change-btn px-2 py-2 border-2 border-blue-500 bg-blue-100 text-blue-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">新規</button>
-                            <button onclick="selectCRMStatus('不在')" class="status-change-btn px-2 py-2 border-2 border-gray-500 bg-gray-100 text-gray-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">不在</button>
-                            <button onclick="selectCRMStatus('再架電')" class="status-change-btn px-2 py-2 border-2 border-yellow-500 bg-yellow-100 text-yellow-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">再架電</button>
-                            <button onclick="selectCRMStatus('見込み')" class="status-change-btn px-2 py-2 border-2 border-orange-600 bg-orange-100 text-orange-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">見込み</button>
-                            <button onclick="selectCRMStatus('ロスト')" class="status-change-btn px-2 py-2 border-2 border-gray-700 bg-gray-200 text-gray-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">ロスト</button>
-                            <button onclick="selectCRMStatus('他社契約済')" class="status-change-btn px-2 py-2 border-2 border-slate-500 bg-slate-100 text-slate-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">他社契約</button>
-                            <button onclick="selectCRMStatus('無効')" class="status-change-btn px-2 py-2 border-2 border-gray-600 bg-gray-100 text-gray-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">無効</button>
-                            <button onclick="selectCRMStatus('クレーム')" class="status-change-btn px-2 py-2 border-2 border-red-700 bg-red-100 text-red-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">クレーム</button>
+                        <div class="grid grid-cols-2 gap-2">
+                            <!-- 左: 終了系 -->
+                            <div class="bg-gray-100 rounded-2xl p-3">
+                                <p class="text-xs text-gray-500 mb-2 font-semibold text-center">🚫 終了</p>
+                                <div class="space-y-1.5">
+                                    <button onclick="selectCRMStatus('ロスト')" class="w-full px-3 py-2 border-2 border-gray-400 bg-white text-gray-700 rounded-xl text-xs font-bold hover:shadow-md transition-all">ロスト</button>
+                                    <button onclick="selectCRMStatus('他社契約済')" class="w-full px-3 py-2 border-2 border-slate-400 bg-white text-slate-700 rounded-xl text-xs font-bold hover:shadow-md transition-all">他社契約済</button>
+                                    <button onclick="selectCRMStatus('無効')" class="w-full px-3 py-2 border-2 border-gray-400 bg-white text-gray-700 rounded-xl text-xs font-bold hover:shadow-md transition-all">無効</button>
+                                    <button onclick="selectCRMStatus('クレーム')" class="w-full px-3 py-2 border-2 border-red-400 bg-white text-red-600 rounded-xl text-xs font-bold hover:shadow-md transition-all">クレーム</button>
+                                </div>
+                            </div>
+                            <!-- 右: 追客中 -->
+                            <div class="bg-blue-50 rounded-2xl p-3">
+                                <p class="text-xs text-blue-600 mb-2 font-semibold text-center">📞 追客中</p>
+                                <div class="space-y-1.5">
+                                    <button onclick="selectCRMStatus('新規')" class="w-full px-3 py-2 border-2 border-blue-400 bg-white text-blue-700 rounded-xl text-xs font-bold hover:shadow-md transition-all">新規</button>
+                                    <button onclick="selectCRMStatus('不在')" class="w-full px-3 py-2 border-2 border-gray-400 bg-white text-gray-700 rounded-xl text-xs font-bold hover:shadow-md transition-all">不在</button>
+                                    <button onclick="selectCRMStatus('再架電')" class="w-full px-3 py-2 border-2 border-yellow-400 bg-white text-yellow-700 rounded-xl text-xs font-bold hover:shadow-md transition-all">再架電</button>
+                                    <button onclick="selectCRMStatus('見込み')" class="w-full px-3 py-2 border-2 border-orange-400 bg-white text-orange-600 rounded-xl text-xs font-bold hover:shadow-md transition-all">見込み</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- V2214: 配信後ステータス = 詳細ステータス（StatusDefinitionsと完全統一） -->
-                    <div>
-                        <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                            <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
-                            追客中
+                    <!-- 配信後ステータス（詳細ステータス） -->
+                    <div id="crmPostDeliverySection">
+                        <h4 class="text-xs font-bold text-gray-500 mb-2 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
+                            配信後ステータス
                         </h4>
-                        <div class="grid grid-cols-3 gap-1.5 mb-3">
-                            <button onclick="selectCRMStatus('新着')" class="status-change-btn px-2 py-2 border-2 border-blue-500 bg-blue-100 text-blue-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">新着</button>
-                            <button onclick="selectCRMStatus('未アポ')" class="status-change-btn px-2 py-2 border-2 border-yellow-500 bg-yellow-100 text-yellow-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">未アポ</button>
-                            <button onclick="selectCRMStatus('アポ済')" class="status-change-btn px-2 py-2 border-2 border-orange-500 bg-orange-100 text-orange-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">アポ済</button>
-                            <button onclick="selectCRMStatus('現調済')" class="status-change-btn px-2 py-2 border-2 border-orange-600 bg-orange-100 text-orange-900 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">現調済</button>
-                            <button onclick="selectCRMStatus('見積提出済')" class="status-change-btn px-2 py-2 border-2 border-red-500 bg-red-100 text-red-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">見積提出済</button>
+                        <!-- 追客中 -->
+                        <div class="bg-blue-50 rounded-2xl p-3 mb-3">
+                            <p class="text-xs text-blue-600 mb-2 font-semibold">📞 追客中</p>
+                            <div class="grid grid-cols-3 gap-1.5">
+                                <button onclick="selectCRMStatus('新着')" class="px-2 py-2 border-2 border-blue-400 bg-white text-blue-700 rounded-xl text-xs font-bold hover:shadow-md transition-all">新着</button>
+                                <button onclick="selectCRMStatus('未アポ')" class="px-2 py-2 border-2 border-pink-400 bg-white text-pink-600 rounded-xl text-xs font-bold hover:shadow-md transition-all">未アポ</button>
+                                <button onclick="selectCRMStatus('アポ済')" class="px-2 py-2 border-2 border-orange-400 bg-white text-orange-600 rounded-xl text-xs font-bold hover:shadow-md transition-all">アポ済</button>
+                                <button onclick="selectCRMStatus('現調済')" class="px-2 py-2 border-2 border-purple-400 bg-white text-purple-600 rounded-xl text-xs font-bold hover:shadow-md transition-all">現調済</button>
+                                <button onclick="selectCRMStatus('見積提出済')" class="col-span-2 px-2 py-2 border-2 border-amber-400 bg-white text-amber-600 rounded-xl text-xs font-bold hover:shadow-md transition-all">見積提出済</button>
+                            </div>
                         </div>
-
-                        <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                            <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-                            成約済
-                        </h4>
-                        <div class="grid grid-cols-3 gap-1.5 mb-3">
-                            <button onclick="selectCRMStatus('入金予定・未着工')" class="status-change-btn px-2 py-2 border-2 border-emerald-500 bg-emerald-100 text-emerald-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-[10px] font-medium">入金予定・未着工</button>
-                            <button onclick="selectCRMStatus('入金予定・施工中')" class="status-change-btn px-2 py-2 border-2 border-emerald-500 bg-emerald-100 text-emerald-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-[10px] font-medium">入金予定・施工中</button>
-                            <button onclick="selectCRMStatus('入金予定・工事済')" class="status-change-btn px-2 py-2 border-2 border-emerald-600 bg-emerald-100 text-emerald-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-[10px] font-medium">入金予定・工事済</button>
-                            <button onclick="selectCRMStatus('入金済・未着工')" class="status-change-btn px-2 py-2 border-2 border-green-500 bg-green-100 text-green-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-[10px] font-medium">入金済・未着工</button>
-                            <button onclick="selectCRMStatus('入金済・施工中')" class="status-change-btn px-2 py-2 border-2 border-green-600 bg-green-100 text-green-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-[10px] font-medium">入金済・施工中</button>
-                            <button onclick="selectCRMStatus('完了')" class="status-change-btn px-2 py-2 border-2 border-green-700 bg-green-100 text-green-900 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">完了</button>
+                        <!-- 成約済 -->
+                        <div class="bg-green-50 rounded-2xl p-3 mb-3">
+                            <p class="text-xs text-green-600 mb-2 font-semibold">💰 成約済</p>
+                            <div class="grid grid-cols-3 gap-1.5">
+                                <button onclick="selectCRMStatus('入金予定・未着工')" class="px-1 py-2 border-2 border-emerald-400 bg-white text-emerald-700 rounded-xl text-[10px] font-bold hover:shadow-md transition-all">入金予定・未着工</button>
+                                <button onclick="selectCRMStatus('入金予定・施工中')" class="px-1 py-2 border-2 border-emerald-400 bg-white text-emerald-700 rounded-xl text-[10px] font-bold hover:shadow-md transition-all">入金予定・施工中</button>
+                                <button onclick="selectCRMStatus('入金予定・工事済')" class="px-1 py-2 border-2 border-emerald-500 bg-white text-emerald-700 rounded-xl text-[10px] font-bold hover:shadow-md transition-all">入金予定・工事済</button>
+                                <button onclick="selectCRMStatus('入金済・未着工')" class="px-1 py-2 border-2 border-green-400 bg-white text-green-700 rounded-xl text-[10px] font-bold hover:shadow-md transition-all">入金済・未着工</button>
+                                <button onclick="selectCRMStatus('入金済・施工中')" class="px-1 py-2 border-2 border-green-500 bg-white text-green-700 rounded-xl text-[10px] font-bold hover:shadow-md transition-all">入金済・施工中</button>
+                                <button onclick="selectCRMStatus('完了')" class="px-2 py-2 border-2 border-green-600 bg-white text-green-700 rounded-xl text-xs font-bold hover:shadow-md transition-all">完了</button>
+                            </div>
                         </div>
-
-                        <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                            <span class="w-2 h-2 bg-gray-500 rounded-full"></span>
-                            終了
-                        </h4>
-                        <div class="grid grid-cols-3 gap-1.5">
-                            <button onclick="selectCRMStatus('現調前キャンセル')" class="status-change-btn px-2 py-2 border-2 border-gray-400 bg-gray-100 text-gray-700 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-[10px] font-medium">現調前キャンセル</button>
-                            <button onclick="selectCRMStatus('現調後失注')" class="status-change-btn px-2 py-2 border-2 border-gray-500 bg-gray-100 text-gray-700 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">現調後失注</button>
-                            <button onclick="selectCRMStatus('他社契約済')" class="status-change-btn px-2 py-2 border-2 border-slate-500 bg-slate-100 text-slate-700 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">他社契約済</button>
-                            <button onclick="selectCRMStatus('別加盟店契約済')" class="status-change-btn px-2 py-2 border-2 border-slate-400 bg-slate-100 text-slate-700 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-[10px] font-medium">別加盟店契約</button>
-                            <button onclick="selectCRMStatus('顧客クレーム')" class="status-change-btn px-2 py-2 border-2 border-red-600 bg-red-100 text-red-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">顧客クレーム</button>
+                        <!-- 終了 -->
+                        <div class="bg-gray-100 rounded-2xl p-3">
+                            <p class="text-xs text-gray-500 mb-2 font-semibold">🚫 終了</p>
+                            <div class="grid grid-cols-3 gap-1.5">
+                                <button onclick="selectCRMStatus('現調前キャンセル')" class="px-1 py-2 border-2 border-gray-300 bg-white text-gray-600 rounded-xl text-[10px] font-bold hover:shadow-md transition-all">現調前キャンセル</button>
+                                <button onclick="selectCRMStatus('現調後失注')" class="px-2 py-2 border-2 border-gray-400 bg-white text-gray-600 rounded-xl text-xs font-bold hover:shadow-md transition-all">現調後失注</button>
+                                <button onclick="selectCRMStatus('他社契約済')" class="px-2 py-2 border-2 border-slate-400 bg-white text-slate-600 rounded-xl text-xs font-bold hover:shadow-md transition-all">他社契約済</button>
+                                <button onclick="selectCRMStatus('別加盟店契約済')" class="px-1 py-2 border-2 border-slate-300 bg-white text-slate-600 rounded-xl text-[10px] font-bold hover:shadow-md transition-all">別加盟店契約</button>
+                                <button onclick="selectCRMStatus('顧客クレーム')" class="px-2 py-2 border-2 border-red-400 bg-white text-red-600 rounded-xl text-xs font-bold hover:shadow-md transition-all">顧客クレーム</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -8857,13 +8869,42 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
-        // V1945: ステータスモーダルを表示のみ（トグルではない）
+        // V2214: CRMステータスモーダルを表示（配信状況に応じてセクション切り替え）
         function showStatusModal() {
             const modal = document.getElementById('statusModal');
-            if (modal) {
-                modal.classList.remove('hidden');
-                console.log('[showStatusModal] ステータスモーダル表示');
+            if (!modal) return;
+
+            const caseData = casesData[currentCaseId];
+            if (!caseData) return;
+
+            // V2214: 配信済みで新着以上に進んでいたら変更不可
+            const transferCount = caseData.transferCount || 0;
+            const lockedStatuses = ['未アポ', 'アポ済', '現調済', '見積提出済', '入金予定・未着工', '入金予定・施工中', '入金予定・工事済', '入金済・未着工', '入金済・施工中', '完了', '現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', '顧客クレーム'];
+            if (transferCount > 0 && lockedStatuses.includes(caseData.status)) {
+                return;
             }
+
+            // 顧客名を表示
+            const nameEl = document.getElementById('crmStatusTargetName');
+            if (nameEl) {
+                nameEl.textContent = `${caseData.name || caseData.customerName || '---'} 様`;
+            }
+
+            // 配信前/配信後セクションの表示切り替え
+            const preSec = document.getElementById('crmPreDeliverySection');
+            const postSec = document.getElementById('crmPostDeliverySection');
+            if (transferCount > 0) {
+                // 配信済み → 配信後ステータスのみ表示
+                if (preSec) preSec.classList.add('hidden');
+                if (postSec) postSec.classList.remove('hidden');
+            } else {
+                // 未配信 → 配信前ステータスのみ表示
+                if (preSec) preSec.classList.remove('hidden');
+                if (postSec) postSec.classList.add('hidden');
+            }
+
+            modal.classList.remove('hidden');
+            console.log('[showStatusModal] ステータスモーダル表示');
         }
 
         // V1945: ステータスモーダルを非表示のみ
