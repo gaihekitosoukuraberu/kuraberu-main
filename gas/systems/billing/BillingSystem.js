@@ -76,6 +76,8 @@ const BillingSystem = {
         return this.getPaymentHistory(params.merchantId, params.month, params.statusFilter);
       case 'billing_getProfitAnalysis':
         return this.getProfitAnalysis(params.merchantId, params.month);
+      case 'billing_bulkUpdateDueDate':
+        return this.bulkUpdateDueDate(params.targetMonth, params.newDueDate, params.reason);
       default:
         return { success: false, error: 'Unknown billing action: ' + action };
     }
@@ -2427,6 +2429,67 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
       };
     } catch (e) {
       console.error('[BillingSystem] getProfitAnalysis error:', e);
+      return { success: false, error: e.message };
+    }
+  },
+
+  /**
+   * 支払期限一括変更（管理者用）
+   */
+  bulkUpdateDueDate: function(targetMonth, newDueDate, reason) {
+    console.log('[BillingSystem] bulkUpdateDueDate:', targetMonth, newDueDate, reason);
+
+    if (!targetMonth || !newDueDate) {
+      return { success: false, error: '対象月と新しい支払期限を指定してください' };
+    }
+
+    try {
+      const ss = SpreadsheetApp.openById(this.SPREADSHEET_ID);
+      const billingSheet = ss.getSheetByName(this.SHEETS.BILLING);
+
+      if (!billingSheet) {
+        return { success: false, error: '請求管理シートが見つかりません' };
+      }
+
+      const data = billingSheet.getDataRange().getValues();
+      const headers = data[0];
+
+      const targetMonthIdx = headers.indexOf('対象月');
+      const dueDateIdx = headers.indexOf('支払期限');
+      const statusIdx = headers.indexOf('ステータス');
+
+      if (dueDateIdx === -1) {
+        return { success: false, error: '支払期限カラムが見つかりません' };
+      }
+
+      let updatedCount = 0;
+      const newDate = new Date(newDueDate);
+
+      for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        const rowTargetMonth = row[targetMonthIdx];
+        const status = row[statusIdx];
+
+        // 対象月が一致 かつ 未入金のもののみ
+        if (rowTargetMonth === targetMonth && status !== '入金済み') {
+          billingSheet.getRange(i + 1, dueDateIdx + 1).setValue(newDate);
+          updatedCount++;
+        }
+      }
+
+      // 変更ログをSlack通知（任意）
+      if (updatedCount > 0 && reason) {
+        this._sendSlackNotification('支払期限一括変更', `対象月: ${targetMonth}\n新支払期限: ${newDueDate}\n変更件数: ${updatedCount}件\n理由: ${reason}`);
+      }
+
+      return {
+        success: true,
+        updatedCount: updatedCount,
+        targetMonth: targetMonth,
+        newDueDate: newDueDate
+      };
+    } catch (e) {
+      console.error('[BillingSystem] bulkUpdateDueDate error:', e);
       return { success: false, error: e.message };
     }
   }

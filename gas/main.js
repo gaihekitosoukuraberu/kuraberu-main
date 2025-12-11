@@ -663,7 +663,8 @@ const SystemRouter = {
         'getFinancialSummary',
         'getCommissionHistory',
         'getPaymentHistory',
-        'getProfitAnalysis'
+        'getProfitAnalysis',
+        'bulkUpdateDueDate'
       ]
     },
 

@@ -612,6 +612,114 @@ const BillingManager = {
       console.error('[BillingManager] 一括PDF送信エラー:', error);
       alert('エラーが発生しました');
     }
+  },
+
+  /**
+   * 支払期限一括変更モーダル表示
+   */
+  showBulkDueDateModal: function() {
+    // モーダルが存在しなければ作成
+    let modal = document.getElementById('bulkDueDateModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'bulkDueDateModal';
+      modal.className = 'fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 hidden';
+      modal.innerHTML = `
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4">
+          <div class="p-6 border-b">
+            <div class="flex justify-between items-center">
+              <h3 class="text-lg font-bold">支払期限一括変更</h3>
+              <button onclick="BillingManager.closeBulkDueDateModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="p-6">
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-2">対象月</label>
+              <input type="month" id="bulkDueDateTargetMonth" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" value="${new Date().toISOString().slice(0, 7)}">
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-2">新しい支払期限</label>
+              <input type="date" id="bulkDueDateNewDate" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-2">変更理由（任意）</label>
+              <input type="text" id="bulkDueDateReason" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="例: 年末年始休暇のため前倒し">
+            </div>
+            <div class="bg-yellow-50 p-3 rounded-lg mb-4">
+              <p class="text-sm text-yellow-800">
+                <strong>注意:</strong> 選択した対象月の全請求（未入金分）の支払期限が変更されます。
+              </p>
+            </div>
+          </div>
+          <div class="p-6 border-t bg-gray-50 rounded-b-xl flex justify-end gap-3">
+            <button onclick="BillingManager.closeBulkDueDateModal()" class="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg">キャンセル</button>
+            <button onclick="BillingManager.executeBulkDueDateChange()" class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700">変更を実行</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    // デフォルト日付を設定（来月15日）
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    nextMonth.setDate(15);
+    document.getElementById('bulkDueDateNewDate').value = nextMonth.toISOString().slice(0, 10);
+
+    modal.classList.remove('hidden');
+  },
+
+  closeBulkDueDateModal: function() {
+    const modal = document.getElementById('bulkDueDateModal');
+    if (modal) {
+      modal.classList.add('hidden');
+    }
+  },
+
+  /**
+   * 支払期限一括変更を実行
+   */
+  executeBulkDueDateChange: async function() {
+    const targetMonth = document.getElementById('bulkDueDateTargetMonth').value;
+    const newDate = document.getElementById('bulkDueDateNewDate').value;
+    const reason = document.getElementById('bulkDueDateReason').value;
+
+    if (!targetMonth || !newDate) {
+      alert('対象月と新しい支払期限を入力してください');
+      return;
+    }
+
+    if (!confirm(`${targetMonth}の全請求の支払期限を${newDate}に変更します。\n\n本当によろしいですか？`)) {
+      return;
+    }
+
+    this.showLoading();
+
+    try {
+      const result = await this.callApi('billing_bulkUpdateDueDate', {
+        targetMonth: targetMonth,
+        newDueDate: newDate,
+        reason: reason
+      });
+
+      this.hideLoading();
+
+      if (result.success) {
+        alert(`支払期限を変更しました\n\n変更件数: ${result.updatedCount}件`);
+        this.closeBulkDueDateModal();
+        this.loadFinancialSection();
+      } else {
+        alert('エラー: ' + (result.error || '変更に失敗しました'));
+      }
+    } catch (error) {
+      this.hideLoading();
+      console.error('[BillingManager] 一括変更エラー:', error);
+      alert('エラーが発生しました');
+    }
   }
 };
 
