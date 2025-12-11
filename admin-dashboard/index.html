@@ -2283,25 +2283,42 @@ window.addEventListener('beforeunload', function(e) {
                         </button>
                     </div>
 
-                    <!-- V2213: ステータス選択セクション（接続時のみ表示） -->
+                    <!-- V2214: ステータス選択セクション（接続時のみ表示）- リッチモーダル統一デザイン -->
                     <div id="connectionStatusSection" class="hidden">
-                        <div class="p-4 bg-gray-50 rounded-xl">
-                            <h4 class="text-sm font-semibold text-gray-700 mb-3">ステータス変更</h4>
-                            <!-- V2214: 配信中/配信済は自動設定のため削除 -->
-                            <div class="grid grid-cols-3 gap-2 mb-3">
-                                <button onclick="selectConnectionCaseStatus('新規')" class="connection-status-btn py-2.5 text-xs font-medium bg-white border-2 border-blue-300 text-blue-700 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">新規</button>
-                                <button onclick="selectConnectionCaseStatus('不在')" class="connection-status-btn py-2.5 text-xs font-medium bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:border-gray-500 hover:bg-gray-100 transition-all">不在</button>
-                                <button onclick="selectConnectionCaseStatus('再架電')" class="connection-status-btn py-2.5 text-xs font-medium bg-white border-2 border-yellow-300 text-yellow-700 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-all">再架電</button>
-                                <button onclick="selectConnectionCaseStatus('見込み')" class="connection-status-btn py-2.5 text-xs font-medium bg-white border-2 border-orange-300 text-orange-700 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all">見込み</button>
-                                <button onclick="selectConnectionCaseStatus('ロスト')" class="connection-status-btn py-2.5 text-xs font-medium bg-white border-2 border-gray-400 text-gray-700 rounded-lg hover:border-gray-600 hover:bg-gray-200 transition-all">ロスト</button>
-                                <button onclick="selectConnectionCaseStatus('他社契約済')" class="connection-status-btn py-2.5 text-[10px] font-medium bg-white border-2 border-slate-300 text-slate-700 rounded-lg hover:border-slate-500 hover:bg-slate-100 transition-all">他社契約済</button>
-                                <button onclick="selectConnectionCaseStatus('無効')" class="connection-status-btn py-2.5 text-xs font-medium bg-white border-2 border-gray-300 text-gray-600 rounded-lg hover:border-gray-500 hover:bg-gray-100 transition-all">無効</button>
-                                <button onclick="selectConnectionCaseStatus('クレーム')" class="connection-status-btn py-2.5 text-xs font-medium bg-white border-2 border-red-300 text-red-700 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all">クレーム</button>
-                                <button onclick="skipConnectionStatusChange()" class="py-2.5 text-xs font-medium bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 transition-all">変更なし</button>
+                        <div class="p-4">
+                            <h4 class="text-sm font-semibold text-gray-700 mb-3 text-center">ステータス変更</h4>
+                            <div class="flex gap-3">
+                                <!-- 左: 終了ステータス -->
+                                <div class="flex-1 bg-gray-100 rounded-2xl p-3">
+                                    <div class="text-xs font-bold text-gray-500 mb-2 text-center flex items-center justify-center gap-1">
+                                        <span class="text-sm">🚫</span> 終了
+                                    </div>
+                                    <div class="flex flex-col gap-1.5">
+                                        <button onclick="selectConnectionCaseStatus('ロスト')" class="connection-status-btn py-2 px-2 bg-white border-2 border-gray-400 rounded-xl text-gray-700 font-bold text-xs hover:bg-gray-200 hover:shadow-md transition-all shadow-sm">ロスト</button>
+                                        <button onclick="selectConnectionCaseStatus('他社契約済')" class="connection-status-btn py-2 px-2 bg-white border-2 border-slate-400 rounded-xl text-slate-700 font-bold text-[10px] hover:bg-slate-100 hover:shadow-md transition-all shadow-sm">他社契約済</button>
+                                        <button onclick="selectConnectionCaseStatus('無効')" class="connection-status-btn py-2 px-2 bg-white border-2 border-gray-400 rounded-xl text-gray-600 font-bold text-xs hover:bg-gray-100 hover:shadow-md transition-all shadow-sm">無効</button>
+                                        <button onclick="selectConnectionCaseStatus('クレーム')" class="connection-status-btn py-2 px-2 bg-white border-2 border-red-400 rounded-xl text-red-700 font-bold text-xs hover:bg-red-50 hover:shadow-md transition-all shadow-sm">クレーム</button>
+                                    </div>
+                                </div>
+                                <!-- 右: 追客中ステータス -->
+                                <div class="flex-1 bg-blue-50 rounded-2xl p-3">
+                                    <div class="text-xs font-bold text-blue-600 mb-2 text-center flex items-center justify-center gap-1">
+                                        <span class="text-sm">📞</span> 追客中
+                                    </div>
+                                    <div class="flex flex-col gap-1.5">
+                                        <button onclick="selectConnectionCaseStatus('新規')" class="connection-status-btn py-2 px-2 bg-white border-2 border-blue-400 rounded-xl text-blue-700 font-bold text-xs hover:bg-blue-100 hover:shadow-md transition-all shadow-sm">新規</button>
+                                        <button onclick="selectConnectionCaseStatus('不在')" class="connection-status-btn py-2 px-2 bg-white border-2 border-gray-400 rounded-xl text-gray-700 font-bold text-xs hover:bg-gray-100 hover:shadow-md transition-all shadow-sm">不在</button>
+                                        <button onclick="selectConnectionCaseStatus('再架電')" class="connection-status-btn py-2 px-2 bg-white border-2 border-yellow-400 rounded-xl text-yellow-700 font-bold text-xs hover:bg-yellow-50 hover:shadow-md transition-all shadow-sm">再架電</button>
+                                        <button onclick="selectConnectionCaseStatus('見込み')" class="connection-status-btn py-2 px-2 bg-white border-2 border-orange-400 rounded-xl text-orange-700 font-bold text-xs hover:bg-orange-50 hover:shadow-md transition-all shadow-sm">見込み</button>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="flex gap-2">
-                                <button onclick="backToConnectionSelect()" class="flex-1 py-2.5 text-sm font-medium bg-white border-2 border-gray-300 text-gray-600 rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all">
+                            <div class="flex gap-2 mt-3">
+                                <button onclick="backToConnectionSelect()" class="flex-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 text-gray-600 rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-all">
                                     戻る
+                                </button>
+                                <button onclick="skipConnectionStatusChange()" class="flex-1 py-2 text-sm font-medium bg-gray-200 text-gray-600 rounded-xl hover:bg-gray-300 transition-all">
+                                    変更なし
                                 </button>
                             </div>
                         </div>
