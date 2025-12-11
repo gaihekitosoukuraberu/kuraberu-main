@@ -10533,10 +10533,10 @@ window.addEventListener('beforeunload', function(e) {
 
         // アドミン用テンプレート
         const adminSmsTemplates = {
-            call_missed: '{顧客名}様\n\nお電話差し上げましたがお繋ぎできませんでした。\n\n外壁塗装のお見積りについて、ご都合のよいお時間にお電話いただければ幸いです。\n\nくらべるネット',
-            delivery_notice: '{顧客名}様\n\nこの度はお問い合わせいただき誠にありがとうございます。\n\nご希望の条件に合う業者様をご紹介させていただきました。近日中にご連絡がございますのでお待ちください。\n\nくらべるネット',
-            status_check: '{顧客名}様\n\nその後、ご検討状況はいかがでしょうか？\n\nご不明点などございましたらお気軽にお問い合わせください。\n\nくらべるネット',
-            appointment: '{顧客名}様\n\nお電話ありがとうございました。\n\n現地調査の日程は下記にて承りました。\n日時：○月○日（○）○時〜\n\n当日担当業者よりご連絡いたします。\n\nくらべるネット',
+            call_missed: '{顧客名}様\n\nお電話差し上げましたがお繋ぎできませんでした。\n\n外壁塗装のお見積りについて、ご都合のよいお時間にお電話いただければ幸いです。\n\n外壁塗装くらべる',
+            delivery_notice: '{顧客名}様\n\nこの度はお問い合わせいただき誠にありがとうございます。\n\nご希望の条件に合う業者様をご紹介させていただきました。近日中にご連絡がございますのでお待ちください。\n\n外壁塗装くらべる',
+            status_check: '{顧客名}様\n\nその後、ご検討状況はいかがでしょうか？\n\nご不明点などございましたらお気軽にお問い合わせください。\n\n外壁塗装くらべる',
+            appointment: '{顧客名}様\n\nお電話ありがとうございました。\n\n現地調査の日程は下記にて承りました。\n日時：○月○日（○）○時〜\n\n当日担当業者よりご連絡いたします。\n\n外壁塗装くらべる',
             custom: ''
         };
 
@@ -10608,7 +10608,7 @@ window.addEventListener('beforeunload', function(e) {
         function sendViaEmail() {
             const caseData = casesData[currentSmsCaseId];
             const message = document.getElementById('smsMessageText').value;
-            const subject = encodeURIComponent('【くらべるネット】ご連絡');
+            const subject = encodeURIComponent('【外壁塗装くらべる】ご連絡');
             const body = encodeURIComponent(message);
             const email = caseData?.email || '';
             window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
