@@ -20601,10 +20601,17 @@
             showEndedCases = !showEndedCases;
             const btn = document.getElementById('toggleEndedCasesBtn');
             if (btn) {
-                btn.textContent = showEndedCases ? '終了案件を非表示' : '終了案件を表示';
+                // V2205: アイコンを保持しつつテキストのみ変更
+                const span = btn.querySelector('span');
+                if (span) {
+                    span.textContent = showEndedCases ? '終了案件を非表示' : '終了';
+                }
                 btn.classList.toggle('bg-gray-200', showEndedCases);
+                btn.classList.toggle('border-gray-400', showEndedCases);
             }
             renderCases();
+            // V2205: 終了ボタン切り替え時にカウントも再計算
+            updateQuickFilterStats();
         }
 
         // 統計カウント更新
@@ -20630,23 +20637,26 @@
             // V2203: 終了系ステータス（全案件からは除外）
             const endedStatuses = ['現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', 'クレーム'];
             let activeTotal = 0; // 終了系を除いた全案件
+            let totalWithEnded = 0; // 終了系を含めた全案件
 
             merchantCasesData.forEach(c => {
                 const status = c.detailStatus || '';
+                totalWithEnded++; // 全案件（終了含む）
+
                 // 新着カウント
                 if (status === '新着') {
                     newCount++;
                 }
-                // V2203: 成約前（追客中）: 新着、未アポ、アポ済、現調済、見積提出済
-                if (['新着', '未アポ', 'アポ済', '現調済', '見積提出済'].includes(status)) {
+                // V2203: 成約前（追客中）: 新着、未アポ、アポ済、現調済、見積提出済（部分一致で判定）
+                if (['新着', '未アポ', 'アポ済', '現調済', '見積提出済'].some(s => status.includes(s))) {
                     pending++;
                 }
-                // 成約済: 成約、入金予定、入金済
-                if (['成約', '入金予定', '入金済'].includes(status)) {
+                // V2205: 成約済: 成約、入金予定、入金済（部分一致で判定 - 「入金予定・未着工」等に対応）
+                if (['成約', '入金予定', '入金済'].some(s => status.includes(s))) {
                     contracted++;
                 }
                 // V2203: 全案件 = 終了系を除いた案件数
-                if (!endedStatuses.includes(status)) {
+                if (!endedStatuses.some(s => status.includes(s))) {
                     activeTotal++;
                 }
             });
@@ -20656,7 +20666,8 @@
                 if (el) el.textContent = value;
             };
 
-            setIfExists('stat-total', activeTotal);
+            // V2205: 終了ボタンON時は終了案件も含めた全件、OFF時は終了系除外
+            setIfExists('stat-total', showEndedCases ? totalWithEnded : activeTotal);
             setIfExists('stat-pending', pending);
             setIfExists('stat-contracted', contracted);
 
