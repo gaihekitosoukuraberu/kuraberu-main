@@ -1426,14 +1426,34 @@ const BusinessSelectionHandler = {
       }
     }
 
-    // V2215: 転送済み業者を最上部に配置 + 未転送業者を確実に表示
-    // 転送済み業者はallFranchisesから取得（limitでカットされていても表示するため）
-    const deliveredFranchisesFromAll = allFranchises.filter(f => deliveredNames.includes(f.companyName));
+    // V2217: 転送済み業者を最上部に配置（チェック状態ON）
+    // deliveredNames = this.deliveredFranchises のfranchiseName一覧
+    console.log('[V2217] deliveredNames:', deliveredNames);
+    console.log('[V2217] allFranchises companyNames:', allFranchises.slice(0, 5).map(f => f.companyName));
 
-    // 未転送業者はdisplayFranchisesから（ソート・転送済み除外済み）
-    // displayFranchisesは既に転送済みを除外してlimit適用済みなのでそのまま使用
-    const topFranchises = [...deliveredFranchisesFromAll, ...displayFranchises];
-    console.log('[V2215] 表示構成: 転送済み', deliveredFranchisesFromAll.length, '社 + 未転送', displayFranchises.length, '社 = 合計', topFranchises.length, '社');
+    // V2217: deliveredFranchises自体を先頭に配置（allFranchisesに含まれていない可能性があるため）
+    // this.deliveredFranchisesのデータを直接使用し、必要なプロパティを補完
+    const deliveredWithData = this.deliveredFranchises.map(df => {
+      // allFranchisesから同名の業者を探す（詳細データ取得のため）
+      const matchedFranchise = allFranchises.find(f =>
+        f.companyName === df.franchiseName || f.franchiseId === df.franchiseId
+      );
+      if (matchedFranchise) {
+        return { ...matchedFranchise, isDeliveredData: true };
+      }
+      // allFranchisesにない場合は最低限のデータで構成
+      return {
+        companyName: df.franchiseName,
+        franchiseId: df.franchiseId,
+        matchRate: 0,
+        isDeliveredData: true
+      };
+    });
+    console.log('[V2217] deliveredWithData:', deliveredWithData.length, '件');
+
+    // 未転送業者はdisplayFranchisesから（既に転送済み除外済み）
+    const topFranchises = [...deliveredWithData, ...displayFranchises];
+    console.log('[V2217] 表示構成: 転送済み', deliveredWithData.length, '社 + 未転送', displayFranchises.length, '社 = 合計', topFranchises.length, '社');
 
     // V1920: カード生成（チェックボックス状態を保持）
     return topFranchises.map((franchise, index) => {
@@ -1443,8 +1463,8 @@ const BusinessSelectionHandler = {
       // マッチ率を計算
       const matchRate = this.calculateMatchRate(franchise);
 
-      // V2004: 転送済みかどうかチェック
-      const isDelivered = deliveredNames.includes(franchise.companyName);
+      // V2217: 転送済みかどうかチェック（isDeliveredDataフラグまたはdeliveredNamesで判定）
+      const isDelivered = franchise.isDeliveredData || deliveredNames.includes(franchise.companyName);
 
       // V1924: チェック条件 = Set に含まれるか（ユーザー操作を完全に尊重）
       // V2004: ただし転送済みはチェック不可
