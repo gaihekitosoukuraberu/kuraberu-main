@@ -6543,39 +6543,10 @@ window.addEventListener('beforeunload', function(e) {
             return colorMap[status] || 'border-2 border-gray-500 bg-gray-100 text-gray-800';
         }
 
-        // V2062: 統計カウントを更新（新規・全て・本日改）
+        // V2213: 統計カウントを更新（V2213で新UIに移行済み - 互換性のため残す）
         function updateStatsCounts() {
-            const now = new Date();
-
-            // 新規件数（配信前のみ）
-            const newCount = Object.values(casesData).filter(c =>
-                c.status === '新規' && PRE_DELIVERY_STATUSES.includes(c.status)
-            ).length;
-            document.getElementById('newCount').textContent = newCount;
-
-            // 全件数（配信前のみ）
-            const allCount = Object.values(casesData).filter(c =>
-                PRE_DELIVERY_STATUSES.includes(c.status)
-            ).length;
-            const allCountEl = document.getElementById('allCount');
-            if (allCountEl) allCountEl.textContent = allCount;
-
-            // 本日改件数（今日以前の次回架電日を持つ配信前案件）
-            const todayEnd = new Date();
-            todayEnd.setHours(23, 59, 59, 999);
-            const todayKaiCount = Object.values(casesData).filter(c => {
-                if (!PRE_DELIVERY_STATUSES.includes(c.status)) return false;
-                // 履歴から最新の次回架電日を取得
-                const nextCallDate = getLatestNextCallDate(c);
-                // 空文字、null、undefinedをチェック
-                if (!nextCallDate || nextCallDate.trim() === '') return false;
-                const callDateTime = new Date(nextCallDate);
-                // Invalid Dateチェック
-                if (isNaN(callDateTime.getTime())) return false;
-                return callDateTime <= todayEnd;
-            }).length;
-            const todayKaiCountEl = document.getElementById('todayKaiCount');
-            if (todayKaiCountEl) todayKaiCountEl.textContent = todayKaiCount;
+            // V2213: updateAdminQuickFilterCountsに移行
+            updateAdminQuickFilterCounts();
         }
 
         // キャンセル申請処理モーダル
@@ -7656,11 +7627,15 @@ window.addEventListener('beforeunload', function(e) {
 
         // ページネーション情報の更新
         function updatePaginationInfo(total, from, to) {
-            // 下部のページネーション情報を更新
-            document.getElementById('totalCount').textContent = total;
-            document.getElementById('showingFrom').textContent = from + 1;
-            document.getElementById('showingTo').textContent = to;
-            document.getElementById('currentPageCount').textContent = to - from;
+            // 下部のページネーション情報を更新（要素がある場合のみ）
+            const totalEl = document.getElementById('totalCount');
+            const fromEl = document.getElementById('showingFrom');
+            const toEl = document.getElementById('showingTo');
+            const pageCountEl = document.getElementById('currentPageCount');
+            if (totalEl) totalEl.textContent = total;
+            if (fromEl) fromEl.textContent = from + 1;
+            if (toEl) toEl.textContent = to;
+            if (pageCountEl) pageCountEl.textContent = to - from;
 
             // 上部の件数表示も更新
             const topTotalEl = document.getElementById('topTotalCount');
