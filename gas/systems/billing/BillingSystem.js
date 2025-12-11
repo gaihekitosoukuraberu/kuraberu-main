@@ -2567,6 +2567,8 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
       let totalCases = 0;    // 加盟店の全案件
       let contractedCases = 0; // 成約件数
       let inProgressCases = 0; // 対応中
+      let thisMonthRevenue = 0; // 今月の売上
+      let thisMonthCost = 0;    // 今月の紹介料支出
       const recentCases = []; // 最近の案件
 
       // データ走査
@@ -2692,6 +2694,7 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
       const dIdx = {
         cvId: deliveryHeaders.indexOf('CV ID'),
         merchantId: deliveryHeaders.indexOf('加盟店ID'),
+        staffName: deliveryHeaders.indexOf('担当者'), // 担当者カラム
         nextContactDate: deliveryHeaders.indexOf('次回連絡予定日時'),
         surveyDate: deliveryHeaders.indexOf('現調日時'),
         meetingDate: deliveryHeaders.indexOf('商談日時')
@@ -2743,6 +2746,7 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
 
         const cvId = row[dIdx.cvId];
         const customerName = cvInfoMap[cvId] || '名前なし';
+        const staffName = dIdx.staffName >= 0 ? (row[dIdx.staffName] || '') : '';
 
         // 各予定タイプをチェック
         for (const type of eventTypes) {
@@ -2759,6 +2763,7 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
             id: `${cvId}_${type.key}`,
             cvId: cvId,
             customerName: customerName,
+            staffName: staffName,
             type: type.label,
             color: type.color,
             date: this._formatDateForApi(date),

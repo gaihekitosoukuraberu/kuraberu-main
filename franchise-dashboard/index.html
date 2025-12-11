@@ -665,16 +665,7 @@
                     </div>
                 </div>
 
-                <!-- 最近の案件 -->
-                <div class="bg-white shadow rounded-lg p-4 sm:p-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">最近の案件</h3>
-                    <!-- スマホ：横スクロール / タブレット以上：グリッド -->
-                    <div id="dashRecentCases" class="sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-4 flex sm:flex-none overflow-x-auto gap-3 pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
-                        <div class="text-center text-gray-500 py-8 col-span-full">
-                            <p>データを読み込んでいます...</p>
-                        </div>
-                    </div>
-                </div>
+                <!-- V2198: 最近の案件削除（案件管理と重複のため） -->
             </div><!-- dashboardSectionの終了 -->
 
             <!-- メンバー管理セクション（管理者のみ） -->
@@ -19150,9 +19141,9 @@
                                     'red': 'bg-red-500'
                                 }[event.color] || 'bg-gray-500';
                                 
-                                // V2197: cvIdがあれば案件詳細へ、なければ従来動作
+                                // V2197: cvIdがあれば案件詳細モーダルへ、なければ従来動作
                                 const clickHandler = event.cvId
-                                    ? `openCaseDetail('${event.cvId}')`
+                                    ? `openDetailModal('${event.cvId}')`
                                     : `showEventDetail(${event.id})`;
                                 const eventLabel = event.type ? `${event.type}` : '';
                                 cellContent += `
@@ -29562,49 +29553,7 @@
                     document.getElementById('dashInProgress').textContent = stats.inProgress || 0;
                     document.getElementById('dashMemberCount').textContent = stats.memberCount || 1;
 
-                    // 最近の案件更新
-                    const recentCases = result.recentCases || [];
-                    const container = document.getElementById('dashRecentCases');
-                    if (container) {
-                        if (recentCases.length === 0) {
-                            container.innerHTML = `
-                                <div class="text-center text-gray-500 py-8 col-span-full">
-                                    <svg class="w-12 h-12 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                    </svg>
-                                    <p>まだ案件がありません</p>
-                                </div>`;
-                        } else {
-                            container.innerHTML = recentCases.map(c => {
-                                const statusColors = {
-                                    '成約': 'bg-green-100 text-green-800',
-                                    '配信済み': 'bg-blue-100 text-blue-800',
-                                    'ヒアリング中': 'bg-yellow-100 text-yellow-800',
-                                    '見積中': 'bg-orange-100 text-orange-800',
-                                    '商談中': 'bg-purple-100 text-purple-800',
-                                    '新規': 'bg-gray-100 text-gray-800'
-                                };
-                                const statusColor = statusColors[c.status] || 'bg-gray-100 text-gray-800';
-                                return `
-                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow min-w-[280px] sm:min-w-0">
-                                    <div class="flex justify-between items-start mb-3">
-                                        <div class="font-semibold text-gray-900 text-sm">${c.id || '-'}</div>
-                                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusColor}">${c.status || '新規'}</span>
-                                    </div>
-                                    <div class="space-y-2">
-                                        <div class="flex items-center text-sm">
-                                            <span class="text-gray-500 w-16">顧客:</span>
-                                            <span class="text-gray-900 font-medium">${c.customerName || '-'}</span>
-                                        </div>
-                                        <div class="flex items-center text-sm">
-                                            <span class="text-gray-500 w-16">更新日:</span>
-                                            <span class="text-gray-700">${c.updatedAt || '-'}</span>
-                                        </div>
-                                    </div>
-                                </div>`;
-                            }).join('');
-                        }
-                    }
+                    // V2198: 最近の案件は削除されたため、更新処理を削除
                     console.log('[loadDashboardStats] 表示更新完了');
                 } else {
                     console.error('[loadDashboardStats] エラー:', result.error);
@@ -29652,11 +29601,11 @@
                             const colors = colorMap[e.color] || colorMap.blue;
                             const timeStr = e.time ? ` ${e.time}` : '';
                             return `
-                            <div class="flex items-center p-2 ${colors.bg} rounded cursor-pointer hover:opacity-80 transition-opacity" onclick="openCaseDetail('${e.cvId}')">
+                            <div class="flex items-center p-2 ${colors.bg} rounded cursor-pointer hover:opacity-80 transition-opacity" onclick="openDetailModal('${e.cvId}')" title="担当: ${e.staffName || '未設定'}">
                                 <div class="w-2 h-2 ${colors.dot} rounded-full mr-2"></div>
                                 <div class="flex-1">
                                     <div class="text-sm font-medium">${e.customerName} ${e.type}</div>
-                                    <div class="text-xs text-gray-500">${e.date}${timeStr}</div>
+                                    <div class="text-xs text-gray-500">${e.date}${timeStr}${e.staffName ? ` / ${e.staffName}` : ''}</div>
                                 </div>
                                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
