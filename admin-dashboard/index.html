@@ -1868,64 +1868,50 @@ window.addEventListener('beforeunload', function(e) {
     </div>
 
     <!-- 架電履歴モーダル -->
+    <!-- V2213: メモモーダル（フランチャイズ統一デザイン・イエローベース） -->
     <div id="callHistoryModal" class="fixed inset-0 z-50 hidden">
         <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeCallHistoryModal()"></div>
-        <div class="fixed inset-0 flex items-center justify-center p-2 sm:p-6 lg:p-8">
-            <div class="bg-white rounded-xl shadow-2xl w-full max-w-[calc(100vw-16px)] sm:max-w-2xl lg:max-w-4xl xl:max-w-5xl max-h-[95vh] overflow-hidden flex flex-col">
+        <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
                 <!-- ヘッダー -->
-                <div class="flex justify-between items-center px-3 sm:px-6 lg:px-8 py-3 sm:py-5 lg:py-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
-                    <div>
-                        <h3 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">メモ</h3>
-                        <p class="text-xs sm:text-sm text-gray-500 mt-0.5 lg:mt-1">架電履歴とメモを管理</p>
-                    </div>
-                    <button onclick="closeCallHistoryModal()" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-2 transition-all">
-                        <svg class="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="p-4 border-b bg-gradient-to-r from-amber-500 to-orange-500 text-white flex-shrink-0 relative">
+                    <button onclick="closeCallHistoryModal()" class="absolute top-3 right-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
+                    <h3 class="text-lg font-bold">📝 メモ/履歴</h3>
+                    <p id="memoTargetName" class="text-sm text-amber-100 mt-1">---</p>
+                    <p id="memoTargetAddress" class="text-xs text-amber-100/80 mt-0.5">---</p>
                 </div>
 
-                <!-- コンテンツエリア -->
-                <div class="flex-1 overflow-y-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-                    <!-- 新規メモ入力 -->
-                    <div class="mb-6 lg:mb-8">
-                        <div class="flex justify-between items-center mb-3 lg:mb-4">
-                            <label class="block text-sm sm:text-base font-semibold text-gray-700">新規メモ</label>
-                            <div id="editModeIndicator" class="hidden text-xs sm:text-sm px-3 py-1 bg-amber-100 text-amber-800 rounded-full font-medium">
-                                編集モード
-                            </div>
-                        </div>
-                        <div class="relative">
-                            <textarea
-                                id="newCallNote"
-                                placeholder="メモを入力してください..."
-                                class="w-full p-4 sm:p-5 lg:p-6 pr-16 border-2 border-gray-200 rounded-xl resize-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-base"
-                                rows="5"
-                            ></textarea>
-                            <!-- 音声入力ボタン -->
-                            <button
-                                onclick="startVoiceInput()"
-                                class="absolute bottom-4 sm:bottom-5 lg:bottom-6 right-4 sm:right-5 lg:right-6 text-gray-400 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-all"
-                                title="音声入力">
-                                <svg class="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                                </svg>
-                            </button>
-                        </div>
-                        <!-- V2057: 次回架電日時は削除、別モーダルで設定 -->
-                        <div class="mt-3">
-                            <button
-                                onclick="addCallHistory()"
-                                class="w-full px-8 py-3 sm:py-3.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold shadow-md hover:shadow-lg transition-all text-sm sm:text-base">
-                                保存
-                            </button>
-                        </div>
+                <!-- メモ入力エリア（上部固定） -->
+                <div class="p-4 bg-amber-50 border-b border-amber-200 flex-shrink-0">
+                    <div class="flex gap-2">
+                        <textarea
+                            id="newCallNote"
+                            placeholder="メモを入力..."
+                            class="flex-1 p-3 border-2 border-amber-200 rounded-xl resize-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all text-base bg-white"
+                            rows="2"
+                        ></textarea>
+                        <button
+                            onclick="addCallHistory()"
+                            class="px-4 bg-amber-500 text-white rounded-xl hover:bg-amber-600 font-bold shadow-md hover:shadow-lg transition-all flex-shrink-0">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="white" d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+                        </button>
                     </div>
+                </div>
 
-                    <!-- 履歴リスト -->
-                    <div class="border-t-2 border-gray-200 pt-6 lg:pt-8">
-                        <h4 class="text-base sm:text-lg font-semibold text-gray-900 mb-4">履歴</h4>
-                        <div id="callHistoryList" class="space-y-3 sm:space-y-4">
+                <!-- 履歴エリア（スクロール可能） -->
+                <div class="flex-1 overflow-y-auto">
+                    <div class="p-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-sm font-bold text-gray-700 flex items-center gap-2">
+                                <span>📋</span> 対応履歴
+                            </h4>
+                            <span id="memoHistoryCount" class="text-xs px-2 py-0.5 bg-gray-200 rounded-full text-gray-600">0件</span>
+                        </div>
+                        <div id="callHistoryList" class="space-y-3">
                             <!-- 動的に生成される履歴 -->
                         </div>
                     </div>
@@ -2350,34 +2336,35 @@ window.addEventListener('beforeunload', function(e) {
         </div>
     </div>
 
-    <!-- V2074: リストステータス変更モーダル（コンパクト3列グリッド） -->
+    <!-- V2213: ステータス変更モーダル（フランチャイズ統一デザイン・紫ヘッダー） -->
     <div id="listStatusModal" class="fixed inset-0 z-50 hidden">
-        <div class="fixed inset-0 bg-black/50" onclick="closeListStatusModal()"></div>
-        <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeListStatusModal()"></div>
+        <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
                 <!-- ヘッダー -->
-                <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center">
-                    <h3 class="text-lg font-bold text-gray-900">ステータス変更</h3>
-                    <button onclick="closeListStatusModal()" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white relative flex-shrink-0">
+                    <button onclick="closeListStatusModal()" class="absolute top-2 right-2 text-white/80 hover:text-white hover:bg-white/20 rounded-full p-1.5 transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
+                    <h3 class="text-base font-bold">ステータス変更</h3>
+                    <p id="statusTargetName" class="text-xs text-purple-200 mt-0.5">---</p>
                 </div>
 
-                <!-- V2213: 配信前ステータスのみ（10種） -->
+                <!-- 配信前ステータス（10種） -->
                 <div class="p-4">
-                    <div class="grid grid-cols-3 gap-2">
-                        <button onclick="selectListStatus('新規')" class="px-2 py-2.5 border-2 border-blue-400 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-all text-sm font-medium">新規</button>
-                        <button onclick="selectListStatus('不在')" class="px-2 py-2.5 border-2 border-gray-400 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-all text-sm font-medium">不在</button>
-                        <button onclick="selectListStatus('再架電')" class="px-2 py-2.5 border-2 border-yellow-400 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100 transition-all text-sm font-medium">再架電</button>
-                        <button onclick="selectListStatus('見込み')" class="px-2 py-2.5 border-2 border-orange-400 bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100 transition-all text-sm font-medium">見込み</button>
-                        <button onclick="selectListStatus('ロスト')" class="px-2 py-2.5 border-2 border-gray-500 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all text-sm font-medium">ロスト</button>
-                        <button onclick="selectListStatus('配信中')" class="px-2 py-2.5 border-2 border-green-400 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-all text-sm font-medium">配信中</button>
-                        <button onclick="selectListStatus('配信済')" class="px-2 py-2.5 border-2 border-purple-400 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-all text-sm font-medium">配信済</button>
-                        <button onclick="selectListStatus('他社契約済')" class="px-2 py-2.5 border-2 border-slate-400 bg-slate-50 text-slate-700 rounded-lg hover:bg-slate-100 transition-all text-xs font-medium">他社契約済</button>
-                        <button onclick="selectListStatus('無効')" class="px-2 py-2.5 border-2 border-gray-400 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-all text-sm font-medium">無効</button>
-                        <button onclick="selectListStatus('クレーム')" class="px-2 py-2.5 border-2 border-red-400 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-all text-sm font-medium">クレーム</button>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="selectListStatus('新規')" class="py-3 px-2 bg-white border-2 border-blue-300 rounded-xl text-blue-700 font-bold text-sm hover:bg-blue-50 hover:shadow-md transition-all">新規</button>
+                        <button onclick="selectListStatus('不在')" class="py-3 px-2 bg-white border-2 border-gray-300 rounded-xl text-gray-700 font-bold text-sm hover:bg-gray-100 hover:shadow-md transition-all">不在</button>
+                        <button onclick="selectListStatus('再架電')" class="py-3 px-2 bg-white border-2 border-yellow-300 rounded-xl text-yellow-700 font-bold text-sm hover:bg-yellow-50 hover:shadow-md transition-all">再架電</button>
+                        <button onclick="selectListStatus('見込み')" class="py-3 px-2 bg-white border-2 border-orange-300 rounded-xl text-orange-700 font-bold text-sm hover:bg-orange-50 hover:shadow-md transition-all">見込み</button>
+                        <button onclick="selectListStatus('ロスト')" class="py-3 px-2 bg-white border-2 border-gray-400 rounded-xl text-gray-700 font-bold text-sm hover:bg-gray-200 hover:shadow-md transition-all">ロスト</button>
+                        <button onclick="selectListStatus('配信中')" class="py-3 px-2 bg-white border-2 border-green-300 rounded-xl text-green-700 font-bold text-sm hover:bg-green-50 hover:shadow-md transition-all">配信中</button>
+                        <button onclick="selectListStatus('配信済')" class="py-3 px-2 bg-white border-2 border-purple-300 rounded-xl text-purple-700 font-bold text-sm hover:bg-purple-50 hover:shadow-md transition-all">配信済</button>
+                        <button onclick="selectListStatus('他社契約済')" class="py-3 px-2 bg-white border-2 border-slate-300 rounded-xl text-slate-700 font-bold text-xs hover:bg-slate-100 hover:shadow-md transition-all">他社契約済</button>
+                        <button onclick="selectListStatus('無効')" class="py-3 px-2 bg-white border-2 border-gray-300 rounded-xl text-gray-600 font-bold text-sm hover:bg-gray-100 hover:shadow-md transition-all">無効</button>
+                        <button onclick="selectListStatus('クレーム')" class="py-3 px-2 bg-white border-2 border-red-300 rounded-xl text-red-700 font-bold text-sm hover:bg-red-50 hover:shadow-md transition-all">クレーム</button>
                     </div>
                 </div>
             </div>
@@ -2457,90 +2444,127 @@ window.addEventListener('beforeunload', function(e) {
         </div>
     </div>
 
-    <!-- V2055: 次回架電日設定専用モーダル -->
+    <!-- V2213: 次回架電日設定モーダル（フランチャイズ統一デザイン） -->
     <div id="nextCallDateModal" class="fixed inset-0 z-50 hidden">
         <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeNextCallModal()"></div>
-        <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
-                <div class="px-5 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white flex justify-between items-center">
-                    <h3 class="text-lg font-bold text-gray-900">🗓️ 次回架電日設定</h3>
-                    <button onclick="closeNextCallModal()" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
+        <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
+                <!-- ヘッダー -->
+                <div class="p-4 border-b bg-gradient-to-r from-blue-500 to-blue-600 text-white flex-shrink-0">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-lg font-bold">📞 次回架電日時を設定</h3>
+                        <button onclick="closeNextCallModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all -mr-2">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <p id="nextCallTargetName" class="text-base font-bold text-white">---</p>
+                    <p id="nextCallTargetAddress" class="text-sm text-blue-100 mt-0.5">---</p>
                 </div>
-                <div class="p-5">
-                    <div id="nextCallDateModalContent" class="p-4 bg-gray-50 rounded-xl">
-                        <h4 class="text-sm font-semibold text-gray-700 mb-3">次回架電を設定</h4>
-                        <!-- 日付と時間選択 -->
-                        <div class="flex gap-2 mb-3">
-                            <!-- 日付ボタン -->
-                            <div class="grid grid-cols-2 gap-1.5 w-24 flex-shrink-0">
-                                <button onclick="setNextCallQuickDay('today')" data-day="today" class="next-call-day-btn px-1.5 py-2 text-xs font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">当日</button>
-                                <button onclick="setNextCallQuickDay('tomorrow')" data-day="tomorrow" class="next-call-day-btn px-1.5 py-2 text-xs font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">明日</button>
-                                <button onclick="setNextCallQuickDay('saturday')" data-day="saturday" class="next-call-day-btn px-1.5 py-2 text-xs font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">土</button>
-                                <button onclick="setNextCallQuickDay('sunday')" data-day="sunday" class="next-call-day-btn px-1.5 py-2 text-xs font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">日</button>
-                            </div>
-                            <!-- 時間ボタン -->
-                            <div class="flex-1 grid grid-cols-4 gap-1.5">
-                                <button onclick="setNextCallQuickTime(9)" data-hour="9" class="next-call-time-btn px-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">9時</button>
-                                <button onclick="setNextCallQuickTime(12)" data-hour="12" class="next-call-time-btn px-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">12時</button>
-                                <button onclick="setNextCallQuickTime(17)" data-hour="17" class="next-call-time-btn px-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">17時</button>
-                                <button onclick="setNextCallQuickTime(19)" data-hour="19" class="next-call-time-btn px-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">19時</button>
-                            </div>
-                        </div>
-                        <!-- 分数プルダウン -->
-                        <div class="flex items-center gap-2 mb-3">
-                            <select id="nextCallModalMinute" onchange="updateNextCallModalDisplay()" class="flex-1 px-2 py-1.5 border-2 border-gray-300 rounded-lg text-sm focus:border-blue-500 transition-all">
-                                <option value="0">00分</option>
-                                <option value="15">15分</option>
-                                <option value="30">30分</option>
-                                <option value="45">45分</option>
-                            </select>
-                        </div>
-                        <div id="nextCallModalSelected" class="text-center text-sm text-blue-600 font-medium mb-3 hidden"></div>
 
-                        <!-- カスタム時間入力 -->
-                        <div id="nextCallModalCustomSection" class="hidden mb-3 p-3 bg-white rounded-lg border border-gray-200">
+                <!-- コンテンツ -->
+                <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                    <!-- 日付クイック選択 -->
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                            <span>📅</span> 日付を選択
+                        </h4>
+                        <div class="grid grid-cols-4 gap-2 mb-3">
+                            <button onclick="setNextCallQuickDay(0)" data-day="0" class="next-call-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">
+                                <div class="text-xs text-gray-400">今日</div>
+                                <div id="dayLabel0" class="text-base"></div>
+                            </button>
+                            <button onclick="setNextCallQuickDay(1)" data-day="1" class="next-call-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">
+                                <div class="text-xs text-gray-400">明日</div>
+                                <div id="dayLabel1" class="text-base"></div>
+                            </button>
+                            <button onclick="setNextCallQuickDay(2)" data-day="2" class="next-call-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">
+                                <div class="text-xs text-gray-400">明後日</div>
+                                <div id="dayLabel2" class="text-base"></div>
+                            </button>
+                            <button onclick="setNextCallQuickDay(7)" data-day="7" class="next-call-day-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">
+                                <div class="text-xs text-gray-400">1週間後</div>
+                                <div id="dayLabel7" class="text-base"></div>
+                            </button>
+                        </div>
+                        <!-- カスタム日付 -->
+                        <div id="customDatePicker" class="hidden">
+                            <input type="date" id="nextCallDateInput" class="w-full p-3 border-2 border-blue-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-center font-bold">
+                        </div>
+                        <button onclick="toggleCustomDatePicker()" class="w-full py-2 text-sm text-gray-500 hover:text-blue-600 transition-all">
+                            📆 その他の日付を選択
+                        </button>
+                    </div>
+
+                    <!-- 時間帯選択 -->
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                            <span>⏰</span> 時間帯を選択
+                        </h4>
+                        <div class="grid grid-cols-4 gap-2 mb-3">
+                            <button onclick="setNextCallQuickTime(9)" data-hour="9" class="next-call-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">9時</button>
+                            <button onclick="setNextCallQuickTime(12)" data-hour="12" class="next-call-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">12時</button>
+                            <button onclick="setNextCallQuickTime(17)" data-hour="17" class="next-call-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">17時</button>
+                            <button onclick="setNextCallQuickTime(19)" data-hour="19" class="next-call-time-btn py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-bold text-sm transition-all">19時</button>
+                        </div>
+                        <!-- カスタム時間 -->
+                        <div id="customTimePicker" class="hidden">
                             <div class="flex items-center gap-2">
-                                <input type="date" id="nextCallModalCustomDate" class="w-28 px-2 py-1.5 border border-gray-300 rounded text-sm">
-                                <select id="nextCallModalCustomHour" class="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm">
+                                <select id="nextCallHour" class="flex-1 p-3 border-2 border-blue-300 rounded-xl text-center font-bold focus:border-blue-500 transition-all">
                                     <option value="">時</option>
-                                    <option value="9">9</option>
-                                    <option value="10">10</option>
-                                    <option value="11">11</option>
-                                    <option value="12">12</option>
-                                    <option value="13">13</option>
-                                    <option value="14">14</option>
-                                    <option value="15">15</option>
-                                    <option value="16">16</option>
-                                    <option value="17">17</option>
-                                    <option value="18">18</option>
-                                    <option value="19">19</option>
-                                    <option value="20">20</option>
+                                    <option value="8">8時</option>
+                                    <option value="9">9時</option>
+                                    <option value="10">10時</option>
+                                    <option value="11">11時</option>
+                                    <option value="12">12時</option>
+                                    <option value="13">13時</option>
+                                    <option value="14">14時</option>
+                                    <option value="15">15時</option>
+                                    <option value="16">16時</option>
+                                    <option value="17">17時</option>
+                                    <option value="18">18時</option>
+                                    <option value="19">19時</option>
+                                    <option value="20">20時</option>
                                 </select>
-                                <select id="nextCallModalCustomMinute" class="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm">
+                                <span class="text-xl font-bold text-gray-400">:</span>
+                                <select id="nextCallMinute" class="flex-1 p-3 border-2 border-blue-300 rounded-xl text-center font-bold focus:border-blue-500 transition-all">
                                     <option value="0">00分</option>
-                                    <option value="15">15分</option>
+                                    <option value="10">10分</option>
+                                    <option value="20">20分</option>
                                     <option value="30">30分</option>
-                                    <option value="45">45分</option>
+                                    <option value="40">40分</option>
+                                    <option value="50">50分</option>
                                 </select>
                             </div>
                         </div>
+                        <button onclick="toggleCustomTimePicker()" class="w-full py-2 text-sm text-gray-500 hover:text-blue-600 transition-all">
+                            ⌛ その他の時間を選択
+                        </button>
+                    </div>
 
-                        <div class="flex gap-2">
-                            <button onclick="toggleNextCallModalCustom()" id="nextCallModalCustomBtn" class="flex-1 py-2 text-sm font-medium bg-white border-2 border-gray-300 text-gray-600 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">
-                                カスタム
-                            </button>
-                            <button onclick="saveNextCallDate()" class="flex-1 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all text-sm">
-                                設定
-                            </button>
+                    <!-- 選択結果プレビュー -->
+                    <div id="nextCallPreview" class="bg-blue-50 rounded-xl p-4 border-2 border-blue-200 hidden">
+                        <div class="flex items-center justify-center gap-3">
+                            <span class="text-2xl">📞</span>
+                            <div class="text-center">
+                                <div class="text-xs text-blue-600 font-medium">次回架電予定</div>
+                                <div id="nextCallPreviewText" class="text-xl font-bold text-blue-800">---</div>
+                            </div>
                         </div>
                     </div>
-                    <button onclick="clearNextCallDate()" class="w-full mt-3 py-2 text-sm text-red-500 hover:text-red-700 transition-all">
-                        次回架電日をクリア
-                    </button>
+                </div>
+
+                <!-- フッター -->
+                <div class="p-4 border-t bg-gray-50 flex-shrink-0">
+                    <div class="flex gap-3">
+                        <button onclick="clearNextCallDate()" class="flex-1 py-3 bg-white border-2 border-gray-300 text-gray-600 rounded-xl hover:bg-gray-100 font-bold transition-all">
+                            クリア
+                        </button>
+                        <button onclick="saveNextCallDate()" class="flex-[2] py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold shadow-lg hover:shadow-xl transition-all">
+                            保存する
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -7788,6 +7812,13 @@ window.addEventListener('beforeunload', function(e) {
         function openListStatusModal(caseId, buttonElement) {
             currentEditingCaseId = caseId;
             currentEditingButton = buttonElement;
+
+            // V2213: 顧客名をヘッダーに表示
+            const caseData = casesData[caseId];
+            if (caseData) {
+                document.getElementById('statusTargetName').textContent = `${caseData.customerName || '---'} 様`;
+            }
+
             document.getElementById('listStatusModal').classList.remove('hidden');
         }
 
@@ -9268,16 +9299,32 @@ window.addEventListener('beforeunload', function(e) {
             nextCallModalTime = null;
             nextCallModalUseCustom = false;
 
+            // 顧客情報をヘッダーに表示
+            const caseData = casesData[caseId];
+            if (caseData) {
+                document.getElementById('nextCallTargetName').textContent = caseData.customerName || '---';
+                document.getElementById('nextCallTargetAddress').textContent = caseData.address || '---';
+            }
+
+            // 日付ラベルを設定
+            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+            [0, 1, 2, 7].forEach(d => {
+                const date = new Date();
+                date.setDate(date.getDate() + d);
+                const label = document.getElementById(`dayLabel${d}`);
+                if (label) {
+                    label.textContent = `${date.getMonth() + 1}/${date.getDate()}(${dayNames[date.getDay()]})`;
+                }
+            });
+
             // ボタン状態リセット
             document.querySelectorAll('.next-call-day-btn, .next-call-time-btn').forEach(btn => {
-                btn.classList.remove('border-blue-500', 'bg-blue-50');
-                btn.classList.add('border-gray-300');
+                btn.classList.remove('border-blue-400', 'bg-blue-50');
+                btn.classList.add('border-gray-200');
             });
-            document.getElementById('nextCallModalSelected').classList.add('hidden');
-            document.getElementById('nextCallModalCustomSection').classList.add('hidden');
-            document.getElementById('nextCallModalCustomBtn').classList.remove('border-blue-500', 'bg-blue-50', 'text-blue-600');
-            document.getElementById('nextCallModalCustomBtn').classList.add('border-gray-300', 'text-gray-600');
-            document.getElementById('nextCallModalMinute').value = '0';
+            document.getElementById('nextCallPreview')?.classList.add('hidden');
+            document.getElementById('customDatePicker')?.classList.add('hidden');
+            document.getElementById('customTimePicker')?.classList.add('hidden');
 
             // モーダル表示
             document.getElementById('nextCallDateModal').classList.remove('hidden');
@@ -9288,24 +9335,22 @@ window.addEventListener('beforeunload', function(e) {
             nextCallModalCaseId = null;
         }
 
-        function setNextCallQuickDay(day) {
-            nextCallModalDay = day;
+        // V2213: 数値ベースの日付選択（0=今日, 1=明日, 2=明後日, 7=1週間後）
+        function setNextCallQuickDay(daysOffset) {
+            nextCallModalDay = daysOffset;
             nextCallModalUseCustom = false;
             // ボタンハイライト
             document.querySelectorAll('.next-call-day-btn').forEach(btn => {
-                if (btn.dataset.day === day) {
-                    btn.classList.add('border-blue-500', 'bg-blue-50');
-                    btn.classList.remove('border-gray-300');
+                if (btn.dataset.day === String(daysOffset)) {
+                    btn.classList.add('border-blue-400', 'bg-blue-50');
+                    btn.classList.remove('border-gray-200');
                 } else {
-                    btn.classList.remove('border-blue-500', 'bg-blue-50');
-                    btn.classList.add('border-gray-300');
+                    btn.classList.remove('border-blue-400', 'bg-blue-50');
+                    btn.classList.add('border-gray-200');
                 }
             });
-            // カスタムボタンリセット
-            document.getElementById('nextCallModalCustomBtn').classList.remove('border-blue-500', 'bg-blue-50', 'text-blue-600');
-            document.getElementById('nextCallModalCustomBtn').classList.add('border-gray-300', 'text-gray-600');
-            document.getElementById('nextCallModalCustomSection').classList.add('hidden');
-            updateNextCallModalDisplay();
+            document.getElementById('customDatePicker')?.classList.add('hidden');
+            updateNextCallPreview();
         }
 
         function setNextCallQuickTime(hour) {
@@ -9314,30 +9359,39 @@ window.addEventListener('beforeunload', function(e) {
             // ボタンハイライト
             document.querySelectorAll('.next-call-time-btn').forEach(btn => {
                 if (parseInt(btn.dataset.hour) === hour) {
-                    btn.classList.add('border-blue-500', 'bg-blue-50');
-                    btn.classList.remove('border-gray-300');
+                    btn.classList.add('border-blue-400', 'bg-blue-50');
+                    btn.classList.remove('border-gray-200');
                 } else {
-                    btn.classList.remove('border-blue-500', 'bg-blue-50');
-                    btn.classList.add('border-gray-300');
+                    btn.classList.remove('border-blue-400', 'bg-blue-50');
+                    btn.classList.add('border-gray-200');
                 }
             });
-            updateNextCallModalDisplay();
+            document.getElementById('customTimePicker')?.classList.add('hidden');
+            updateNextCallPreview();
         }
 
-        function updateNextCallModalDisplay() {
-            if (nextCallModalUseCustom) return;
+        function toggleCustomDatePicker() {
+            const picker = document.getElementById('customDatePicker');
+            picker?.classList.toggle('hidden');
+        }
 
-            if (nextCallModalDay && nextCallModalTime) {
-                const minute = parseInt(document.getElementById('nextCallModalMinute').value) || 0;
-                const targetDate = getTargetDateForDay(nextCallModalDay);
+        function toggleCustomTimePicker() {
+            const picker = document.getElementById('customTimePicker');
+            picker?.classList.toggle('hidden');
+        }
+
+        function updateNextCallPreview() {
+            if (nextCallModalDay !== null && nextCallModalTime) {
+                const targetDate = new Date();
+                targetDate.setDate(targetDate.getDate() + nextCallModalDay);
                 const dateStr = `${targetDate.getMonth() + 1}/${targetDate.getDate()}`;
                 const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
                 const dayName = dayNames[targetDate.getDay()];
-                const minuteStr = minute.toString().padStart(2, '0');
-                document.getElementById('nextCallModalSelected').textContent = `📅 ${dateStr}（${dayName}）${nextCallModalTime}:${minuteStr}`;
-                document.getElementById('nextCallModalSelected').classList.remove('hidden');
+                const previewText = `${dateStr}（${dayName}）${nextCallModalTime}:00`;
+                document.getElementById('nextCallPreviewText').textContent = previewText;
+                document.getElementById('nextCallPreview')?.classList.remove('hidden');
             } else {
-                document.getElementById('nextCallModalSelected').classList.add('hidden');
+                document.getElementById('nextCallPreview')?.classList.add('hidden');
             }
         }
 
@@ -9398,27 +9452,27 @@ window.addEventListener('beforeunload', function(e) {
 
             let nextCallDateTime = null;
 
-            if (nextCallModalUseCustom) {
-                const customDate = document.getElementById('nextCallModalCustomDate').value;
-                const customHour = document.getElementById('nextCallModalCustomHour').value;
-                const customMinute = document.getElementById('nextCallModalCustomMinute').value;
+            // カスタム日付入力をチェック
+            const customDateInput = document.getElementById('nextCallDateInput')?.value;
+            const customHour = document.getElementById('nextCallHour')?.value;
+            const customMinute = document.getElementById('nextCallMinute')?.value;
 
-                if (!customDate || !customHour) {
-                    alert('日付と時間を選択してください');
-                    return;
-                }
-                const dateObj = new Date(customDate);
-                dateObj.setHours(parseInt(customHour), parseInt(customMinute) || 0, 0, 0);
+            if (customDateInput) {
+                // カスタム日付が入力されている場合
+                const dateObj = new Date(customDateInput);
+                const hour = customHour ? parseInt(customHour) : (nextCallModalTime || 9);
+                const minute = customMinute ? parseInt(customMinute) : 0;
+                dateObj.setHours(hour, minute, 0, 0);
                 nextCallDateTime = dateObj.toLocaleString('ja-JP');
-            } else {
-                if (!nextCallModalDay || !nextCallModalTime) {
-                    alert('日付と時間を選択してください');
-                    return;
-                }
-                const targetDate = getTargetDateForDay(nextCallModalDay);
-                const minute = parseInt(document.getElementById('nextCallModalMinute').value) || 0;
-                targetDate.setHours(nextCallModalTime, minute, 0, 0);
+            } else if (nextCallModalDay !== null && nextCallModalTime) {
+                // クイック選択の場合
+                const targetDate = new Date();
+                targetDate.setDate(targetDate.getDate() + nextCallModalDay);
+                targetDate.setHours(nextCallModalTime, 0, 0, 0);
                 nextCallDateTime = targetDate.toLocaleString('ja-JP');
+            } else {
+                alert('日付と時間を選択してください');
+                return;
             }
 
             // ローカルデータ更新
@@ -9848,6 +9902,14 @@ window.addEventListener('beforeunload', function(e) {
                 currentCaseId = caseId;
             }
             isConnectedFlow = false; // 通常のメモモーダル
+
+            // V2213: 顧客情報をヘッダーに表示
+            const caseData = casesData[currentCaseId];
+            if (caseData) {
+                document.getElementById('memoTargetName').textContent = caseData.customerName || '---';
+                document.getElementById('memoTargetAddress').textContent = caseData.address || '---';
+            }
+
             document.getElementById('callHistoryModal').classList.remove('hidden');
             loadCallHistory();
         }
@@ -10995,8 +11057,14 @@ window.addEventListener('beforeunload', function(e) {
                 }
             }
 
+            // V2213: 履歴件数表示
+            const countEl = document.getElementById('memoHistoryCount');
+            if (countEl) {
+                countEl.textContent = `${allHistory.length}件`;
+            }
+
             if (allHistory.length === 0) {
-                historyList.innerHTML = '<p class="text-gray-500 text-center">履歴がありません</p>';
+                historyList.innerHTML = '<p class="text-gray-500 text-center py-8">履歴がありません</p>';
                 return;
             }
 
