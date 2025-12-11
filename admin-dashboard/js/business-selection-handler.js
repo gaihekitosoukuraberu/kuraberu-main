@@ -1392,8 +1392,9 @@ const BusinessSelectionHandler = {
             others.push(...group);
           });
 
-        // V2215: 転送済み業者を除外してからlimit適用（後で別途追加するため）
-        others = others.filter(f => !deliveredNames.includes(f.companyName)).slice(0, limit);
+        // V2217: 転送済み業者を除外、limit は「表示社数 - 転送済み社数」
+        const remainingSlots = Math.max(0, limit - deliveredNames.length);
+        others = others.filter(f => !deliveredNames.includes(f.companyName)).slice(0, remainingSlots);
 
         displayFranchises = [...checkedFranchises, ...uncheckedUserSelected, ...others];
         console.log('[V1920-USER] 3段階グループ: ✓', checkedFranchises.length,
@@ -1405,10 +1406,11 @@ const BusinessSelectionHandler = {
         const checkedFranchises = displayFranchises.filter(f =>
           currentCheckedCompanies.includes(f.companyName)
         );
-        // V2215: 転送済み業者を除外してからlimit適用（後で別途追加するため）
+        // V2217: 転送済み業者を除外、limit は「表示社数 - 転送済み社数」
+        const remainingSlotsOther = Math.max(0, limit - deliveredNames.length);
         const uncheckedFranchises = displayFranchises.filter(f =>
           !currentCheckedCompanies.includes(f.companyName) && !deliveredNames.includes(f.companyName)
-        ).slice(0, limit);
+        ).slice(0, remainingSlotsOther);
 
         displayFranchises = [...checkedFranchises, ...uncheckedFranchises];
         // V1914: 距離順の場合は距離値を表示、その他はマッチ度を表示
