@@ -2531,10 +2531,14 @@ const AdminSystem = {
         }
       }
 
-      // 該当CV IDの配信レコードを抽出（配信済/配信済みステータスのみ）
-      // V2034: デバッグログ追加
+      // V2226: 該当CV IDの配信レコードを抽出（終了系ステータス以外すべて）
+      // キャンセル/成約処理で参照するため、配信済み状態のものを全て取得
       console.log('[getDeliveredFranchises] データ行数:', data.length);
       const deliveredFranchises = [];
+
+      // 終了系ステータス（これらは除外）
+      const endStatuses = ['キャンセル承認済み', '失注', '成約', '別加盟店契約済', '現調前キャンセル', '現調後失注', '他社契約済', '顧客クレーム'];
+
       for (let i = 1; i < data.length; i++) {
         const rowCvId = data[i][cvIdIdx];
         if (rowCvId === cvId) {
@@ -2545,10 +2549,10 @@ const AdminSystem = {
           const detailStatus = detailStatusIdx !== -1 ? data[i][detailStatusIdx] : '';
           const deliveryDate = deliveryDateIdx !== -1 ? data[i][deliveryDateIdx] : '';
 
-          console.log('[getDeliveredFranchises] マッチ行:', i + 1, 'franchiseId:', franchiseId, 'status:', deliveryStatus);
+          console.log('[getDeliveredFranchises] マッチ行:', i + 1, 'franchiseId:', franchiseId, 'deliveryStatus:', deliveryStatus, 'detailStatus:', detailStatus);
 
-          // 配信済/配信済みステータスのレコードのみを転送済みとして扱う
-          if (deliveryStatus === '配信済' || deliveryStatus === '配信済み') {
+          // V2226: 終了系ステータス以外すべて含める（配信済/配信済み + 追客中系ステータス）
+          if (!endStatuses.includes(deliveryStatus) && !endStatuses.includes(detailStatus)) {
             deliveredFranchises.push({
               franchiseId: franchiseId,
               franchiseName: franchiseName,
