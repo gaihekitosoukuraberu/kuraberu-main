@@ -2747,14 +2747,16 @@ const AdminSystem = {
         desiredCount = parseInt(desiredVal) || 3;
       }
 
-      // V2039: 希望社数に達したかどうかでステータスを決定
-      const statusToSet = totalTransferCount >= desiredCount ? '配信済み' : '配信中';
-      console.log('[updateUserSheetDeliveryStatus] ステータス判定:', { existingCount, newFranchiseCount, totalTransferCount, desiredCount, statusToSet });
+      // V2039: 希望社数に達したかどうかで配信ステータスを決定
+      const deliveryStatusToSet = totalTransferCount >= desiredCount ? '配信済み' : '配信中';
+      // V2214: 管理ステータスは「新着」に設定（加盟店側と統一）
+      const managementStatusToSet = '新着';
+      console.log('[updateUserSheetDeliveryStatus] ステータス判定:', { existingCount, newFranchiseCount, totalTransferCount, desiredCount, deliveryStatusToSet, managementStatusToSet });
 
       // V2039: 配信ステータス・配信日時・管理ステータスのみ更新（配信先業者一覧・加盟店別ステータスは配信管理シートで管理）
       if (deliveryStatusIdx !== -1) {
         try {
-          userSheet.getRange(targetRow, deliveryStatusIdx + 1).setValue(statusToSet);
+          userSheet.getRange(targetRow, deliveryStatusIdx + 1).setValue(deliveryStatusToSet);
         } catch (e1) {
           console.error('[updateUserSheetDeliveryStatus] 配信ステータス設定エラー:', e1);
         }
@@ -2768,13 +2770,14 @@ const AdminSystem = {
       }
       if (managementStatusIdx !== -1) {
         try {
-          userSheet.getRange(targetRow, managementStatusIdx + 1).setValue(statusToSet);
+          // V2214: 管理ステータスは「新着」（加盟店と統一、配信中/配信済みは使わない）
+          userSheet.getRange(targetRow, managementStatusIdx + 1).setValue(managementStatusToSet);
         } catch (e4) {
           console.error('[updateUserSheetDeliveryStatus] 管理ステータス設定エラー:', e4);
         }
       }
 
-      console.log('[updateUserSheetDeliveryStatus] 更新完了:', cvId, '転送:', totalTransferCount, '/', desiredCount, '社', 'status:', statusToSet);
+      console.log('[updateUserSheetDeliveryStatus] 更新完了:', cvId, '転送:', totalTransferCount, '/', desiredCount, '社', 'deliveryStatus:', deliveryStatusToSet, 'managementStatus:', managementStatusToSet);
     } catch (e) {
       console.error('[updateUserSheetDeliveryStatus] 全体エラー:', e);
     }
