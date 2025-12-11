@@ -265,7 +265,8 @@ const SystemRouter = {
         'updateMerchantData',
         'approveRegistration',
         'rejectRegistration',
-        'revertRegistration'
+        'revertRegistration',
+        'getAdminDashboardStats'
       ]
     },
 

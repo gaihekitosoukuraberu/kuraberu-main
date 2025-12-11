@@ -3245,177 +3245,150 @@ window.addEventListener('beforeunload', function(e) {
                 const mainContent = document.querySelector('main');
                 window.location.href = '#dashboard';
                 mainContent.innerHTML = `
-                    <div class="pt-20 px-6 max-w-7xl mx-auto">
-                        <div class="mb-8">
-                            <h1 class="text-4xl font-bold text-gray-800 mb-2">ダッシュボード</h1>
-                            <p class="text-gray-600">リアルタイムモニター</p>
-                        </div>
-                        
-                        <!-- KPIカード -->
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-500">未振分案件</span>
-                                    <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full animate-pulse">要対応</span>
-                                </div>
-                                <div class="mt-4 text-3xl font-bold text-gray-800">7</div>
-                                <div class="mt-2 text-xs text-gray-500">直近1時間: +3</div>
+                    <div class="pt-20 px-4 md:px-6 max-w-7xl mx-auto pb-8">
+                        <!-- ヘッダー -->
+                        <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
+                            <div>
+                                <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-1">ダッシュボード</h1>
+                                <p class="text-sm text-gray-500">リアルタイムモニター</p>
                             </div>
-                            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-500">本日振分済</span>
-                                    <span class="text-xs text-green-600">+12%</span>
-                                </div>
-                                <div class="mt-4 text-3xl font-bold text-gray-800">24</div>
-                                <div class="mt-2 text-xs text-gray-500">目標: 30件</div>
-                            </div>
-                            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-500">進行中案件</span>
-                                    <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full">活発</span>
-                                </div>
-                                <div class="mt-4 text-3xl font-bold text-gray-800">42</div>
-                                <div class="mt-2 text-xs text-gray-500">見積提出待ち: 18</div>
-                            </div>
-                            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-500">今月成約</span>
-                                    <span class="text-xs text-purple-600">目標85%</span>
-                                </div>
-                                <div class="mt-4 text-3xl font-bold text-gray-800">¥8.5M</div>
-                                <div class="mt-2 text-xs text-gray-500">紹介料: ¥1.28M</div>
+                            <div class="mt-3 md:mt-0 flex items-center gap-3">
+                                <span id="dashLastUpdated" class="text-xs text-gray-400">--</span>
+                                <button onclick="loadAdminDashboardData()" class="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                    更新
+                                </button>
                             </div>
                         </div>
-                        
-                        <!-- グラフエリア -->
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                            <div class="bg-white rounded-xl p-6 border border-gray-200">
-                                <h3 class="text-lg font-semibold text-gray-800 mb-4">案件ステータス分布</h3>
-                                <div class="space-y-3">
-                                    <div class="flex items-center">
-                                        <span class="text-sm text-gray-600 w-24">未振分</span>
-                                        <div class="flex-1 bg-gray-200 rounded-full h-6 relative">
-                                            <div class="bg-red-500 h-6 rounded-full" style="width: 15%"></div>
-                                        </div>
-                                        <span class="text-sm text-gray-800 ml-3 font-semibold">7件</span>
+
+                        <!-- KPIカード（2x2グリッド → PC4列） -->
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
+                            <!-- 未振分案件 -->
+                            <div onclick="showSection('cases')" class="bg-white rounded-xl p-4 md:p-5 border border-gray-200 hover:shadow-lg hover:border-red-200 transition-all cursor-pointer group">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center group-hover:bg-red-200 transition-colors">
+                                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     </div>
-                                    <div class="flex items-center">
-                                        <span class="text-sm text-gray-600 w-24">振分済</span>
-                                        <div class="flex-1 bg-gray-200 rounded-full h-6 relative">
-                                            <div class="bg-yellow-500 h-6 rounded-full" style="width: 25%"></div>
-                                        </div>
-                                        <span class="text-sm text-gray-800 ml-3 font-semibold">12件</span>
+                                    <span id="dashUnassignedBadge" class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full animate-pulse hidden">要対応</span>
+                                </div>
+                                <div class="text-2xl md:text-3xl font-bold text-gray-800" id="dashUnassignedCount">-</div>
+                                <div class="text-xs text-gray-500 mt-1">未振分案件</div>
+                                <div class="text-xs text-gray-400 mt-2" id="dashUnassignedSub">--</div>
+                            </div>
+
+                            <!-- 本日新規CV -->
+                            <div onclick="showSection('cases')" class="bg-white rounded-xl p-4 md:p-5 border border-gray-200 hover:shadow-lg hover:border-blue-200 transition-all cursor-pointer group">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
                                     </div>
-                                    <div class="flex items-center">
-                                        <span class="text-sm text-gray-600 w-24">進行中</span>
-                                        <div class="flex-1 bg-gray-200 rounded-full h-6 relative">
-                                            <div class="bg-blue-500 h-6 rounded-full" style="width: 45%"></div>
-                                        </div>
-                                        <span class="text-sm text-gray-800 ml-3 font-semibold">42件</span>
+                                    <span id="dashTodayCvChange" class="text-xs text-green-600 hidden">--</span>
+                                </div>
+                                <div class="text-2xl md:text-3xl font-bold text-gray-800" id="dashTodayCvCount">-</div>
+                                <div class="text-xs text-gray-500 mt-1">本日新規CV</div>
+                                <div class="text-xs text-gray-400 mt-2" id="dashTodayCvSub">--</div>
+                            </div>
+
+                            <!-- 配信中案件 -->
+                            <div onclick="showSection('cases')" class="bg-white rounded-xl p-4 md:p-5 border border-gray-200 hover:shadow-lg hover:border-emerald-200 transition-all cursor-pointer group">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center group-hover:bg-emerald-200 transition-colors">
+                                        <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                                     </div>
-                                    <div class="flex items-center">
-                                        <span class="text-sm text-gray-600 w-24">完了</span>
-                                        <div class="flex-1 bg-gray-200 rounded-full h-6 relative">
-                                            <div class="bg-green-500 h-6 rounded-full" style="width: 35%"></div>
-                                        </div>
-                                        <span class="text-sm text-gray-800 ml-3 font-semibold">28件</span>
+                                    <span class="text-xs bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-full">稼働中</span>
+                                </div>
+                                <div class="text-2xl md:text-3xl font-bold text-gray-800" id="dashActiveCount">-</div>
+                                <div class="text-xs text-gray-500 mt-1">配信中案件</div>
+                                <div class="text-xs text-gray-400 mt-2" id="dashActiveSub">--</div>
+                            </div>
+
+                            <!-- 今月成約 -->
+                            <div onclick="showSection('financial')" class="bg-white rounded-xl p-4 md:p-5 border border-gray-200 hover:shadow-lg hover:border-purple-200 transition-all cursor-pointer group">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                                        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    </div>
+                                    <span id="dashContractBadge" class="text-xs text-purple-600 hidden">--</span>
+                                </div>
+                                <div class="text-2xl md:text-3xl font-bold text-gray-800" id="dashContractAmount">-</div>
+                                <div class="text-xs text-gray-500 mt-1">今月成約額</div>
+                                <div class="text-xs text-gray-400 mt-2" id="dashContractSub">--</div>
+                            </div>
+                        </div>
+
+                        <!-- メインコンテンツ（2列グリッド） -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-6">
+                            <!-- ステータス分布（2/3幅） -->
+                            <div class="lg:col-span-2 bg-white rounded-xl p-4 md:p-6 border border-gray-200">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-base md:text-lg font-semibold text-gray-800">案件ステータス分布</h3>
+                                    <span class="text-xs text-gray-400" id="dashStatusTotal">全 - 件</span>
+                                </div>
+                                <div class="space-y-3" id="dashStatusBars">
+                                    <!-- JS で動的生成 -->
+                                    <div class="flex items-center gap-3 animate-pulse">
+                                        <span class="text-sm text-gray-400 w-20">読み込み中...</span>
+                                        <div class="flex-1 bg-gray-100 rounded-full h-8"></div>
                                     </div>
                                 </div>
                             </div>
-                            
-                            <div class="bg-white rounded-xl p-6 border border-gray-200">
-                                <h3 class="text-lg font-semibold text-gray-800 mb-4">加盟店パフォーマンス TOP5</h3>
-                                <div class="space-y-3">
-                                    <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                                        <div class="flex items-center">
-                                            <span class="text-lg font-bold text-yellow-500 w-8">1</span>
-                                            <span class="text-sm text-gray-800">田中塗装工業</span>
-                                        </div>
-                                        <div class="text-right">
-                                            <div class="text-sm font-semibold text-gray-800">成約率 68%</div>
-                                            <div class="text-xs text-gray-500">今月 12件</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                                        <div class="flex items-center">
-                                            <span class="text-lg font-bold text-gray-400 w-8">2</span>
-                                            <span class="text-sm text-gray-800">山田ペイント</span>
-                                        </div>
-                                        <div class="text-right">
-                                            <div class="text-sm font-semibold text-gray-800">成約率 62%</div>
-                                            <div class="text-xs text-gray-500">今月 10件</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                                        <div class="flex items-center">
-                                            <span class="text-lg font-bold text-orange-600 w-8">3</span>
-                                            <span class="text-sm text-gray-800">佐藤塗装店</span>
-                                        </div>
-                                        <div class="text-right">
-                                            <div class="text-sm font-semibold text-gray-800">成約率 58%</div>
-                                            <div class="text-xs text-gray-500">今月 9件</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                                        <div class="flex items-center">
-                                            <span class="text-lg font-bold text-gray-400 w-8">4</span>
-                                            <span class="text-sm text-gray-800">鈴木建装</span>
-                                        </div>
-                                        <div class="text-right">
-                                            <div class="text-sm font-semibold text-gray-800">成約率 55%</div>
-                                            <div class="text-xs text-gray-500">今月 8件</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                                        <div class="flex items-center">
-                                            <span class="text-lg font-bold text-gray-400 w-8">5</span>
-                                            <span class="text-sm text-gray-800">高橋塗装</span>
-                                        </div>
-                                        <div class="text-right">
-                                            <div class="text-sm font-semibold text-gray-800">成約率 52%</div>
-                                            <div class="text-xs text-gray-500">今月 7件</div>
-                                        </div>
+
+                            <!-- 加盟店TOP5（1/3幅） -->
+                            <div class="bg-white rounded-xl p-4 md:p-6 border border-gray-200">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-base md:text-lg font-semibold text-gray-800">加盟店 TOP5</h3>
+                                    <button onclick="showSection('franchise')" class="text-xs text-blue-600 hover:text-blue-800">全て見る →</button>
+                                </div>
+                                <div class="space-y-2" id="dashMerchantTop5">
+                                    <!-- JS で動的生成 -->
+                                    <div class="animate-pulse space-y-3">
+                                        <div class="h-12 bg-gray-100 rounded-lg"></div>
+                                        <div class="h-12 bg-gray-100 rounded-lg"></div>
+                                        <div class="h-12 bg-gray-100 rounded-lg"></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- アラートエリア -->
-                        <div class="bg-white rounded-xl p-6 border border-gray-200">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-4">要対応アラート</h3>
-                            <div class="space-y-3">
-                                <div class="flex items-center justify-between p-3 bg-red-50 border-l-4 border-red-500 rounded">
-                                    <div>
-                                        <div class="text-sm font-semibold text-red-800">案件ID: #2024-0892</div>
-                                        <div class="text-xs text-red-600">30分以上未振分 - 千葉県船橋市の戸建て案件</div>
-                                    </div>
-                                    <button onclick="showSection('assignment')" class="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600">対応する</button>
+
+                        <!-- 下部2列（アラート + 直近のアクティビティ） -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                            <!-- 要対応アラート -->
+                            <div class="bg-white rounded-xl p-4 md:p-6 border border-gray-200">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-base md:text-lg font-semibold text-gray-800 flex items-center gap-2">
+                                        要対応アラート
+                                        <span id="dashAlertCount" class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full hidden">0</span>
+                                    </h3>
                                 </div>
-                                <div class="flex items-center justify-between p-3 bg-purple-50 border-l-4 border-purple-500 rounded animate-pulse">
-                                    <div>
-                                        <div class="text-sm font-semibold text-purple-800">🚨 キャンセル申請</div>
-                                        <div class="text-xs text-purple-600">田中塗装工業より - 案件ID: #2024-0885「対応不可のため辞退」</div>
+                                <div class="space-y-2 max-h-80 overflow-y-auto" id="dashAlerts">
+                                    <!-- JS で動的生成 -->
+                                    <div class="text-center py-8 text-gray-400 text-sm">
+                                        <svg class="w-12 h-12 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        アラートはありません
                                     </div>
-                                    <button onclick="showCancelRequest('#2024-0885')" class="px-3 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600">処理する</button>
                                 </div>
-                                <div class="flex items-center justify-between p-3 bg-yellow-50 border-l-4 border-yellow-500 rounded">
-                                    <div>
-                                        <div class="text-sm font-semibold text-yellow-800">加盟店: 山田ペイント</div>
-                                        <div class="text-xs text-yellow-600">見積提出期限まで残り2時間</div>
-                                    </div>
-                                    <button class="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600">確認</button>
+                            </div>
+
+                            <!-- 直近のアクティビティ -->
+                            <div class="bg-white rounded-xl p-4 md:p-6 border border-gray-200">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-base md:text-lg font-semibold text-gray-800">直近のアクティビティ</h3>
+                                    <span class="text-xs text-gray-400">過去24時間</span>
                                 </div>
-                                <div class="flex items-center justify-between p-3 bg-blue-50 border-l-4 border-blue-500 rounded">
-                                    <div>
-                                        <div class="text-sm font-semibold text-blue-800">請求処理</div>
-                                        <div class="text-xs text-blue-600">3件の成約案件の紹介料計算が未完了</div>
+                                <div class="space-y-3 max-h-80 overflow-y-auto" id="dashActivity">
+                                    <!-- JS で動的生成 -->
+                                    <div class="animate-pulse space-y-3">
+                                        <div class="h-10 bg-gray-100 rounded"></div>
+                                        <div class="h-10 bg-gray-100 rounded"></div>
+                                        <div class="h-10 bg-gray-100 rounded"></div>
                                     </div>
-                                    <button onclick="showSection('financial')" class="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600">処理する</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 `;
+                // V2208: ダッシュボードデータ読み込み
+                setTimeout(() => loadAdminDashboardData(), 100);
             } else if (sectionName === 'franchise') {
                 // 加盟店管理セクション
                 const mainContent = document.querySelector('main');

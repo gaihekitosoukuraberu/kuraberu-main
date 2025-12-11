@@ -88,6 +88,9 @@ const AdminSystem = {
         case 'updateCVStatus':
           return this.updateCVStatus(params);
 
+        case 'getAdminDashboardStats':
+          return this.getAdminDashboardStats();
+
         default:
           return {
             success: false,
@@ -3214,6 +3217,258 @@ info@gaihekikuraberu.com
       return {
         success: false,
         error: error.message || 'ステータスの更新に失敗しました'
+      };
+    }
+  },
+
+  /**
+   * V2208: 管理者ダッシュボード統計取得
+   */
+  getAdminDashboardStats: function() {
+    try {
+      console.log('[getAdminDashboardStats] 開始');
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+      // ユーザー登録シート（CV一覧）
+      const userSheet = ss.getSheetByName('ユーザー登録');
+      const userData = userSheet.getDataRange().getValues();
+      const userHeaders = userData[0];
+
+      // 配信管理シート
+      const deliverySheet = ss.getSheetByName('配信管理');
+      const deliveryData = deliverySheet.getDataRange().getValues();
+      const deliveryHeaders = deliveryData[0];
+
+      // 加盟店登録シート
+      const merchantSheet = ss.getSheetByName('加盟店登録');
+      const merchantData = merchantSheet.getDataRange().getValues();
+      const merchantHeaders = merchantData[0];
+
+      // カラムインデックス取得
+      const userColIdx = {
+        cvId: userHeaders.indexOf('CV ID'),
+        registeredAt: userHeaders.indexOf('登録日時'),
+        status: userHeaders.indexOf('管理ステータス'),
+        contractAmount: userHeaders.indexOf('成約金額'),
+        contractAt: userHeaders.indexOf('成約日時')
+      };
+
+      const deliveryColIdx = {
+        cvId: deliveryHeaders.indexOf('CV ID'),
+        merchantId: deliveryHeaders.indexOf('加盟店ID'),
+        deliveryStatus: deliveryHeaders.indexOf('配信ステータス'),
+        detailStatus: deliveryHeaders.indexOf('詳細ステータス'),
+        deliveredAt: deliveryHeaders.indexOf('配信日時'),
+        contractAmount: deliveryHeaders.indexOf('成約金額')
+      };
+
+      const merchantColIdx = {
+        id: merchantHeaders.indexOf('登録ID'),
+        name: merchantHeaders.indexOf('会社名'),
+        status: merchantHeaders.indexOf('ステータス')
+      };
+
+      // === 統計計算 ===
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+
+      // 配信前ステータス
+      const preDeliveryStatuses = ['新規', '不在', '再架電', '見込み', 'ロスト', '配信中', '他社契約済', '無効', 'クレーム'];
+      // 終了系ステータス
+      const endedStatuses = ['現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', '顧客クレーム', 'クレーム'];
+      // 成約系ステータス
+      const contractStatuses = ['入金予定・未着工', '入金予定・施工中', '入金予定・工事済', '入金済・未着工', '入金済・施工中', '完了', '成約', '入金予定', '入金済'];
+
+      let stats = {
+        unassigned: 0,        // 未振分（新規ステータス）
+        unassignedRecent: 0,  // 直近1時間の新規
+        todayCv: 0,           // 本日新規CV
+        yesterdayCv: 0,       // 昨日の新規CV（比較用）
+        activeDelivery: 0,    // 配信中案件
+        quoteWaiting: 0,      // 見積提出待ち
+        monthlyContract: 0,   // 今月成約件数
+        monthlyContractAmount: 0, // 今月成約金額
+        monthlyReferral: 0    // 今月紹介料
+      };
+
+      // ステータス別カウント
+      let statusCounts = {};
+
+      // ユーザー登録シートから集計
+      for (let i = 1; i < userData.length; i++) {
+        const row = userData[i];
+        const cvId = row[userColIdx.cvId];
+        if (!cvId) continue;
+
+        const status = row[userColIdx.status] || '新規';
+        const registeredAt = row[userColIdx.registeredAt] ? new Date(row[userColIdx.registeredAt]) : null;
+        const contractAmount = parseFloat(row[userColIdx.contractAmount]) || 0;
+        const contractAt = row[userColIdx.contractAt] ? new Date(row[userColIdx.contractAt]) : null;
+
+        // ステータス別カウント
+        statusCounts[status] = (statusCounts[status] || 0) + 1;
+
+        // 未振分（新規ステータス）
+        if (status === '新規') {
+          stats.unassigned++;
+          if (registeredAt && registeredAt >= oneHourAgo) {
+            stats.unassignedRecent++;
+          }
+        }
+
+        // 本日新規CV
+        if (registeredAt && registeredAt >= today) {
+          stats.todayCv++;
+        }
+        // 昨日の新規CV
+        const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+        if (registeredAt && registeredAt >= yesterday && registeredAt < today) {
+          stats.yesterdayCv++;
+        }
+
+        // 今月成約
+        if (contractAt && contractAt >= thisMonth) {
+          stats.monthlyContract++;
+          stats.monthlyContractAmount += contractAmount;
+        }
+      }
+
+      // 配信管理シートから配信中案件を集計
+      let merchantDeliveryCount = {}; // 加盟店別配信数
+      let merchantContractCount = {}; // 加盟店別成約数
+
+      for (let i = 1; i < deliveryData.length; i++) {
+        const row = deliveryData[i];
+        const cvId = row[deliveryColIdx.cvId];
+        if (!cvId) continue;
+
+        const deliveryStatus = row[deliveryColIdx.deliveryStatus] || '';
+        const detailStatus = row[deliveryColIdx.detailStatus] || '';
+        const merchantId = row[deliveryColIdx.merchantId] || '';
+        const contractAmount = parseFloat(row[deliveryColIdx.contractAmount]) || 0;
+
+        // 配信中案件
+        if (deliveryStatus === '配信済み' && !endedStatuses.includes(detailStatus) && !contractStatuses.some(s => detailStatus.includes(s))) {
+          stats.activeDelivery++;
+
+          // 見積提出待ち
+          if (detailStatus === '現調済') {
+            stats.quoteWaiting++;
+          }
+        }
+
+        // 加盟店別カウント
+        if (merchantId) {
+          merchantDeliveryCount[merchantId] = (merchantDeliveryCount[merchantId] || 0) + 1;
+          if (contractStatuses.some(s => detailStatus.includes(s))) {
+            merchantContractCount[merchantId] = (merchantContractCount[merchantId] || 0) + 1;
+          }
+        }
+      }
+
+      // 加盟店TOP5（成約件数順）
+      let merchantTop5 = [];
+      const activeMerchants = merchantData.slice(1).filter(row => {
+        const status = row[merchantColIdx.status];
+        return status === '承認済み' || status === '稼働中';
+      });
+
+      for (const row of activeMerchants) {
+        const id = row[merchantColIdx.id];
+        const name = row[merchantColIdx.name];
+        if (!id || !name) continue;
+
+        const deliveryCount = merchantDeliveryCount[id] || 0;
+        const contractCount = merchantContractCount[id] || 0;
+        const contractRate = deliveryCount > 0 ? Math.round((contractCount / deliveryCount) * 100) : 0;
+
+        merchantTop5.push({
+          id,
+          name,
+          deliveryCount,
+          contractCount,
+          contractRate
+        });
+      }
+
+      // 成約件数でソート、上位5件
+      merchantTop5.sort((a, b) => b.contractCount - a.contractCount);
+      merchantTop5 = merchantTop5.slice(0, 5);
+
+      // アラート生成
+      let alerts = [];
+
+      // 30分以上未振分の案件
+      for (let i = 1; i < userData.length; i++) {
+        const row = userData[i];
+        const cvId = row[userColIdx.cvId];
+        const status = row[userColIdx.status] || '新規';
+        const registeredAt = row[userColIdx.registeredAt] ? new Date(row[userColIdx.registeredAt]) : null;
+
+        if (status === '新規' && registeredAt) {
+          const minutesAgo = (now.getTime() - registeredAt.getTime()) / (1000 * 60);
+          if (minutesAgo > 30) {
+            alerts.push({
+              type: 'unassigned',
+              severity: 'high',
+              title: `案件ID: ${cvId}`,
+              message: `${Math.floor(minutesAgo)}分以上未振分`,
+              cvId
+            });
+          }
+        }
+      }
+
+      // 直近のアクティビティ（本日の配信・成約）
+      let activities = [];
+      const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+      for (let i = 1; i < deliveryData.length; i++) {
+        const row = deliveryData[i];
+        const cvId = row[deliveryColIdx.cvId];
+        const deliveredAt = row[deliveryColIdx.deliveredAt] ? new Date(row[deliveryColIdx.deliveredAt]) : null;
+        const detailStatus = row[deliveryColIdx.detailStatus] || '';
+        const merchantId = row[deliveryColIdx.merchantId] || '';
+
+        if (deliveredAt && deliveredAt >= last24h) {
+          // 加盟店名を取得
+          const merchant = merchantData.find(m => m[merchantColIdx.id] === merchantId);
+          const merchantName = merchant ? merchant[merchantColIdx.name] : merchantId;
+
+          activities.push({
+            type: 'delivery',
+            timestamp: deliveredAt.toISOString(),
+            cvId,
+            merchantName,
+            status: detailStatus
+          });
+        }
+      }
+
+      // タイムスタンプ降順でソート、上位10件
+      activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      activities = activities.slice(0, 10);
+
+      console.log('[getAdminDashboardStats] 完了');
+
+      return {
+        success: true,
+        stats,
+        statusCounts,
+        merchantTop5,
+        alerts: alerts.slice(0, 5), // 最大5件
+        activities,
+        updatedAt: now.toISOString()
+      };
+
+    } catch (error) {
+      console.error('[getAdminDashboardStats] エラー:', error);
+      return {
+        success: false,
+        error: error.message || 'ダッシュボード統計の取得に失敗しました'
       };
     }
   }
