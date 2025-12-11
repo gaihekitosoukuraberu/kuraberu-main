@@ -1836,30 +1836,49 @@ window.addEventListener('beforeunload', function(e) {
                             <button onclick="selectCRMStatus('再架電')" class="status-change-btn px-2 py-2 border-2 border-yellow-500 bg-yellow-100 text-yellow-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">再架電</button>
                             <button onclick="selectCRMStatus('見込み')" class="status-change-btn px-2 py-2 border-2 border-orange-600 bg-orange-100 text-orange-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">見込み</button>
                             <button onclick="selectCRMStatus('ロスト')" class="status-change-btn px-2 py-2 border-2 border-gray-700 bg-gray-200 text-gray-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">ロスト</button>
-                            <button onclick="selectCRMStatus('配信中')" class="status-change-btn px-2 py-2 border-2 border-green-600 bg-green-100 text-green-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">配信中</button>
                             <button onclick="selectCRMStatus('他社契約済')" class="status-change-btn px-2 py-2 border-2 border-slate-500 bg-slate-100 text-slate-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">他社契約</button>
                             <button onclick="selectCRMStatus('無効')" class="status-change-btn px-2 py-2 border-2 border-gray-600 bg-gray-100 text-gray-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">無効</button>
                             <button onclick="selectCRMStatus('クレーム')" class="status-change-btn px-2 py-2 border-2 border-red-700 bg-red-100 text-red-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">クレーム</button>
                         </div>
                     </div>
 
-                    <!-- 配信後ステータス -->
+                    <!-- V2214: 配信後ステータス = 詳細ステータス（StatusDefinitionsと完全統一） -->
                     <div>
                         <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                            <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
-                            配信後ステータス
+                            <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                            追客中
                         </h4>
-                        <div class="grid grid-cols-3 gap-1.5">
-                            <button onclick="selectCRMStatus('配信済み')" class="status-change-btn px-2 py-2 border-2 border-purple-600 bg-purple-100 text-purple-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">配信済み</button>
+                        <div class="grid grid-cols-3 gap-1.5 mb-3">
+                            <button onclick="selectCRMStatus('新着')" class="status-change-btn px-2 py-2 border-2 border-blue-500 bg-blue-100 text-blue-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">新着</button>
+                            <button onclick="selectCRMStatus('未アポ')" class="status-change-btn px-2 py-2 border-2 border-yellow-500 bg-yellow-100 text-yellow-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">未アポ</button>
                             <button onclick="selectCRMStatus('アポ済')" class="status-change-btn px-2 py-2 border-2 border-orange-500 bg-orange-100 text-orange-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">アポ済</button>
                             <button onclick="selectCRMStatus('現調済')" class="status-change-btn px-2 py-2 border-2 border-orange-600 bg-orange-100 text-orange-900 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">現調済</button>
-                            <button onclick="selectCRMStatus('見積提出済')" class="status-change-btn px-2 py-2 border-2 border-red-600 bg-red-100 text-red-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">見積提出</button>
-                            <button onclick="selectCRMStatus('入金予定')" class="status-change-btn px-2 py-2 border-2 border-red-700 bg-red-100 text-red-900 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">入金予定</button>
-                            <button onclick="selectCRMStatus('入金完了')" class="status-change-btn px-2 py-2 border-2 border-purple-700 bg-purple-100 text-purple-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">入金完了</button>
+                            <button onclick="selectCRMStatus('見積提出済')" class="status-change-btn px-2 py-2 border-2 border-red-500 bg-red-100 text-red-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">見積提出済</button>
+                        </div>
+
+                        <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                            成約済
+                        </h4>
+                        <div class="grid grid-cols-3 gap-1.5 mb-3">
+                            <button onclick="selectCRMStatus('入金予定・未着工')" class="status-change-btn px-2 py-2 border-2 border-emerald-500 bg-emerald-100 text-emerald-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-[10px] font-medium">入金予定・未着工</button>
+                            <button onclick="selectCRMStatus('入金予定・施工中')" class="status-change-btn px-2 py-2 border-2 border-emerald-500 bg-emerald-100 text-emerald-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-[10px] font-medium">入金予定・施工中</button>
+                            <button onclick="selectCRMStatus('入金予定・工事済')" class="status-change-btn px-2 py-2 border-2 border-emerald-600 bg-emerald-100 text-emerald-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-[10px] font-medium">入金予定・工事済</button>
+                            <button onclick="selectCRMStatus('入金済・未着工')" class="status-change-btn px-2 py-2 border-2 border-green-500 bg-green-100 text-green-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-[10px] font-medium">入金済・未着工</button>
+                            <button onclick="selectCRMStatus('入金済・施工中')" class="status-change-btn px-2 py-2 border-2 border-green-600 bg-green-100 text-green-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-[10px] font-medium">入金済・施工中</button>
                             <button onclick="selectCRMStatus('完了')" class="status-change-btn px-2 py-2 border-2 border-green-700 bg-green-100 text-green-900 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">完了</button>
-                            <button onclick="selectCRMStatus('紹介後キャンセル')" class="status-change-btn px-2 py-2 border-2 border-cyan-600 bg-cyan-100 text-cyan-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">紹介後CN</button>
-                            <button onclick="selectCRMStatus('現調前キャンセル')" class="status-change-btn px-2 py-2 border-2 border-blue-600 bg-blue-100 text-blue-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">現調前CN</button>
-                            <button onclick="selectCRMStatus('現調後ロスト')" class="status-change-btn px-2 py-2 border-2 border-gray-700 bg-gray-200 text-gray-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">現調後ロスト</button>
+                        </div>
+
+                        <h4 class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-gray-500 rounded-full"></span>
+                            終了
+                        </h4>
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <button onclick="selectCRMStatus('現調前キャンセル')" class="status-change-btn px-2 py-2 border-2 border-gray-400 bg-gray-100 text-gray-700 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-[10px] font-medium">現調前キャンセル</button>
+                            <button onclick="selectCRMStatus('現調後失注')" class="status-change-btn px-2 py-2 border-2 border-gray-500 bg-gray-100 text-gray-700 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">現調後失注</button>
+                            <button onclick="selectCRMStatus('他社契約済')" class="status-change-btn px-2 py-2 border-2 border-slate-500 bg-slate-100 text-slate-700 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">他社契約済</button>
+                            <button onclick="selectCRMStatus('別加盟店契約済')" class="status-change-btn px-2 py-2 border-2 border-slate-400 bg-slate-100 text-slate-700 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-[10px] font-medium">別加盟店契約</button>
+                            <button onclick="selectCRMStatus('顧客クレーム')" class="status-change-btn px-2 py-2 border-2 border-red-600 bg-red-100 text-red-800 rounded-lg shadow-sm hover:shadow-md hover:scale-105 transition-all text-xs font-medium">顧客クレーム</button>
                         </div>
                     </div>
                 </div>
@@ -2268,15 +2287,16 @@ window.addEventListener('beforeunload', function(e) {
                     <div id="connectionStatusSection" class="hidden">
                         <div class="p-4 bg-gray-50 rounded-xl">
                             <h4 class="text-sm font-semibold text-gray-700 mb-3">ステータス変更</h4>
+                            <!-- V2214: 配信中/配信済は自動設定のため削除 -->
                             <div class="grid grid-cols-3 gap-2 mb-3">
                                 <button onclick="selectConnectionCaseStatus('新規')" class="connection-status-btn py-2.5 text-xs font-medium bg-white border-2 border-blue-300 text-blue-700 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">新規</button>
                                 <button onclick="selectConnectionCaseStatus('不在')" class="connection-status-btn py-2.5 text-xs font-medium bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:border-gray-500 hover:bg-gray-100 transition-all">不在</button>
                                 <button onclick="selectConnectionCaseStatus('再架電')" class="connection-status-btn py-2.5 text-xs font-medium bg-white border-2 border-yellow-300 text-yellow-700 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-all">再架電</button>
                                 <button onclick="selectConnectionCaseStatus('見込み')" class="connection-status-btn py-2.5 text-xs font-medium bg-white border-2 border-orange-300 text-orange-700 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all">見込み</button>
                                 <button onclick="selectConnectionCaseStatus('ロスト')" class="connection-status-btn py-2.5 text-xs font-medium bg-white border-2 border-gray-400 text-gray-700 rounded-lg hover:border-gray-600 hover:bg-gray-200 transition-all">ロスト</button>
-                                <button onclick="selectConnectionCaseStatus('配信中')" class="connection-status-btn py-2.5 text-xs font-medium bg-white border-2 border-green-300 text-green-700 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all">配信中</button>
-                                <button onclick="selectConnectionCaseStatus('配信済')" class="connection-status-btn py-2.5 text-xs font-medium bg-white border-2 border-purple-300 text-purple-700 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all">配信済</button>
                                 <button onclick="selectConnectionCaseStatus('他社契約済')" class="connection-status-btn py-2.5 text-[10px] font-medium bg-white border-2 border-slate-300 text-slate-700 rounded-lg hover:border-slate-500 hover:bg-slate-100 transition-all">他社契約済</button>
+                                <button onclick="selectConnectionCaseStatus('無効')" class="connection-status-btn py-2.5 text-xs font-medium bg-white border-2 border-gray-300 text-gray-600 rounded-lg hover:border-gray-500 hover:bg-gray-100 transition-all">無効</button>
+                                <button onclick="selectConnectionCaseStatus('クレーム')" class="connection-status-btn py-2.5 text-xs font-medium bg-white border-2 border-red-300 text-red-700 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all">クレーム</button>
                                 <button onclick="skipConnectionStatusChange()" class="py-2.5 text-xs font-medium bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 transition-all">変更なし</button>
                             </div>
                             <div class="flex gap-2">
@@ -2374,7 +2394,7 @@ window.addEventListener('beforeunload', function(e) {
                     <p id="statusTargetName" class="text-xs text-purple-200 mt-0.5">---</p>
                 </div>
 
-                <!-- 配信前ステータス（10種） -->
+                <!-- V2214: 配信前ステータス（8種）- 配信中/配信済は自動設定のため削除 -->
                 <div class="p-4">
                     <div class="grid grid-cols-2 gap-2">
                         <button onclick="selectListStatus('新規')" class="py-3 px-2 bg-white border-2 border-blue-300 rounded-xl text-blue-700 font-bold text-sm hover:bg-blue-50 hover:shadow-md transition-all">新規</button>
@@ -2382,8 +2402,6 @@ window.addEventListener('beforeunload', function(e) {
                         <button onclick="selectListStatus('再架電')" class="py-3 px-2 bg-white border-2 border-yellow-300 rounded-xl text-yellow-700 font-bold text-sm hover:bg-yellow-50 hover:shadow-md transition-all">再架電</button>
                         <button onclick="selectListStatus('見込み')" class="py-3 px-2 bg-white border-2 border-orange-300 rounded-xl text-orange-700 font-bold text-sm hover:bg-orange-50 hover:shadow-md transition-all">見込み</button>
                         <button onclick="selectListStatus('ロスト')" class="py-3 px-2 bg-white border-2 border-gray-400 rounded-xl text-gray-700 font-bold text-sm hover:bg-gray-200 hover:shadow-md transition-all">ロスト</button>
-                        <button onclick="selectListStatus('配信中')" class="py-3 px-2 bg-white border-2 border-green-300 rounded-xl text-green-700 font-bold text-sm hover:bg-green-50 hover:shadow-md transition-all">配信中</button>
-                        <button onclick="selectListStatus('配信済')" class="py-3 px-2 bg-white border-2 border-purple-300 rounded-xl text-purple-700 font-bold text-sm hover:bg-purple-50 hover:shadow-md transition-all">配信済</button>
                         <button onclick="selectListStatus('他社契約済')" class="py-3 px-2 bg-white border-2 border-slate-300 rounded-xl text-slate-700 font-bold text-xs hover:bg-slate-100 hover:shadow-md transition-all">他社契約済</button>
                         <button onclick="selectListStatus('無効')" class="py-3 px-2 bg-white border-2 border-gray-300 rounded-xl text-gray-600 font-bold text-sm hover:bg-gray-100 hover:shadow-md transition-all">無効</button>
                         <button onclick="selectListStatus('クレーム')" class="py-3 px-2 bg-white border-2 border-red-300 rounded-xl text-red-700 font-bold text-sm hover:bg-red-50 hover:shadow-md transition-all">クレーム</button>
