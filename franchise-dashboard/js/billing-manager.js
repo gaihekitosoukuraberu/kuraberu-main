@@ -520,6 +520,418 @@ const FranchiseBillingManager = {
     } catch (e) {
       return String(date);
     }
+  },
+
+  // ========== 成約手数料タブ ==========
+
+  /**
+   * 成約手数料履歴読み込み
+   */
+  loadCommissionHistory: async function(month) {
+    const merchantId = this.getMerchantId();
+    if (!merchantId) return;
+
+    const container = document.getElementById('commissionTab');
+    if (!container) return;
+
+    container.innerHTML = `<div class="flex justify-center py-8"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>`;
+
+    try {
+      const result = await this.callApi('billing_getCommissionHistory', {
+        merchantId: merchantId,
+        month: month || null
+      });
+
+      if (result.success) {
+        this.cache.commissionHistory = result.history;
+        this.updateCommissionTable(result.history);
+      } else {
+        container.innerHTML = `<div class="p-8 text-center text-red-500">${result.error || 'エラーが発生しました'}</div>`;
+      }
+    } catch (e) {
+      console.error('[FranchiseBillingManager] loadCommissionHistory error:', e);
+      container.innerHTML = `<div class="p-8 text-center text-red-500">データの読み込みに失敗しました</div>`;
+    }
+  },
+
+  /**
+   * 成約手数料テーブル更新
+   */
+  updateCommissionTable: function(history) {
+    const container = document.getElementById('commissionTab');
+    if (!container) return;
+
+    if (!history || history.length === 0) {
+      container.innerHTML = `
+        <div class="p-8 text-center text-gray-500">
+          <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          <p class="text-sm">この期間の成約手数料データがありません</p>
+        </div>`;
+      return;
+    }
+
+    const rows = history.map(item => {
+      const statusClass = item.paymentStatus === '入金済み' ? 'bg-green-100 text-green-800' :
+                         item.paymentStatus === '請求待ち' ? 'bg-yellow-100 text-yellow-800' :
+                         'bg-gray-100 text-gray-800';
+      const rowBg = item.paymentStatus === '入金済み' ? 'bg-green-50' : '';
+      const amountClass = item.paymentStatus !== '入金済み' ? 'text-red-600' : 'text-gray-900';
+
+      return `
+        <tr class="hover:bg-gray-50 ${rowBg}">
+          <td class="px-4 py-3 text-sm text-gray-500">${item.contractDate}</td>
+          <td class="px-4 py-3 text-sm font-medium text-gray-900">${item.cvId}</td>
+          <td class="px-4 py-3 text-sm text-gray-900">${item.customerName}</td>
+          <td class="px-4 py-3 text-sm text-gray-900">${this.formatCurrency(item.contractAmount)}</td>
+          <td class="px-4 py-3 text-sm text-gray-500">${item.commissionRate}</td>
+          <td class="px-4 py-3 text-sm font-bold ${amountClass}">${this.formatCurrency(item.commissionAmount)}</td>
+          <td class="px-4 py-3 text-sm text-gray-500">${item.dueDate}</td>
+          <td class="px-4 py-3"><span class="px-2 py-1 text-xs font-semibold rounded-full ${statusClass}">${item.paymentStatus}</span></td>
+          <td class="px-4 py-3 text-sm">
+            ${item.pdfUrl ? `<a href="${item.pdfUrl}" target="_blank" class="text-blue-600 hover:text-blue-900">ダウンロード</a>` : '-'}
+          </td>
+        </tr>`;
+    }).join('');
+
+    container.innerHTML = `
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold">成約手数料支払履歴</h3>
+        <div class="flex space-x-2">
+          <select id="commissionStatusFilter" onchange="FranchiseBillingManager.loadCommissionHistory(document.getElementById('commissionMonthFilter').value)" class="border rounded px-3 py-1 text-sm">
+            <option value="全て">全て</option>
+            <option value="支払済">支払済</option>
+            <option value="未払い">未払い</option>
+          </select>
+          <input type="month" id="commissionMonthFilter" value="${this.getCurrentMonth()}" onchange="FranchiseBillingManager.loadCommissionHistory(this.value)" class="border rounded px-3 py-1 text-sm">
+        </div>
+      </div>
+      <div class="bg-yellow-50 p-3 rounded-lg mb-4 text-sm">
+        <span class="font-medium text-yellow-800">支払条件:</span>
+        <span class="text-yellow-700">請求書発行から3営業日以内</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">成約日</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">案件ID</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">顧客名</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">成約金額</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">手数料率</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">手数料額(税込)</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払期日</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払状況</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">請求書</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">${rows}</tbody>
+        </table>
+      </div>`;
+  },
+
+  // ========== 支払履歴タブ ==========
+
+  /**
+   * 支払履歴読み込み
+   */
+  loadPaymentHistory: async function(month, statusFilter) {
+    const merchantId = this.getMerchantId();
+    if (!merchantId) return;
+
+    const container = document.getElementById('paymentTab');
+    if (!container) return;
+
+    container.innerHTML = `<div class="flex justify-center py-8"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>`;
+
+    try {
+      const result = await this.callApi('billing_getPaymentHistory', {
+        merchantId: merchantId,
+        month: month || null,
+        statusFilter: statusFilter || '全て'
+      });
+
+      if (result.success) {
+        this.cache.paymentHistory = result.history;
+        this.updatePaymentHistoryTable(result.history);
+      } else {
+        container.innerHTML = `<div class="p-8 text-center text-red-500">${result.error || 'エラーが発生しました'}</div>`;
+      }
+    } catch (e) {
+      console.error('[FranchiseBillingManager] loadPaymentHistory error:', e);
+      container.innerHTML = `<div class="p-8 text-center text-red-500">データの読み込みに失敗しました</div>`;
+    }
+  },
+
+  /**
+   * 支払履歴テーブル更新
+   */
+  updatePaymentHistoryTable: function(history) {
+    const container = document.getElementById('paymentTab');
+    if (!container) return;
+
+    if (!history || history.length === 0) {
+      container.innerHTML = `
+        <div class="p-8 text-center text-gray-500">
+          <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          <p class="text-sm">この期間の支払履歴データがありません</p>
+        </div>`;
+      return;
+    }
+
+    const rows = history.map(item => {
+      const statusClass = item.status === '入金済み' ? 'bg-green-100 text-green-800' :
+                         item.status === '発行済み' ? 'bg-blue-100 text-blue-800' :
+                         'bg-gray-100 text-gray-800';
+
+      return `
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 text-sm text-gray-500">${item.paidDate}</td>
+          <td class="px-4 py-3 text-sm font-medium text-gray-900">${item.invoiceId}</td>
+          <td class="px-4 py-3 text-sm text-gray-500">${item.type}</td>
+          <td class="px-4 py-3 text-sm text-gray-900">${item.description}</td>
+          <td class="px-4 py-3 text-sm font-bold text-gray-900">${this.formatCurrency(item.amount)}</td>
+          <td class="px-4 py-3 text-sm text-gray-500">${item.paymentMethod}</td>
+          <td class="px-4 py-3"><span class="px-2 py-1 text-xs font-semibold rounded-full ${statusClass}">${item.status === '入金済み' ? '完了' : item.status}</span></td>
+          <td class="px-4 py-3 text-sm">
+            ${item.pdfUrl ? `<a href="${item.pdfUrl}" target="_blank" class="text-blue-600 hover:text-blue-900">ダウンロード</a>` : '-'}
+          </td>
+        </tr>`;
+    }).join('');
+
+    container.innerHTML = `
+      <h3 class="text-lg font-semibold mb-4">支払履歴</h3>
+      <div class="flex justify-end space-x-2 mb-4">
+        <select id="paymentStatusFilter" onchange="FranchiseBillingManager.loadPaymentHistory(document.getElementById('paymentMonthFilter').value, this.value)" class="border rounded px-3 py-1 text-sm">
+          <option value="全て">全て</option>
+          <option value="完了">完了</option>
+          <option value="未完了">未完了</option>
+        </select>
+        <input type="month" id="paymentMonthFilter" value="${this.getCurrentMonth()}" onchange="FranchiseBillingManager.loadPaymentHistory(this.value, document.getElementById('paymentStatusFilter').value)" class="border rounded px-3 py-1 text-sm">
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払日</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">請求書番号</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">種別</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">内容</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払額(税込)</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">支払方法</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ステータス</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">領収書</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">${rows}</tbody>
+        </table>
+      </div>`;
+  },
+
+  // ========== 収支分析タブ ==========
+
+  /**
+   * 収支分析読み込み
+   */
+  loadProfitAnalysis: async function(month) {
+    const merchantId = this.getMerchantId();
+    if (!merchantId) return;
+
+    const container = document.getElementById('analysisTab');
+    if (!container) return;
+
+    container.innerHTML = `<div class="flex justify-center py-8"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>`;
+
+    try {
+      const result = await this.callApi('billing_getProfitAnalysis', {
+        merchantId: merchantId,
+        month: month || null
+      });
+
+      if (result.success) {
+        this.cache.profitAnalysis = result;
+        this.updateProfitAnalysisView(result);
+      } else {
+        container.innerHTML = `<div class="p-8 text-center text-red-500">${result.error || 'エラーが発生しました'}</div>`;
+      }
+    } catch (e) {
+      console.error('[FranchiseBillingManager] loadProfitAnalysis error:', e);
+      container.innerHTML = `<div class="p-8 text-center text-red-500">データの読み込みに失敗しました</div>`;
+    }
+  },
+
+  /**
+   * 収支分析ビュー更新
+   */
+  updateProfitAnalysisView: function(data) {
+    const container = document.getElementById('analysisTab');
+    if (!container) return;
+
+    const summary = data.summary;
+    const topCases = data.topCases || [];
+
+    const caseRows = topCases.map(c => `
+      <tr class="hover:bg-gray-50">
+        <td class="px-4 py-3 text-sm text-gray-900">${c.name}</td>
+        <td class="px-4 py-3 text-sm text-gray-500">${this.formatCurrency(c.referralFee)}</td>
+        <td class="px-4 py-3 text-sm text-gray-900">${this.formatCurrency(c.revenue)}</td>
+        <td class="px-4 py-3 text-sm text-gray-500">${this.formatCurrency(c.commission)}</td>
+        <td class="px-4 py-3 text-sm font-bold text-green-600">${this.formatCurrency(c.profit)}</td>
+        <td class="px-4 py-3 text-sm font-bold text-green-600">${c.roi}%</td>
+      </tr>
+    `).join('');
+
+    container.innerHTML = `
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-lg font-semibold">収支分析</h3>
+        <select id="profitMonthFilter" onchange="FranchiseBillingManager.loadProfitAnalysis(this.value)" class="border rounded px-3 py-1 text-sm">
+          <option value="${this.getCurrentMonth()}">${this.getMonthLabel(this.getCurrentMonth())}</option>
+          <option value="all">全期間</option>
+        </select>
+      </div>
+
+      <!-- サマリーカード -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl border p-4">
+          <p class="text-sm text-gray-500">売上高</p>
+          <p class="text-2xl font-bold">${this.formatCurrency(summary.revenue)}</p>
+          <p class="text-xs text-green-600">${summary.revenueChange} 前月比</p>
+        </div>
+        <div class="bg-white rounded-xl border p-4">
+          <p class="text-sm text-gray-500">支出合計</p>
+          <p class="text-2xl font-bold">${this.formatCurrency(summary.expense)}</p>
+          <p class="text-xs text-yellow-600">${summary.expenseChange} 前月比</p>
+        </div>
+        <div class="bg-white rounded-xl border p-4">
+          <p class="text-sm text-gray-500">粗利益</p>
+          <p class="text-2xl font-bold text-green-600">${this.formatCurrency(summary.grossProfit)}</p>
+          <p class="text-xs text-green-600">${summary.profitChange} 前月比</p>
+        </div>
+        <div class="bg-white rounded-xl border p-4">
+          <p class="text-sm text-gray-500">ROI</p>
+          <p class="text-2xl font-bold text-green-600">${summary.roi}%</p>
+          <p class="text-xs text-gray-500">${summary.roiLabel}</p>
+        </div>
+      </div>
+
+      <!-- 収入・支出内訳 -->
+      <div class="grid md:grid-cols-2 gap-4 mb-6">
+        <div class="bg-white rounded-xl border p-4">
+          <h4 class="font-semibold mb-3">収入内訳</h4>
+          <div class="flex justify-between py-2 border-b">
+            <span class="flex items-center"><span class="w-3 h-3 bg-green-500 rounded-full mr-2"></span>工事売上</span>
+            <span>${this.formatCurrency(summary.revenue)}</span>
+          </div>
+          <div class="flex justify-between py-2 font-bold">
+            <span>合計</span>
+            <span class="text-green-600">${this.formatCurrency(summary.revenue)}</span>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border p-4">
+          <h4 class="font-semibold mb-3">支出内訳</h4>
+          <div class="flex justify-between py-2 border-b">
+            <span class="flex items-center"><span class="w-3 h-3 bg-red-500 rounded-full mr-2"></span>紹介料</span>
+            <span>${this.formatCurrency(summary.expenseBreakdown?.referralFee || 0)}</span>
+          </div>
+          <div class="flex justify-between py-2 border-b">
+            <span class="flex items-center"><span class="w-3 h-3 bg-orange-500 rounded-full mr-2"></span>成約手数料</span>
+            <span>${this.formatCurrency(summary.expenseBreakdown?.commission || 0)}</span>
+          </div>
+          <div class="flex justify-between py-2 font-bold">
+            <span>合計</span>
+            <span class="text-red-600">${this.formatCurrency(summary.expense)}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 案件別収支TOP5 -->
+      <div class="bg-white rounded-xl border p-4">
+        <h4 class="font-semibold mb-3">案件別収支TOP5</h4>
+        ${topCases.length > 0 ? `
+        <div class="overflow-x-auto">
+          <table class="min-w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">案件</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">紹介料</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">売上</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">手数料</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">利益</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">ROI</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y">${caseRows}</tbody>
+          </table>
+        </div>
+        ` : '<p class="text-gray-500 text-sm">データがありません</p>'}
+      </div>`;
+  },
+
+  // ========== CSV出力 ==========
+
+  /**
+   * CSV出力
+   */
+  exportCSV: function(type) {
+    let data = [];
+    let filename = '';
+    let headers = [];
+
+    switch (type) {
+      case 'referral':
+        data = this.cache.referralHistory || [];
+        headers = ['紹介日', '案件ID', '顧客名', '物件種別', '工事内容', '紹介料', '支払予定日', '支払状況'];
+        filename = `紹介料履歴_${this.getCurrentMonth()}.csv`;
+        data = data.map(item => [item.referralDate, item.cvId, item.customerName, item.propertyType, item.workContent, item.referralFee, item.paymentDue, item.paymentStatus]);
+        break;
+      case 'commission':
+        data = this.cache.commissionHistory || [];
+        headers = ['成約日', '案件ID', '顧客名', '成約金額', '手数料率', '手数料額', '支払期日', '支払状況'];
+        filename = `成約手数料_${this.getCurrentMonth()}.csv`;
+        data = data.map(item => [item.contractDate, item.cvId, item.customerName, item.contractAmount, item.commissionRate, item.commissionAmount, item.dueDate, item.paymentStatus]);
+        break;
+      case 'payment':
+        data = this.cache.paymentHistory || [];
+        headers = ['支払日', '請求書番号', '種別', '内容', '支払額', '支払方法', 'ステータス'];
+        filename = `支払履歴_${this.getCurrentMonth()}.csv`;
+        data = data.map(item => [item.paidDate, item.invoiceId, item.type, item.description, item.amount, item.paymentMethod, item.status]);
+        break;
+      default:
+        return;
+    }
+
+    if (data.length === 0) {
+      alert('エクスポートするデータがありません');
+      return;
+    }
+
+    const csvContent = [headers, ...data].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const bom = '\uFEFF';
+    const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+  },
+
+  /**
+   * 現在の月を取得
+   */
+  getCurrentMonth: function() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  },
+
+  /**
+   * 月ラベル取得
+   */
+  getMonthLabel: function(month) {
+    if (!month || month === 'all') return '全期間';
+    const [y, m] = month.split('-');
+    return `${y}年${parseInt(m)}月`;
   }
 };
 

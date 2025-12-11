@@ -19787,6 +19787,21 @@
                 selectedTab.classList.remove('text-gray-500', 'border-transparent');
                 selectedTab.classList.add('billing-tab-active', 'text-blue-600', 'border-blue-600');
             }
+
+            // タブごとのデータ読み込み
+            if (typeof FranchiseBillingManager !== 'undefined') {
+                switch(tabName) {
+                    case 'commission':
+                        FranchiseBillingManager.loadCommissionHistory();
+                        break;
+                    case 'payment':
+                        FranchiseBillingManager.loadPaymentHistory();
+                        break;
+                    case 'analysis':
+                        FranchiseBillingManager.loadProfitAnalysis();
+                        break;
+                }
+            }
         }
 
         // 財務データ更新関数
@@ -20078,22 +20093,28 @@
         
         // 財務レポート CSV出力
         function exportFinancialReport() {
-            const data = [
-                ['購入日', '案件ID', '顧客名', 'エリア', '購入金額', '成約金額', '手数料', 'ROI'],
-                ['2025-01-15', 'C2025-001', '田中様', '東京都渋谷区', '85000', '', '', ''],
-                ['2025-01-10', 'C2025-002', '佐藤様', '神奈川県川崎市', '22000', '1200000', '132000', '475%'],
-                ['2025-01-08', 'C2025-003', '鈴木様', '埼玉県越谷市', '80000', '800000', '80000', '100%']
-            ];
-            
-            const csv = data.map(row => row.join(',')).join('\n');
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `invoices_${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-            
-            showNotification('CSV出力', '請求書一覧をCSVで出力しました');
+            // 現在表示中のタブに応じたCSV出力
+            const activeTab = document.querySelector('.billing-tab-active');
+            const tabName = activeTab ? activeTab.getAttribute('data-tab') : 'purchase';
+
+            if (typeof FranchiseBillingManager !== 'undefined') {
+                switch(tabName) {
+                    case 'purchase':
+                        FranchiseBillingManager.exportCSV('referral');
+                        break;
+                    case 'commission':
+                        FranchiseBillingManager.exportCSV('commission');
+                        break;
+                    case 'payment':
+                        FranchiseBillingManager.exportCSV('payment');
+                        break;
+                    default:
+                        FranchiseBillingManager.exportCSV('referral');
+                }
+                showNotification('CSV出力', 'CSVをダウンロードしました');
+            } else {
+                showNotification('エラー', 'データが読み込まれていません');
+            }
         }
 
         // レポート用のグラフ初期化

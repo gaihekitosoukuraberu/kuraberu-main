@@ -660,7 +660,10 @@ const SystemRouter = {
         'sendPdf',
         'autoGenerateMonthly',
         'getReferralHistory',
-        'getFinancialSummary'
+        'getFinancialSummary',
+        'getCommissionHistory',
+        'getPaymentHistory',
+        'getProfitAnalysis'
       ]
     },
 
