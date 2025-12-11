@@ -49,20 +49,34 @@ const FranchiseBillingManager = {
    * 加盟店IDを取得
    */
   getMerchantId: function() {
+    // window.merchantDataから取得（最優先）
+    if (window.merchantData) {
+      const id = window.merchantData['登録ID'] || window.merchantData.registrationId || window.merchantData.merchantId;
+      if (id) {
+        console.log('[FranchiseBillingManager] merchantDataから取得:', id);
+        return id;
+      }
+    }
+
+    // グローバル変数から取得
+    if (typeof currentMerchantId !== 'undefined' && currentMerchantId) {
+      console.log('[FranchiseBillingManager] currentMerchantIdから取得:', currentMerchantId);
+      return currentMerchantId;
+    }
+
     // ローカルストレージから取得
     const loginData = localStorage.getItem('franchiseLoginData');
     if (loginData) {
       try {
         const parsed = JSON.parse(loginData);
-        return parsed.merchantId || parsed.id || parsed.registrationId;
+        const id = parsed.merchantId || parsed.id || parsed.registrationId;
+        if (id) {
+          console.log('[FranchiseBillingManager] localStorageから取得:', id);
+          return id;
+        }
       } catch (e) {
         console.error('[FranchiseBillingManager] ログインデータ解析エラー:', e);
       }
-    }
-
-    // グローバル変数から取得
-    if (typeof currentMerchantId !== 'undefined') {
-      return currentMerchantId;
     }
 
     return null;
@@ -122,11 +136,14 @@ const FranchiseBillingManager = {
   loadFinancialSection: async function() {
     console.log('[FranchiseBillingManager] loadFinancialSection');
 
-    if (!this.merchantId) {
+    // 毎回最新の加盟店IDを取得（ページロード後にmerchantDataが設定される場合があるため）
+    const merchantId = this.getMerchantId();
+    if (!merchantId) {
       console.warn('[FranchiseBillingManager] 加盟店IDなし - デモモード');
       this.showDemoData();
       return;
     }
+    this.merchantId = merchantId;
 
     this.showLoading(true);
 
