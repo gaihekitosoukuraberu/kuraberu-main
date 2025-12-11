@@ -3270,6 +3270,7 @@ info@gaihekikuraberu.com
         id: merchantHeaders.indexOf('登録ID'),
         name: merchantHeaders.indexOf('会社名'),
         status: merchantHeaders.indexOf('ステータス'),
+        deliveryStatus: merchantHeaders.indexOf('配信ステータス'),  // V2213: アクティブ判定用（U列）
         registeredAt: merchantHeaders.indexOf('登録日時')  // V2213: 新規加盟店カウント用
       };
 
@@ -3400,9 +3401,10 @@ info@gaihekikuraberu.com
 
       // 加盟店TOP5（成約件数順）
       let merchantTop5 = [];
+      // V2213: 配信ステータス（U列）が「アクティブ」の加盟店をカウント
       const activeMerchants = merchantData.slice(1).filter(row => {
-        const status = row[merchantColIdx.status];
-        return status === '承認済み' || status === '稼働中';
+        const deliveryStatus = row[merchantColIdx.deliveryStatus];
+        return deliveryStatus === 'アクティブ';
       });
 
       for (const row of activeMerchants) {
