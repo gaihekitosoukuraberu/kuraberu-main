@@ -9263,6 +9263,18 @@ window.addEventListener('beforeunload', function(e) {
 
         // ステータスを選択
         function selectCRMStatus(status) {
+            // V2215: 転送済み案件でキャンセル・失注系を選択した場合は確認フローへ
+            const caseData = casesData[currentCaseId];
+            const transferCount = caseData?.transferCount || 0;
+            const cancelStatuses = ['現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', '顧客クレーム'];
+
+            if (transferCount > 0 && cancelStatuses.includes(status)) {
+                hideStatusModal();
+                // キャンセル確認モーダルを表示（キャンセル通知フローへ）
+                showCancelConfirmModal(currentCaseId);
+                return;
+            }
+
             changeCRMStatus(status);
             hideStatusModal();  // V1945: toggleではなくhide
 

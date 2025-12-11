@@ -1276,6 +1276,9 @@ const BusinessSelectionHandler = {
     let displayFranchises = [];
     const currentCheckedCompanies = this.getCheckedCompanies();
 
+    // V2215: 転送済み業者名（検索モード・通常モード共通で使用）
+    const deliveredNames = this.deliveredFranchises.map(f => f.franchiseName);
+
     // V1920: 検索時 vs 通常時の処理を完全分離
     if (searchQuery) {
       // === 検索モード: allFranchises から検索（マッチ率保持） ===
@@ -1297,15 +1300,16 @@ const BusinessSelectionHandler = {
       });
 
       // V1920: チェック済みを先頭にグループ化
+      // V2215: 転送済みは除外（後で先頭に追加するため）
       const checkedMatched = matchedFranchises.filter(f =>
-        currentCheckedCompanies.includes(f.companyName)
+        currentCheckedCompanies.includes(f.companyName) && !deliveredNames.includes(f.companyName)
       );
       const uncheckedMatched = matchedFranchises.filter(f =>
-        !currentCheckedCompanies.includes(f.companyName)
+        !currentCheckedCompanies.includes(f.companyName) && !deliveredNames.includes(f.companyName)
       );
 
       displayFranchises = [...checkedMatched, ...uncheckedMatched];
-      console.log('[V1920-SEARCH] 検索結果:', matchedFranchises.length, '件（✓', checkedMatched.length, '+ 未', uncheckedMatched.length, '）');
+      console.log('[V1920-SEARCH] 検索結果（転送済み除外）:', displayFranchises.length, '件（✓', checkedMatched.length, '+ 未', uncheckedMatched.length, '）');
     } else {
       // === 通常モード: ソート順で表示 ===
       displayFranchises = this.sortFranchises(sortType, allFranchises);
@@ -1388,37 +1392,42 @@ const BusinessSelectionHandler = {
             others.push(...group);
           });
 
-        others = others.slice(0, limit);
+        // V2215: 転送済み業者を除外してからlimit適用（後で別途追加するため）
+        others = others.filter(f => !deliveredNames.includes(f.companyName)).slice(0, limit);
 
         displayFranchises = [...checkedFranchises, ...uncheckedUserSelected, ...others];
         console.log('[V1920-USER] 3段階グループ: ✓', checkedFranchises.length,
           '→ AS列', uncheckedUserSelected.length, uncheckedUserSelected.map(f => f.companyName),
-          '→ 他（マッチ度→GASおすすめ順）', others.length);
+          '→ 他（マッチ度→GASおすすめ順・転送済除外）', others.length);
       } else {
         // V1912: ユーザー選択以外のソート: チェック済み → マッチ度/ソート条件順
         // AS列業者の優先なし（マッチ度優先）
         const checkedFranchises = displayFranchises.filter(f =>
           currentCheckedCompanies.includes(f.companyName)
         );
+        // V2215: 転送済み業者を除外してからlimit適用（後で別途追加するため）
         const uncheckedFranchises = displayFranchises.filter(f =>
-          !currentCheckedCompanies.includes(f.companyName)
+          !currentCheckedCompanies.includes(f.companyName) && !deliveredNames.includes(f.companyName)
         ).slice(0, limit);
 
         displayFranchises = [...checkedFranchises, ...uncheckedFranchises];
         // V1914: 距離順の場合は距離値を表示、その他はマッチ度を表示
         if (sortType === 'distance') {
-          console.log('[V1914-DISTANCE] チェック済み:', checkedFranchises.length, '→ 未チェック（距離順）:', uncheckedFranchises.map(f => f.companyName + '(距離:' + (f.distance || '?') + 'km,マッチ:' + (f._matchRate || '?') + '%)').join(', '));
+          console.log('[V1914-DISTANCE] チェック済み:', checkedFranchises.length, '→ 未チェック（距離順・転送済除外）:', uncheckedFranchises.map(f => f.companyName + '(距離:' + (f.distance || '?') + 'km,マッチ:' + (f._matchRate || '?') + '%)').join(', '));
         } else {
-          console.log('[V1912-OTHER] sortType:', sortType, 'チェック済み:', checkedFranchises.length, '→ 未チェック（マッチ度優先）:', uncheckedFranchises.map(f => f.companyName + '(' + (f._matchRate || '?') + '%)').join(', '));
+          console.log('[V1912-OTHER] sortType:', sortType, 'チェック済み:', checkedFranchises.length, '→ 未チェック（マッチ度優先・転送済除外）:', uncheckedFranchises.map(f => f.companyName + '(' + (f._matchRate || '?') + '%)').join(', '));
         }
       }
     }
 
-    // V2004: 転送済み業者を最上部に配置 + isDeliveredフラグ追加
-    const deliveredNames = this.deliveredFranchises.map(f => f.franchiseName);
-    const deliveredFranchisesFiltered = displayFranchises.filter(f => deliveredNames.includes(f.companyName));
-    const otherFranchises = displayFranchises.filter(f => !deliveredNames.includes(f.companyName));
-    const topFranchises = [...deliveredFranchisesFiltered, ...otherFranchises];
+    // V2215: 転送済み業者を最上部に配置 + 未転送業者を確実に表示
+    // 転送済み業者はallFranchisesから取得（limitでカットされていても表示するため）
+    const deliveredFranchisesFromAll = allFranchises.filter(f => deliveredNames.includes(f.companyName));
+
+    // 未転送業者はdisplayFranchisesから（ソート・転送済み除外済み）
+    // displayFranchisesは既に転送済みを除外してlimit適用済みなのでそのまま使用
+    const topFranchises = [...deliveredFranchisesFromAll, ...displayFranchises];
+    console.log('[V2215] 表示構成: 転送済み', deliveredFranchisesFromAll.length, '社 + 未転送', displayFranchises.length, '社 = 合計', topFranchises.length, '社');
 
     // V1920: カード生成（チェックボックス状態を保持）
     return topFranchises.map((franchise, index) => {
