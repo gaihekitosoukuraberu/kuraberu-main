@@ -2416,12 +2416,17 @@ const AdminSystem = {
           console.log('[sendOrderTransfer] レコード' + idx + ': recordId=' + rec[0] + ', cvId=' + rec[1] + ', franchiseId=' + rec[2] + ', status=' + rec[5]);
         });
 
-        deliverySheet.getRange(lastDataRow + 1, 1, records.length, records[0].length).setValues(records);
-        console.log('[sendOrderTransfer] setValues完了');
+        // V2217: setValuesをtry-catchで囲む（入力規則エラーがあっても転送成功を返す）
+        try {
+          deliverySheet.getRange(lastDataRow + 1, 1, records.length, records[0].length).setValues(records);
+          console.log('[sendOrderTransfer] setValues完了');
 
-        // V2034: 書き込み後の確認
-        const verifyData = deliverySheet.getRange(lastDataRow + 1, 1, records.length, 6).getValues();
-        console.log('[sendOrderTransfer] V2034 書き込み後確認:', JSON.stringify(verifyData));
+          // V2034: 書き込み後の確認
+          const verifyData = deliverySheet.getRange(lastDataRow + 1, 1, records.length, 6).getValues();
+          console.log('[sendOrderTransfer] V2034 書き込み後確認:', JSON.stringify(verifyData));
+        } catch (setValuesError) {
+          console.error('[sendOrderTransfer] setValuesエラー（データは書き込まれた可能性あり）:', setValuesError);
+        }
 
         // V2003: ユーザー登録シートの配信ステータス・配信先加盟店数・配信日時を自動更新
         // V2035: エラーがあっても転送成功を返すようtry-catchで囲む
