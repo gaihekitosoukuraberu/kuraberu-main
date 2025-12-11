@@ -196,3 +196,43 @@ function removeDetailStatusValidation() {
   console.log(`完了: ${updatedCount}シートの入力規則を削除`);
   return { success: true, updatedSheets: updatedCount };
 }
+
+/**
+ * V2217: ユーザー登録シートの管理ステータス入力規則を削除
+ * プルダウン不要 - GASから自由に書き込めるように
+ */
+function removeUserSheetStatusValidation() {
+  const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const userSheet = ss.getSheetByName('ユーザー登録');
+
+  if (!userSheet) {
+    console.error('ユーザー登録シートが見つかりません');
+    return { success: false, error: 'シートが見つかりません' };
+  }
+
+  // ヘッダーから管理ステータス列を探す
+  const headers = userSheet.getRange(1, 1, 1, userSheet.getLastColumn()).getValues()[0];
+  const statusIdx = headers.indexOf('管理ステータス');
+
+  if (statusIdx === -1) {
+    console.error('管理ステータス列が見つかりません');
+    return { success: false, error: '管理ステータス列が見つかりません' };
+  }
+
+  console.log('管理ステータス列インデックス:', statusIdx, '(列:', String.fromCharCode(65 + statusIdx), ')');
+
+  // データがある行数を取得
+  const lastRow = userSheet.getLastRow();
+  if (lastRow < 2) {
+    console.log('データ行なし');
+    return { success: true, message: 'データ行がありません' };
+  }
+
+  // 管理ステータス列の入力規則を削除
+  const range = userSheet.getRange(2, statusIdx + 1, lastRow - 1, 1);
+  range.clearDataValidations();
+
+  console.log(`完了: ユーザー登録シートの管理ステータス入力規則を削除しました（${lastRow - 1}行）`);
+  return { success: true, clearedRows: lastRow - 1 };
+}

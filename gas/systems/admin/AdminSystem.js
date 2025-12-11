@@ -2755,7 +2755,8 @@ const AdminSystem = {
 
       // V2039: 希望社数に達したかどうかで配信ステータスを決定
       const deliveryStatusToSet = totalTransferCount >= desiredCount ? '配信済み' : '配信中';
-      // V2214: 管理ステータスは「新着」に設定（加盟店側と統一）
+      // V2217: 管理ステータスは「新着」に設定（加盟店側と統一）
+      // ※入力規則はupdateUserSheetStatusValidation()で更新済み
       const managementStatusToSet = '新着';
       console.log('[updateUserSheetDeliveryStatus] ステータス判定:', { existingCount, newFranchiseCount, totalTransferCount, desiredCount, deliveryStatusToSet, managementStatusToSet });
 
@@ -2776,7 +2777,7 @@ const AdminSystem = {
       }
       if (managementStatusIdx !== -1) {
         try {
-          // V2214: 管理ステータスは「新着」（加盟店と統一、配信中/配信済みは使わない）
+          // V2217: 管理ステータスは「新着」（加盟店と統一）
           userSheet.getRange(targetRow, managementStatusIdx + 1).setValue(managementStatusToSet);
         } catch (e4) {
           console.error('[updateUserSheetDeliveryStatus] 管理ステータス設定エラー:', e4);
