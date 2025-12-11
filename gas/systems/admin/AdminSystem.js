@@ -2755,12 +2755,25 @@ const AdminSystem = {
 
       // V2039: 希望社数に達したかどうかで配信ステータスを決定
       const deliveryStatusToSet = totalTransferCount >= desiredCount ? '配信済み' : '配信中';
-      // V2217: 管理ステータスは「新着」に設定（加盟店側と統一）
-      // ※入力規則はupdateUserSheetStatusValidation()で更新済み
-      const managementStatusToSet = '新着';
-      console.log('[updateUserSheetDeliveryStatus] ステータス判定:', { existingCount, newFranchiseCount, totalTransferCount, desiredCount, deliveryStatusToSet, managementStatusToSet });
 
-      // V2039: 配信ステータス・配信日時・管理ステータスのみ更新（配信先業者一覧・加盟店別ステータスは配信管理シートで管理）
+      // V2218: 管理ステータスは初回転送時のみ「新着」に設定
+      // 追加転送時（existingCount > 0）は変更しない（加盟店が進めている可能性があるため）
+      const currentManagementStatus = managementStatusIdx !== -1 ? targetRowData[managementStatusIdx] : '';
+      const isFirstDelivery = existingCount === 0;
+      const managementStatusToSet = isFirstDelivery ? '新着' : currentManagementStatus;
+
+      console.log('[updateUserSheetDeliveryStatus] ステータス判定:', {
+        existingCount,
+        newFranchiseCount,
+        totalTransferCount,
+        desiredCount,
+        deliveryStatusToSet,
+        isFirstDelivery,
+        currentManagementStatus,
+        managementStatusToSet
+      });
+
+      // V2039: 配信ステータス・配信日時のみ更新（配信先業者一覧・加盟店別ステータスは配信管理シートで管理）
       if (deliveryStatusIdx !== -1) {
         try {
           userSheet.getRange(targetRow, deliveryStatusIdx + 1).setValue(deliveryStatusToSet);
@@ -2775,16 +2788,16 @@ const AdminSystem = {
           console.error('[updateUserSheetDeliveryStatus] 配信日時設定エラー:', e2);
         }
       }
-      if (managementStatusIdx !== -1) {
+      // V2218: 管理ステータスは初回転送時のみ更新
+      if (managementStatusIdx !== -1 && isFirstDelivery) {
         try {
-          // V2217: 管理ステータスは「新着」（加盟店と統一）
           userSheet.getRange(targetRow, managementStatusIdx + 1).setValue(managementStatusToSet);
         } catch (e4) {
           console.error('[updateUserSheetDeliveryStatus] 管理ステータス設定エラー:', e4);
         }
       }
 
-      console.log('[updateUserSheetDeliveryStatus] 更新完了:', cvId, '転送:', totalTransferCount, '/', desiredCount, '社', 'deliveryStatus:', deliveryStatusToSet, 'managementStatus:', managementStatusToSet);
+      console.log('[updateUserSheetDeliveryStatus] 更新完了:', cvId, '転送:', totalTransferCount, '/', desiredCount, '社', 'deliveryStatus:', deliveryStatusToSet, 'managementStatus:', managementStatusToSet, '(初回:', isFirstDelivery, ')');
     } catch (e) {
       console.error('[updateUserSheetDeliveryStatus] 全体エラー:', e);
     }
