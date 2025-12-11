@@ -3179,6 +3179,222 @@ window.addEventListener('beforeunload', function(e) {
             }
         });
 
+        // ===== V2208: 管理者ダッシュボード統計取得 =====
+        async function loadAdminDashboardData() {
+            console.log('[loadAdminDashboardData] 開始');
+            try {
+                const response = await fetch(`${window.GAS_URL}?action=admin_getAdminDashboardStats`);
+                const result = await response.json();
+
+                if (!result.success) {
+                    console.error('[loadAdminDashboardData] エラー:', result.error);
+                    return;
+                }
+
+                console.log('[loadAdminDashboardData] データ取得成功:', result);
+                renderAdminDashboard(result);
+
+            } catch (error) {
+                console.error('[loadAdminDashboardData] 通信エラー:', error);
+            }
+        }
+
+        function renderAdminDashboard(data) {
+            const { stats, statusCounts, merchantTop5, alerts, activities, updatedAt } = data;
+
+            // 最終更新時刻
+            const updatedEl = document.getElementById('dashLastUpdated');
+            if (updatedEl && updatedAt) {
+                const d = new Date(updatedAt);
+                updatedEl.textContent = `最終更新: ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+            }
+
+            // KPIカード
+            // 未振分案件
+            const unassignedCountEl = document.getElementById('dashUnassignedCount');
+            const unassignedSubEl = document.getElementById('dashUnassignedSub');
+            const unassignedBadgeEl = document.getElementById('dashUnassignedBadge');
+            if (unassignedCountEl) unassignedCountEl.textContent = stats.unassigned || 0;
+            if (unassignedSubEl) unassignedSubEl.textContent = `直近1時間: +${stats.unassignedRecent || 0}`;
+            if (unassignedBadgeEl) {
+                if (stats.unassigned > 0) {
+                    unassignedBadgeEl.classList.remove('hidden');
+                } else {
+                    unassignedBadgeEl.classList.add('hidden');
+                }
+            }
+
+            // 本日新規CV
+            const todayCvCountEl = document.getElementById('dashTodayCvCount');
+            const todayCvSubEl = document.getElementById('dashTodayCvSub');
+            const todayCvChangeEl = document.getElementById('dashTodayCvChange');
+            if (todayCvCountEl) todayCvCountEl.textContent = stats.todayCv || 0;
+            if (todayCvSubEl) todayCvSubEl.textContent = `昨日: ${stats.yesterdayCv || 0}件`;
+            if (todayCvChangeEl && stats.yesterdayCv > 0) {
+                const change = stats.todayCv - stats.yesterdayCv;
+                if (change !== 0) {
+                    todayCvChangeEl.textContent = change > 0 ? `+${change}` : `${change}`;
+                    todayCvChangeEl.className = `text-xs ${change > 0 ? 'text-green-600' : 'text-red-600'}`;
+                    todayCvChangeEl.classList.remove('hidden');
+                }
+            }
+
+            // 配信中案件
+            const activeCountEl = document.getElementById('dashActiveCount');
+            const activeSubEl = document.getElementById('dashActiveSub');
+            if (activeCountEl) activeCountEl.textContent = stats.activeDelivery || 0;
+            if (activeSubEl) activeSubEl.textContent = `見積提出待ち: ${stats.quoteWaiting || 0}件`;
+
+            // 今月成約
+            const contractAmountEl = document.getElementById('dashContractAmount');
+            const contractSubEl = document.getElementById('dashContractSub');
+            const contractBadgeEl = document.getElementById('dashContractBadge');
+            if (contractAmountEl) {
+                const amount = stats.monthlyContractAmount || 0;
+                if (amount >= 10000000) {
+                    contractAmountEl.textContent = `¥${(amount / 10000000).toFixed(1)}千万`;
+                } else if (amount >= 10000) {
+                    contractAmountEl.textContent = `¥${(amount / 10000).toFixed(0)}万`;
+                } else {
+                    contractAmountEl.textContent = `¥${amount.toLocaleString()}`;
+                }
+            }
+            if (contractSubEl) contractSubEl.textContent = `成約: ${stats.monthlyContract || 0}件`;
+            if (contractBadgeEl && stats.monthlyContract > 0) {
+                contractBadgeEl.textContent = `${stats.monthlyContract}件`;
+                contractBadgeEl.classList.remove('hidden');
+            }
+
+            // ステータス分布バー
+            const statusBarsEl = document.getElementById('dashStatusBars');
+            const statusTotalEl = document.getElementById('dashStatusTotal');
+            if (statusBarsEl && statusCounts) {
+                const statusConfig = [
+                    { key: '新規', label: '新規', color: 'bg-red-500' },
+                    { key: '配信中', label: '配信中', color: 'bg-yellow-500' },
+                    { key: '配信済', label: '配信済', color: 'bg-blue-500' },
+                    { key: '見込み', label: '見込み', color: 'bg-purple-500' },
+                    { key: '成約', label: '成約', color: 'bg-green-500' },
+                    { key: 'ロスト', label: 'ロスト', color: 'bg-gray-400' }
+                ];
+
+                const total = Object.values(statusCounts).reduce((a, b) => a + b, 0);
+                if (statusTotalEl) statusTotalEl.textContent = `全 ${total} 件`;
+
+                let html = '';
+                for (const cfg of statusConfig) {
+                    const count = statusCounts[cfg.key] || 0;
+                    const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                    html += `
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm text-gray-600 w-16 md:w-20 truncate">${cfg.label}</span>
+                            <div class="flex-1 bg-gray-100 rounded-full h-7 relative overflow-hidden">
+                                <div class="${cfg.color} h-7 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                            </div>
+                            <span class="text-sm text-gray-800 font-semibold w-16 text-right">${count}件</span>
+                        </div>
+                    `;
+                }
+                statusBarsEl.innerHTML = html;
+            }
+
+            // 加盟店TOP5
+            const top5El = document.getElementById('dashMerchantTop5');
+            if (top5El && merchantTop5) {
+                if (merchantTop5.length === 0) {
+                    top5El.innerHTML = '<div class="text-center py-8 text-gray-400 text-sm">データがありません</div>';
+                } else {
+                    let html = '';
+                    merchantTop5.forEach((m, idx) => {
+                        const rankColors = ['text-yellow-500', 'text-gray-400', 'text-orange-600', 'text-gray-400', 'text-gray-400'];
+                        html += `
+                            <div class="flex items-center justify-between p-2.5 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer" onclick="showSection('franchise')">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-lg font-bold ${rankColors[idx]} w-6">${idx + 1}</span>
+                                    <span class="text-sm text-gray-800 truncate max-w-[120px]">${m.name}</span>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm font-semibold text-gray-800">${m.contractCount}件</div>
+                                    <div class="text-xs text-gray-500">成約率 ${m.contractRate}%</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    top5El.innerHTML = html;
+                }
+            }
+
+            // アラート
+            const alertsEl = document.getElementById('dashAlerts');
+            const alertCountEl = document.getElementById('dashAlertCount');
+            if (alertsEl && alerts) {
+                if (alertCountEl) {
+                    if (alerts.length > 0) {
+                        alertCountEl.textContent = alerts.length;
+                        alertCountEl.classList.remove('hidden');
+                    } else {
+                        alertCountEl.classList.add('hidden');
+                    }
+                }
+
+                if (alerts.length === 0) {
+                    alertsEl.innerHTML = `
+                        <div class="text-center py-8 text-gray-400 text-sm">
+                            <svg class="w-12 h-12 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            アラートはありません
+                        </div>
+                    `;
+                } else {
+                    let html = '';
+                    alerts.forEach(alert => {
+                        const bgColor = alert.severity === 'high' ? 'bg-red-50 border-l-red-500' : 'bg-yellow-50 border-l-yellow-500';
+                        const textColor = alert.severity === 'high' ? 'text-red-800' : 'text-yellow-800';
+                        const subColor = alert.severity === 'high' ? 'text-red-600' : 'text-yellow-600';
+                        const btnColor = alert.severity === 'high' ? 'bg-red-500 hover:bg-red-600' : 'bg-yellow-500 hover:bg-yellow-600';
+                        html += `
+                            <div class="flex items-center justify-between p-3 ${bgColor} border-l-4 rounded">
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-sm font-semibold ${textColor} truncate">${alert.title}</div>
+                                    <div class="text-xs ${subColor} truncate">${alert.message}</div>
+                                </div>
+                                <button onclick="showSection('cases')" class="ml-2 px-3 py-1 ${btnColor} text-white text-xs rounded whitespace-nowrap">対応</button>
+                            </div>
+                        `;
+                    });
+                    alertsEl.innerHTML = html;
+                }
+            }
+
+            // アクティビティ
+            const activityEl = document.getElementById('dashActivity');
+            if (activityEl && activities) {
+                if (activities.length === 0) {
+                    activityEl.innerHTML = '<div class="text-center py-8 text-gray-400 text-sm">アクティビティがありません</div>';
+                } else {
+                    let html = '';
+                    activities.forEach(act => {
+                        const d = new Date(act.timestamp);
+                        const timeStr = `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+                        html += `
+                            <div class="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0">
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-sm text-gray-800 truncate">${act.merchantName}へ配信</div>
+                                    <div class="text-xs text-gray-500">${act.cvId}</div>
+                                </div>
+                                <span class="text-xs text-gray-400 whitespace-nowrap">${timeStr}</span>
+                            </div>
+                        `;
+                    });
+                    activityEl.innerHTML = html;
+                }
+            }
+
+            console.log('[renderAdminDashboard] 完了');
+        }
+
         // セクション切り替え機能
         // 現在のセクションを追跡
         let currentSection = 'assignment'; // デフォルトは案件管理
