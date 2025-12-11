@@ -673,30 +673,30 @@
                         <!-- 検索ボックス + 絞り込みボタン（横並び・全幅） -->
                         <div class="flex gap-2 w-full">
                             <div class="relative flex-1">
-                                <input type="text" id="caseSearchInput" placeholder="名前・住所・電話で検索" oninput="searchCases()" autocomplete="off" class="w-full pl-10 pr-10 py-2.5 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 shadow-sm transition-all bg-gray-50 placeholder-gray-400">
-                                <div class="absolute left-3 top-2.5">
+                                <input type="text" id="caseSearchInput" placeholder="名前・住所・電話で検索" oninput="searchCases()" autocomplete="off" class="w-full h-10 pl-10 pr-10 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 shadow-sm transition-all bg-gray-50 placeholder-gray-400">
+                                <div class="absolute left-3 top-1/2 -translate-y-1/2">
                                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                     </svg>
                                 </div>
-                                <button onclick="document.getElementById('caseSearchInput').value=''; searchCases();" class="absolute right-2 top-2 text-gray-400 hover:text-gray-600 p-1">
+                                <button onclick="document.getElementById('caseSearchInput').value=''; searchCases();" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
                             </div>
-                            <!-- V2203: ボタンサイズ統一 -->
-                            <button onclick="openUnifiedFilterModal()" id="unifiedFilterBtn" class="flex items-center gap-1 px-3 py-2.5 bg-purple-50 text-purple-600 border-2 border-purple-200 rounded-xl shadow-md hover:bg-purple-100 transition-all font-medium whitespace-nowrap flex-shrink-0 text-sm">
+                            <!-- V2204: ボタンサイズ・カラー統一（h-10で高さ統一） -->
+                            <button onclick="openUnifiedFilterModal()" id="unifiedFilterBtn" class="flex items-center gap-1 px-3 h-10 bg-purple-50 text-purple-600 border-2 border-purple-200 rounded-xl shadow-sm hover:bg-purple-100 transition-all font-medium whitespace-nowrap flex-shrink-0 text-sm">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
                                 <span id="unifiedFilterLabel">絞込</span>
                             </button>
-                            <!-- V2203: 終了案件表示切り替えボタン -->
-                            <button id="toggleEndedCasesBtn" onclick="toggleShowEndedCases()" class="flex items-center gap-1 px-3 py-2.5 bg-gray-50 text-gray-600 border-2 border-gray-200 rounded-xl shadow-md hover:bg-gray-100 transition-all font-medium whitespace-nowrap flex-shrink-0 text-sm">
+                            <!-- V2204: 終了案件表示切り替えボタン -->
+                            <button id="toggleEndedCasesBtn" onclick="toggleShowEndedCases()" class="flex items-center gap-1 px-3 h-10 bg-gray-50 text-gray-600 border-2 border-gray-200 rounded-xl shadow-sm hover:bg-gray-100 transition-all font-medium whitespace-nowrap flex-shrink-0 text-sm">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
                                 <span>終了</span>
                             </button>
-                            <!-- V2203: 案件振り分けボタン - 管理者のみ表示 -->
-                            <button id="assignPanelBtn" onclick="openAssignPanel()" class="hidden items-center gap-1 px-3 py-2.5 bg-indigo-500 text-white border-2 border-indigo-500 rounded-xl shadow-md hover:bg-indigo-600 transition-all font-medium flex-shrink-0 text-sm" style="white-space:nowrap;flex-wrap:nowrap;">
+                            <!-- V2204: 案件振り分けボタン - 管理者のみ表示（カラー統一） -->
+                            <button id="assignPanelBtn" onclick="openAssignPanel()" class="hidden items-center gap-1 px-3 h-10 bg-indigo-50 text-indigo-600 border-2 border-indigo-200 rounded-xl shadow-sm hover:bg-indigo-100 transition-all font-medium whitespace-nowrap flex-shrink-0 text-sm">
                                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span class="flex-shrink-0">振分</span>
                             </button>
                         </div>
