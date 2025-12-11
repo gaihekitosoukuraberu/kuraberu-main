@@ -2622,6 +2622,58 @@ window.addEventListener('beforeunload', function(e) {
         </div>
     </div>
 
+    <!-- V2216: ステータス変更通知モーダル（全ステータス対応） -->
+    <div id="statusChangeNotifyModal" class="fixed inset-0 z-50 hidden">
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeStatusChangeNotifyModal()"></div>
+        <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden">
+                <!-- ヘッダー -->
+                <div class="px-5 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 flex-shrink-0 relative">
+                    <button onclick="closeStatusChangeNotifyModal()" class="absolute top-3 right-3 text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <h3 class="text-base font-bold text-white">📧 加盟店への通知</h3>
+                    <p id="statusChangeNotifyTargetName" class="text-sm text-purple-100 mt-0.5">---</p>
+                    <p id="statusChangeNotifyNewStatus" class="text-xs text-purple-200 mt-1">変更先: ---</p>
+                </div>
+
+                <!-- 配信先一覧 -->
+                <div class="p-4 bg-gray-50 border-b flex-shrink-0">
+                    <p class="text-xs font-bold text-gray-500 mb-2">配信済み加盟店:</p>
+                    <div id="statusChangeNotifyFranchiseList" class="flex flex-wrap gap-2">
+                        <!-- 動的に生成 -->
+                    </div>
+                </div>
+
+                <!-- メッセージ編集 -->
+                <div class="flex-1 overflow-y-auto p-4">
+                    <label class="text-xs font-bold text-gray-500 mb-2 block">通知メッセージ:</label>
+                    <textarea
+                        id="statusChangeNotifyMessage"
+                        class="w-full p-3 border-2 border-gray-200 rounded-xl resize-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all text-sm"
+                        rows="6"
+                        placeholder="加盟店への通知メッセージを入力..."
+                    ></textarea>
+                    <p class="text-xs text-gray-400 mt-2">※ 選択した加盟店にメール＆プッシュ通知されます</p>
+                </div>
+
+                <!-- アクションボタン -->
+                <div class="p-4 border-t bg-gray-50 flex-shrink-0">
+                    <div class="flex gap-3">
+                        <button onclick="sendStatusChangeWithoutNotify()" class="flex-1 py-3 bg-gray-200 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-300 transition-all">
+                            通知なしで変更
+                        </button>
+                        <button onclick="sendStatusChangeWithNotify()" class="flex-1 py-3 bg-purple-500 text-white rounded-xl font-bold text-sm hover:bg-purple-600 transition-all">
+                            📧 通知して変更
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- V2213: 配信先詳細モーダル -->
     <div id="deliveryDetailModal" class="fixed inset-0 z-50 hidden">
         <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeDeliveryDetailModal()"></div>
@@ -8413,6 +8465,113 @@ window.addEventListener('beforeunload', function(e) {
         }
         // ===== キャンセルフロー関連関数 END =====
 
+        // ===== V2216: ステータス変更通知フロー（キャンセル系用） =====
+        let statusChangeFlowCaseId = null;
+        let statusChangeFlowNewStatus = null;
+        let statusChangeFlowFranchises = [];
+
+        // ステータス変更通知モーダルを表示
+        async function showStatusChangeNotifyModal(caseId, newStatus) {
+            statusChangeFlowCaseId = caseId;
+            statusChangeFlowNewStatus = newStatus;
+
+            const caseData = casesData[caseId];
+            if (!caseData) return;
+
+            // 配信済み加盟店を取得
+            try {
+                const result = await window.apiClient.postRequest('admin_getDeliveredFranchises', { cvId: caseId });
+                statusChangeFlowFranchises = result.deliveredFranchises || [];
+            } catch (e) {
+                console.error('[showStatusChangeNotifyModal] 配信先取得エラー:', e);
+                statusChangeFlowFranchises = [];
+            }
+
+            // ヘッダー情報
+            document.getElementById('statusChangeNotifyTargetName').textContent = `${caseData.name || caseData.customerName || '---'} 様`;
+            document.getElementById('statusChangeNotifyNewStatus').textContent = `変更先: ${newStatus}`;
+
+            // 配信先一覧を表示
+            const listEl = document.getElementById('statusChangeNotifyFranchiseList');
+            if (statusChangeFlowFranchises.length > 0) {
+                listEl.innerHTML = statusChangeFlowFranchises.map(f => `
+                    <span class="px-2 py-1 bg-white border border-gray-300 rounded-lg text-xs font-medium text-gray-700">${f.franchiseName || f.franchiseId}</span>
+                `).join('');
+            } else {
+                listEl.innerHTML = '<span class="text-xs text-gray-400">配信先がありません</span>';
+            }
+
+            // デフォルトメッセージを設定（キャンセル系）
+            const customerName = caseData.name || caseData.customerName || 'お客様';
+            document.getElementById('statusChangeNotifyMessage').value = `いつもお世話になっております。
+外壁塗装くらべる運営事務局です。
+
+ご紹介済みの「${customerName}」様の案件につきまして、お客様のご都合によりキャンセルとなりましたのでご連絡申し上げます。
+
+本案件につきましては、紹介料等の費用は一切発生いたしませんのでご安心ください。
+
+つきましては、大変恐れ入りますが、本案件に関する情報は削除いただき、ご対応はなさらないようお願いいたします。
+
+ご不便をおかけして申し訳ございませんが、何卒よろしくお願い申し上げます。
+
+外壁塗装くらべる運営事務局`;
+
+            document.getElementById('statusChangeNotifyModal').classList.remove('hidden');
+        }
+
+        function closeStatusChangeNotifyModal() {
+            document.getElementById('statusChangeNotifyModal').classList.add('hidden');
+        }
+
+        // 通知なしでステータス変更のみ
+        async function sendStatusChangeWithoutNotify() {
+            try {
+                // ステータスのみ更新
+                await updateCaseStatusAfterCancel(statusChangeFlowCaseId, statusChangeFlowNewStatus);
+                showToast(`ステータスを「${statusChangeFlowNewStatus}」に変更しました`, 'success');
+                closeStatusChangeNotifyModal();
+                initializeListView();
+            } catch (e) {
+                console.error('[sendStatusChangeWithoutNotify] エラー:', e);
+                showToast('変更に失敗しました', 'error');
+            }
+        }
+
+        // 通知を送信してステータス変更
+        async function sendStatusChangeWithNotify() {
+            const message = document.getElementById('statusChangeNotifyMessage').value;
+            if (!message.trim()) {
+                showToast('メッセージを入力してください', 'error');
+                return;
+            }
+
+            try {
+                showToast('通知を送信中...', 'info');
+
+                // GAS APIで通知送信
+                const result = await window.apiClient.postRequest('admin_sendCancelNotify', {
+                    cvId: statusChangeFlowCaseId,
+                    message: message,
+                    franchises: statusChangeFlowFranchises.map(f => f.franchiseId),
+                    cancelDelivery: false
+                });
+
+                if (result.success) {
+                    // ステータス更新
+                    await updateCaseStatusAfterCancel(statusChangeFlowCaseId, statusChangeFlowNewStatus);
+                    showToast(`通知送信＆ステータスを「${statusChangeFlowNewStatus}」に変更しました`, 'success');
+                    closeStatusChangeNotifyModal();
+                    initializeListView();
+                } else {
+                    showToast('送信に失敗しました: ' + (result.error || ''), 'error');
+                }
+            } catch (e) {
+                console.error('[sendStatusChangeWithNotify] エラー:', e);
+                showToast('送信に失敗しました', 'error');
+            }
+        }
+        // ===== ステータス変更通知フロー END =====
+
         // リストからステータスを選択
         function selectListStatus(newStatus) {
             if (!currentEditingCaseId) return;
@@ -9263,15 +9422,17 @@ window.addEventListener('beforeunload', function(e) {
 
         // ステータスを選択
         function selectCRMStatus(status) {
-            // V2215: 転送済み案件でキャンセル・失注系を選択した場合は確認フローへ
             const caseData = casesData[currentCaseId];
             const transferCount = caseData?.transferCount || 0;
+
+            // V2216: 転送済み案件でキャンセル・失注系を選択した場合は通知モーダルへ
+            // （送るか送らないかはユーザー判断）
             const cancelStatuses = ['現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', '顧客クレーム'];
 
             if (transferCount > 0 && cancelStatuses.includes(status)) {
                 hideStatusModal();
-                // キャンセル確認モーダルを表示（キャンセル通知フローへ）
-                showCancelConfirmModal(currentCaseId);
+                // ステータス変更通知モーダルを表示（キャンセル系）
+                showStatusChangeNotifyModal(currentCaseId, status);
                 return;
             }
 
