@@ -3269,7 +3269,8 @@ info@gaihekikuraberu.com
       const merchantColIdx = {
         id: merchantHeaders.indexOf('登録ID'),
         name: merchantHeaders.indexOf('会社名'),
-        status: merchantHeaders.indexOf('ステータス')
+        status: merchantHeaders.indexOf('ステータス'),
+        registeredAt: merchantHeaders.indexOf('登録日時')  // V2213: 新規加盟店カウント用
       };
 
       // === 統計計算 ===
@@ -3425,6 +3426,22 @@ info@gaihekikuraberu.com
       // 成約件数でソート、上位5件
       merchantTop5.sort((a, b) => b.contractCount - a.contractCount);
       merchantTop5 = merchantTop5.slice(0, 5);
+
+      // V2213: アクティブ加盟店数
+      stats.activeMerchants = activeMerchants.length;
+
+      // V2213: 今月新規加盟店数
+      for (const row of merchantData.slice(1)) {
+        const registeredAt = row[merchantColIdx.registeredAt] ? new Date(row[merchantColIdx.registeredAt]) : null;
+        if (registeredAt && registeredAt >= thisMonth) {
+          stats.monthlyNewMerchants++;
+        }
+      }
+
+      // V2213: 成約率（今月の成約数÷今月の配信数）
+      stats.contractRate = stats.monthlyDeliveryCount > 0
+        ? Math.round((stats.monthlyContract / stats.monthlyDeliveryCount) * 100)
+        : 0;
 
       // アラート生成
       let alerts = [];

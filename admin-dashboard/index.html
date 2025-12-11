@@ -3438,6 +3438,28 @@ window.addEventListener('beforeunload', function(e) {
                 contractBadgeEl.classList.remove('hidden');
             }
 
+            // V2213: 今月CV数
+            const monthlyCvEl = document.getElementById('dashMonthlyCv');
+            const monthlyCvSubEl = document.getElementById('dashMonthlyCvSub');
+            if (monthlyCvEl) monthlyCvEl.textContent = stats.monthlyCv || 0;
+            if (monthlyCvSubEl) monthlyCvSubEl.textContent = `配信数: ${stats.monthlyDeliveryCount || 0}件`;
+
+            // V2213: 成約率
+            const contractRateEl = document.getElementById('dashContractRate');
+            const contractRateSubEl = document.getElementById('dashContractRateSub');
+            if (contractRateEl) contractRateEl.textContent = `${stats.contractRate || 0}%`;
+            if (contractRateSubEl) contractRateSubEl.textContent = `${stats.monthlyContract || 0}/${stats.monthlyDeliveryCount || 0}件`;
+
+            // V2213: 今月新規加盟店
+            const newMerchantsEl = document.getElementById('dashNewMerchants');
+            const newMerchantsSubEl = document.getElementById('dashNewMerchantsSub');
+            if (newMerchantsEl) newMerchantsEl.textContent = stats.monthlyNewMerchants || 0;
+            if (newMerchantsSubEl) newMerchantsSubEl.textContent = `今月登録`;
+
+            // V2213: アクティブ加盟店
+            const activeMerchantsEl = document.getElementById('dashActiveMerchants');
+            if (activeMerchantsEl) activeMerchantsEl.textContent = stats.activeMerchants || 0;
+
             // ステータス分布バー（StatusDefinitionsの色に合わせる）
             const statusBarsEl = document.getElementById('dashStatusBars');
             const statusTotalEl = document.getElementById('dashStatusTotal');
@@ -3707,6 +3729,54 @@ window.addEventListener('beforeunload', function(e) {
                                 <div class="text-2xl md:text-3xl font-bold text-gray-800" id="dashContractAmount">-</div>
                                 <div class="text-xs text-gray-500 mt-1">今月成約額</div>
                                 <div class="text-xs text-gray-400 mt-2" id="dashContractSub">--</div>
+                            </div>
+
+                            <!-- V2213: 今月CV数 -->
+                            <div onclick="showSection('cases')" class="bg-white rounded-xl p-4 md:p-5 border border-gray-200 hover:shadow-lg hover:border-indigo-200 transition-all cursor-pointer group">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center group-hover:bg-indigo-200 transition-colors">
+                                        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                                    </div>
+                                </div>
+                                <div class="text-2xl md:text-3xl font-bold text-gray-800" id="dashMonthlyCv">-</div>
+                                <div class="text-xs text-gray-500 mt-1">今月CV数</div>
+                                <div class="text-xs text-gray-400 mt-2" id="dashMonthlyCvSub">--</div>
+                            </div>
+
+                            <!-- V2213: 成約率 -->
+                            <div onclick="showSection('cases')" class="bg-white rounded-xl p-4 md:p-5 border border-gray-200 hover:shadow-lg hover:border-amber-200 transition-all cursor-pointer group">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center group-hover:bg-amber-200 transition-colors">
+                                        <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                                    </div>
+                                </div>
+                                <div class="text-2xl md:text-3xl font-bold text-gray-800" id="dashContractRate">-%</div>
+                                <div class="text-xs text-gray-500 mt-1">成約率</div>
+                                <div class="text-xs text-gray-400 mt-2" id="dashContractRateSub">--</div>
+                            </div>
+
+                            <!-- V2213: 今月新規加盟店 -->
+                            <div onclick="showSection('merchants')" class="bg-white rounded-xl p-4 md:p-5 border border-gray-200 hover:shadow-lg hover:border-cyan-200 transition-all cursor-pointer group">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center group-hover:bg-cyan-200 transition-colors">
+                                        <svg class="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                    </div>
+                                </div>
+                                <div class="text-2xl md:text-3xl font-bold text-gray-800" id="dashNewMerchants">-</div>
+                                <div class="text-xs text-gray-500 mt-1">今月新規加盟店</div>
+                                <div class="text-xs text-gray-400 mt-2" id="dashNewMerchantsSub">--</div>
+                            </div>
+
+                            <!-- V2213: アクティブ加盟店 -->
+                            <div onclick="showSection('merchants')" class="bg-white rounded-xl p-4 md:p-5 border border-gray-200 hover:shadow-lg hover:border-teal-200 transition-all cursor-pointer group">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center group-hover:bg-teal-200 transition-colors">
+                                        <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                    </div>
+                                </div>
+                                <div class="text-2xl md:text-3xl font-bold text-gray-800" id="dashActiveMerchants">-</div>
+                                <div class="text-xs text-gray-500 mt-1">アクティブ加盟店</div>
+                                <div class="text-xs text-gray-400 mt-2" id="dashActiveMerchantsSub">稼働中</div>
                             </div>
                         </div>
 
