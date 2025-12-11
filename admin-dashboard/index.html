@@ -7713,14 +7713,17 @@ window.addEventListener('beforeunload', function(e) {
         function updateSelectedCount() {
             const checkboxes = document.querySelectorAll('#casesListBody input[type="checkbox"]:checked');
             const selectedCount = checkboxes.length;
-            document.getElementById('selectedCount').textContent = selectedCount;
-            
+            const selectedCountEl = document.getElementById('selectedCount');
+            if (selectedCountEl) selectedCountEl.textContent = selectedCount;
+
             // 選択件数表示の表示/非表示を制御
             const selectionDisplay = document.getElementById('selectionCountDisplay');
-            if (selectedCount > 0 && currentView === 'list') {
-                selectionDisplay.classList.remove('hidden');
-            } else {
-                selectionDisplay.classList.add('hidden');
+            if (selectionDisplay) {
+                if (selectedCount > 0 && currentView === 'list') {
+                    selectionDisplay.classList.remove('hidden');
+                } else {
+                    selectionDisplay.classList.add('hidden');
+                }
             }
         }
         
