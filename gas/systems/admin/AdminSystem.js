@@ -3574,16 +3574,18 @@ info@gaihekikuraberu.com
         }
       }
 
-      // メール送信
+      // メール＆通知送信
       let sentCount = 0;
       if (franchises && franchises.length > 0) {
         for (const franchiseId of franchises) {
           const info = franchiseEmailMap[franchiseId];
+
+          // メール送信
           if (info && info.email) {
             try {
               MailApp.sendEmail({
                 to: info.email,
-                subject: '【くらべるネット】案件キャンセルのお知らせ',
+                subject: '【外壁塗装くらべる】案件キャンセルのお知らせ',
                 body: message
               });
               sentCount++;
@@ -3591,6 +3593,22 @@ info@gaihekikuraberu.com
             } catch (mailError) {
               console.error('[sendCancelNotify] メール送信エラー:', info.email, mailError);
             }
+          }
+
+          // プッシュ通知送信
+          try {
+            if (typeof NotificationDispatcher !== 'undefined' && NotificationDispatcher.sendNotification) {
+              NotificationDispatcher.sendNotification({
+                merchantId: franchiseId,
+                type: 'case_cancel',
+                title: '案件キャンセルのお知らせ',
+                body: `ご紹介済みの案件がキャンセルとなりました。詳細はメールをご確認ください。`,
+                data: { cvId: cvId, type: 'cancel' }
+              });
+              console.log('[sendCancelNotify] 通知送信成功:', franchiseId);
+            }
+          } catch (notifyError) {
+            console.error('[sendCancelNotify] 通知送信エラー:', franchiseId, notifyError);
           }
         }
       }

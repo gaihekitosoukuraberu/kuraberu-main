@@ -8305,15 +8305,17 @@ window.addEventListener('beforeunload', function(e) {
             // デフォルトメッセージを設定
             const customerName = caseData.name || caseData.customerName || 'お客様';
             document.getElementById('cancelNotifyMessage').value = `いつもお世話になっております。
-くらべるネット運営事務局です。
+外壁塗装くらべる運営事務局です。
 
-先日ご紹介させていただきました「${customerName}」様の案件につきまして、お客様のご都合によりキャンセルとなりましたのでご連絡申し上げます。
+ご紹介済みの「${customerName}」様の案件につきまして、お客様のご都合によりキャンセルとなりましたのでご連絡申し上げます。
+
+本案件につきましては、紹介料等の費用は一切発生いたしませんのでご安心ください。
 
 つきましては、大変恐れ入りますが、本案件に関する情報は削除いただき、ご対応はなさらないようお願いいたします。
 
 ご不便をおかけして申し訳ございませんが、何卒よろしくお願い申し上げます。
 
-くらべるネット運営事務局`;
+外壁塗装くらべる運営事務局`;
 
             document.getElementById('cancelNotifyModal').classList.remove('hidden');
         }
