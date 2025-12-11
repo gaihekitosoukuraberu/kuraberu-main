@@ -7808,12 +7808,13 @@ window.addEventListener('beforeunload', function(e) {
             if (mobileContainer) {
                 mobileContainer.innerHTML = '';
 
-                // V1966: モバイルカードをリデザイン
+                // V2214: モバイルカードをリデザイン - バッジタップでモーダル開く形式
                 pageCases.forEach(([caseId, caseData]) => {
                     const statusColor = getStatusColor(caseData.status);
                     const floorDisplay = getFloorDisplay(caseData.propertyType, caseData.floors, caseData.q1PropertyType);
                     // V2213: 配信状況に応じた背景色
                     const cardBgClass = getDeliveryCardBgClass(caseData);
+                    const counts = getCallAndMemoCounts(caseData);
 
                     const card = document.createElement('div');
                     card.className = `${cardBgClass} rounded-xl border border-gray-200 p-4 hover:shadow-lg transition-shadow`;
@@ -7834,39 +7835,36 @@ window.addEventListener('beforeunload', function(e) {
                             </div>
                             <div class="flex items-center gap-2 mt-1">
                                 <span class="text-xs text-gray-400 font-mono">${caseId}</span>
-                                ${getDeliveryStatusDisplay(caseData, caseId)}
                             </div>
                         </div>
 
-                        <!-- サブ情報: 郵便番号 + 次回架電 -->
-                        <div class="flex items-center gap-4 text-xs text-gray-500 mb-2">
+                        <!-- V2214: バッジ行 - タップでモーダル開く -->
+                        <div class="flex flex-wrap items-center gap-2 mb-3">
+                            ${counts.callTotal > 0 ? `<span onclick="event.stopPropagation(); openCallLogModal('${caseId}')" class="inline-flex items-center gap-0.5 px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium cursor-pointer hover:bg-blue-100 transition-colors">📞 ${counts.connectedTotal}/${counts.callTotal}</span>` : ''}
+                            ${counts.memoTotal > 0 ? `<span onclick="event.stopPropagation(); openCallHistoryModal('${caseId}')" class="inline-flex items-center gap-0.5 px-2 py-1 bg-amber-50 text-amber-600 rounded-lg text-xs font-medium cursor-pointer hover:bg-amber-100 transition-colors">📝 ${counts.memoTotal}</span>` : ''}
+                            ${getDeliveryStatusDisplay(caseData, caseId)}
+                            ${caseData.nextCallDate || caseData.label ? `<span onclick="event.stopPropagation(); openNextCallModal('${caseId}')" class="inline-flex items-center gap-1 px-2 py-1 bg-gray-50 text-gray-600 rounded-lg text-xs font-medium cursor-pointer hover:bg-gray-100 transition-colors">${caseData.nextCallDate ? '📅 ' + formatNextCallDate(caseData.nextCallDate) : ''}${caseData.label ? (caseData.nextCallDate ? ' / ' : '') + '🏷️' + caseData.label : ''}</span>` : ''}
+                        </div>
+
+                        <!-- サブ情報: 郵便番号 -->
+                        <div class="flex items-center gap-4 text-xs text-gray-500 mb-3">
                             <div class="relative">
                                 <span class="cursor-pointer hover:text-gray-700" onclick="event.stopPropagation(); toggleMobileAddressTooltip('${caseId}')">📍 ${caseData.postalCode || '-'}</span>
                                 <div id="mobile-tooltip-${caseId}" class="hidden absolute left-0 top-full mt-1 z-50 bg-gray-900 text-white text-xs rounded-lg py-2 px-3 max-w-[200px] whitespace-normal">
                                     ${caseData.address || '住所未設定'}
                                 </div>
                             </div>
-                            ${caseData.nextCallDate ? `<span class="text-blue-600 font-medium">📅 ${formatNextCallDate(caseData.nextCallDate)}</span>` : ''}
                         </div>
 
-                        <!-- ラベル -->
-                        ${caseData.label ? `<div class="mb-3"><span class="inline-block px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">🏷️ ${caseData.label}</span></div>` : ''}
-
-                        <!-- アクションバー -->
+                        <!-- V2214: アクションバー - シンプル化 -->
                         <div class="flex justify-between items-center pt-3 border-t border-gray-100">
-                            <div class="flex items-center gap-3">
-                                <div class="flex items-center">
-                                    <button onclick="callCase('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="電話">📞</button>
-                                    ${getCallCountBadge(caseData)}
-                                </div>
-                                <button onclick="openSmsModal('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="メッセージ">💬</button>
-                                <div class="flex items-center">
-                                    <button onclick="openCallHistoryModal('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="メモ">📝</button>
-                                    ${getMemoCountBadge(caseData)}
-                                </div>
-                                <button onclick="event.stopPropagation(); openNextCallModal('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="次回架電日設定">🗓️</button>
+                            <div class="flex items-center gap-2">
+                                <button onclick="openCRM('${caseId}')" class="px-3 py-1.5 text-xs font-medium bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">詳細</button>
+                                <button onclick="openSmsModal('${caseId}')" class="px-3 py-1.5 text-xs font-medium bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">💬 SMS</button>
                             </div>
-                            <button onclick="openCRM('${caseId}')" class="px-4 py-1.5 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">詳細</button>
+                            <button onclick="callCase('${caseId}')" class="px-4 py-1.5 text-sm font-bold bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-1">
+                                📞 発信
+                            </button>
                         </div>
                     `;
                     mobileContainer.appendChild(card);
