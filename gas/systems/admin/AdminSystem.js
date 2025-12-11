@@ -3296,7 +3296,12 @@ info@gaihekikuraberu.com
         monthlyContractAmount: 0, // 今月成約金額
         monthlyReferral: 0,   // 今月紹介料
         todayReferral: 0,     // V2213: 今日の紹介料（配信金額合計）
-        todayDeliveryCount: 0 // V2213: 今日の配信数
+        todayDeliveryCount: 0, // V2213: 今日の配信数
+        // V2213: 経営指標追加
+        monthlyNewMerchants: 0,  // 今月新規加盟店
+        monthlyCv: 0,            // 今月CV数
+        monthlyDeliveryCount: 0, // 今月配信数
+        activeMerchants: 0       // アクティブ加盟店数
       };
 
       // ステータス別カウント
@@ -3327,6 +3332,10 @@ info@gaihekikuraberu.com
         // 本日新規CV
         if (registeredAt && registeredAt >= today) {
           stats.todayCv++;
+        }
+        // 今月CV数
+        if (registeredAt && registeredAt >= thisMonth) {
+          stats.monthlyCv++;
         }
         // 昨日の新規CV
         const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
@@ -3363,9 +3372,10 @@ info@gaihekikuraberu.com
           stats.todayDeliveryCount++;
         }
 
-        // 今月の紹介料を集計
+        // 今月の紹介料・配信数を集計
         if (deliveredAt && deliveredAt >= thisMonth) {
           stats.monthlyReferral += deliveryAmount;
+          stats.monthlyDeliveryCount++;
         }
 
         // 配信中案件
