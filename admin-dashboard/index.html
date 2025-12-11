@@ -3183,8 +3183,14 @@ window.addEventListener('beforeunload', function(e) {
         async function loadAdminDashboardData() {
             console.log('[loadAdminDashboardData] 開始');
             try {
-                const response = await fetch(`${ENV.GAS_URL}?action=admin_getAdminDashboardStats`);
-                const result = await response.json();
+                // ApiClientが初期化されるまで待機
+                if (!window.apiClient) {
+                    console.log('[loadAdminDashboardData] ApiClient待機中...');
+                    setTimeout(loadAdminDashboardData, 500);
+                    return;
+                }
+
+                const result = await window.apiClient.jsonpRequest('admin_getAdminDashboardStats', {});
 
                 if (!result.success) {
                     console.error('[loadAdminDashboardData] エラー:', result.error);
