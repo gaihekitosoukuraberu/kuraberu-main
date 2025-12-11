@@ -3183,7 +3183,7 @@ window.addEventListener('beforeunload', function(e) {
         async function loadAdminDashboardData() {
             console.log('[loadAdminDashboardData] 開始');
             try {
-                const response = await fetch(`${window.GAS_URL}?action=admin_getAdminDashboardStats`);
+                const response = await fetch(`${ENV.GAS_URL}?action=admin_getAdminDashboardStats`);
                 const result = await response.json();
 
                 if (!result.success) {
