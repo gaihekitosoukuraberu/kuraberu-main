@@ -273,13 +273,19 @@ const RankingSystem = {
           continue;
         }
 
-        // V1713-FIX: 都道府県チェック（全国版の場合はスキップ）
-        if (prefecture && (!prefectures || prefectures.indexOf(prefecture) === -1)) {
-          filterStats.rejectedByPrefecture++;
-          continue;
+        // V2217: 都道府県チェックも除外ではなくマッチ度で反映
+        // 全業者を候補として残し、エリアマッチはスコアで調整
+        let prefectureMatchFlag = false;
+        if (prefecture && prefectures) {
+          prefectureMatchFlag = prefectures.indexOf(prefecture) !== -1;
+          if (!prefectureMatchFlag) {
+            filterStats.rejectedByPrefecture++; // 統計用（除外はしない）
+          }
+        } else {
+          prefectureMatchFlag = true; // 都道府県指定なしは全マッチ扱い
         }
 
-        // V2217: 市区町村チェックは除外ではなくマッチ度計算で反映
+        // V2217: 市区町村チェックも除外ではなくマッチ度計算で反映
         // 都道府県が合っていれば候補として残し、市区町村マッチはスコアで調整
         // これにより、希望エリア外でも候補として表示される
         let cityMatchFlag = false;
@@ -433,11 +439,11 @@ const RankingSystem = {
         const pastDataMetrics = this.getPastDataMetrics(companyName);
 
         // V1713: 完全マッチ判定（都道府県 + 市区町村 + 工事種別 + 築年数100%マッチ）
-        // V2217: cityMatchFlagを使用（上で計算済み）
+        // V2217: prefectureMatchFlag, cityMatchFlagを使用（上で計算済み）
         // 築年数100%マッチ: ユーザーの希望範囲が業者の対応範囲に完全に含まれる
         const buildingAgeFullMatch = (buildingAgeMatchScore === 100);
-        // 完全マッチフラグ: 上記すべてがtrue（都道府県と工事種別は既にフィルタ済み）
-        const isCompleteMatch = cityMatchFlag && buildingAgeFullMatch;
+        // 完全マッチフラグ: 上記すべてがtrue
+        const isCompleteMatch = prefectureMatchFlag && cityMatchFlag && buildingAgeFullMatch;
 
         // V1713: ボーナスフィールド取得
         const priorityArea = row[colIndex.priorityArea];
@@ -522,6 +528,8 @@ const RankingSystem = {
           specialSupport: row[colIndex.specialSupport] || '',
           maxFloors: row[colIndex.maxFloors] || '', // V1895: 最大対応階数（物件種別と階数を含む）
           matchRate: matchRate, // V1896: マッチ度（0-100）
+          prefectureMatch: prefectureMatchFlag, // V2217: 都道府県マッチフラグ
+          cityMatch: cityMatchFlag, // V2217: 市区町村マッチフラグ
           contractCount: recent3MonthContractCount,
           // V1750: 3ヶ月データ追加
           recent3MonthRevenue: recent3MonthRevenue,
@@ -1366,7 +1374,14 @@ const RankingSystem = {
     const DEFAULT_REVENUE = 500000; // デフォルト売上: 50万円
 
     return companies.sort(function(a, b) {
-      // V1921: まずマッチ度で降順ソート（高マッチ度が上位）
+      // V2217: まず都道府県マッチを優先（マッチする業者を上位に）
+      const prefMatchA = a.prefectureMatch ? 1 : 0;
+      const prefMatchB = b.prefectureMatch ? 1 : 0;
+      if (prefMatchB !== prefMatchA) {
+        return prefMatchB - prefMatchA;
+      }
+
+      // V1921: 次にマッチ度で降順ソート（高マッチ度が上位）
       const matchRateA = a.matchRate || 0;
       const matchRateB = b.matchRate || 0;
       if (matchRateB !== matchRateA) {
