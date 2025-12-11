@@ -89,6 +89,7 @@ const AdminSystem = {
           return this.updateCVStatus(params);
 
         case 'getAdminDashboardStats':
+        case 'admin_getAdminDashboardStats':
           return this.getAdminDashboardStats();
 
         default:

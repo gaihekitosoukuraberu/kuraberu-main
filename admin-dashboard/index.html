@@ -3205,6 +3205,28 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
+        // ダッシュボードから案件詳細を開く
+        function openCaseFromDashboard(cvId) {
+            console.log('[openCaseFromDashboard] cvId:', cvId);
+            // 案件管理セクションに遷移してから該当案件を開く
+            showSection('cases');
+            // casesDataがロードされた後に案件を開く
+            setTimeout(() => {
+                if (casesData && casesData[cvId]) {
+                    openCaseDetail(cvId);
+                } else {
+                    // casesDataにない場合はAPIで取得して開く
+                    console.log('[openCaseFromDashboard] casesDataにないためAPI取得試行:', cvId);
+                    // 検索フィルターに入力してフォーカス
+                    const searchInput = document.getElementById('searchInput');
+                    if (searchInput) {
+                        searchInput.value = cvId;
+                        searchInput.dispatchEvent(new Event('input'));
+                    }
+                }
+            }, 500);
+        }
+
         function renderAdminDashboard(data) {
             const { stats, statusCounts, merchantTop5, alerts, activities, updatedAt } = data;
 
@@ -3271,17 +3293,21 @@ window.addEventListener('beforeunload', function(e) {
                 contractBadgeEl.classList.remove('hidden');
             }
 
-            // ステータス分布バー
+            // ステータス分布バー（StatusDefinitionsの色に合わせる）
             const statusBarsEl = document.getElementById('dashStatusBars');
             const statusTotalEl = document.getElementById('dashStatusTotal');
             if (statusBarsEl && statusCounts) {
                 const statusConfig = [
-                    { key: '新規', label: '新規', color: 'bg-red-500' },
-                    { key: '配信中', label: '配信中', color: 'bg-yellow-500' },
-                    { key: '配信済', label: '配信済', color: 'bg-blue-500' },
-                    { key: '見込み', label: '見込み', color: 'bg-purple-500' },
-                    { key: '成約', label: '成約', color: 'bg-green-500' },
-                    { key: 'ロスト', label: 'ロスト', color: 'bg-gray-400' }
+                    { key: '新規', label: '新規', color: 'bg-blue-500' },
+                    { key: '不在', label: '不在', color: 'bg-gray-400' },
+                    { key: '再架電', label: '再架電', color: 'bg-yellow-500' },
+                    { key: '見込み', label: '見込み', color: 'bg-orange-500' },
+                    { key: '配信中', label: '配信中', color: 'bg-green-500' },
+                    { key: '配信済', label: '配信済', color: 'bg-purple-500' },
+                    { key: 'ロスト', label: 'ロスト', color: 'bg-gray-600' },
+                    { key: '他社契約済', label: '他社契約', color: 'bg-slate-500' },
+                    { key: '無効', label: '無効', color: 'bg-gray-500' },
+                    { key: 'クレーム', label: 'クレーム', color: 'bg-red-600' }
                 ];
 
                 const total = Object.values(statusCounts).reduce((a, b) => a + b, 0);
@@ -3290,6 +3316,7 @@ window.addEventListener('beforeunload', function(e) {
                 let html = '';
                 for (const cfg of statusConfig) {
                     const count = statusCounts[cfg.key] || 0;
+                    if (count === 0) continue; // 0件は非表示
                     const pct = total > 0 ? Math.round((count / total) * 100) : 0;
                     html += `
                         <div class="flex items-center gap-3">
@@ -3358,12 +3385,12 @@ window.addEventListener('beforeunload', function(e) {
                         const subColor = alert.severity === 'high' ? 'text-red-600' : 'text-yellow-600';
                         const btnColor = alert.severity === 'high' ? 'bg-red-500 hover:bg-red-600' : 'bg-yellow-500 hover:bg-yellow-600';
                         html += `
-                            <div class="flex items-center justify-between p-3 ${bgColor} border-l-4 rounded">
+                            <div class="flex items-center justify-between p-3 ${bgColor} border-l-4 rounded cursor-pointer hover:opacity-90 transition-opacity" onclick="openCaseFromDashboard('${alert.cvId}')">
                                 <div class="flex-1 min-w-0">
                                     <div class="text-sm font-semibold ${textColor} truncate">${alert.title}</div>
                                     <div class="text-xs ${subColor} truncate">${alert.message}</div>
                                 </div>
-                                <button onclick="showSection('cases')" class="ml-2 px-3 py-1 ${btnColor} text-white text-xs rounded whitespace-nowrap">対応</button>
+                                <button onclick="event.stopPropagation(); openCaseFromDashboard('${alert.cvId}')" class="ml-2 px-3 py-1 ${btnColor} text-white text-xs rounded whitespace-nowrap">対応</button>
                             </div>
                         `;
                     });
