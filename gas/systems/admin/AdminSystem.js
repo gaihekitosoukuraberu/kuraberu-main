@@ -2383,8 +2383,9 @@ const AdminSystem = {
         // 34:キャンセル申請ID, 35:期限延長申請ID, 36:お断りメール送信済みフラグ, 37:配信金額
         // V1999: お断りメール送信済みフラグはチェックボックス→false（boolean）
         // V2037: 配信ステータスは「配信済み」に統一（プルダウン規則に合わせる）
+        // V2216: 詳細ステータスは「新着」に統一（StatusDefinitionsと同期）
         return [recordId, cvId, franchise.franchiseId, timestamp, franchise.rank || (index + 1),
-          '配信済み', '未対応', timestamp, timestamp, 0, 0, 0, 0, '', '', '', '', '', '[]', '', '[]', '[]', '', '', '', '', '', '', '', '', '', '', '', '', '', false, fee];
+          '配信済み', '新着', timestamp, timestamp, 0, 0, 0, 0, '', '', '', '', '', '[]', '', '[]', '[]', '', '', '', '', '', '', '', '', '', '', '', '', '', false, fee];
       });
 
       // V2014: デバッグ - records配列の内容を確認
