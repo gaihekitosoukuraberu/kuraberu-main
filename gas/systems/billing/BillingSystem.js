@@ -78,6 +78,8 @@ const BillingSystem = {
         return this.getProfitAnalysis(params.merchantId, params.month);
       case 'billing_bulkUpdateDueDate':
         return this.bulkUpdateDueDate(params.targetMonth, params.newDueDate, params.reason);
+      case 'billing_getDashboardStats':
+        return this.getDashboardStats(params.merchantId);
       default:
         return { success: false, error: 'Unknown billing action: ' + action };
     }
@@ -2494,6 +2496,145 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
       };
     } catch (e) {
       console.error('[BillingSystem] bulkUpdateDueDate error:', e);
+      return { success: false, error: e.message };
+    }
+  },
+
+  /**
+   * ダッシュボード統計取得（加盟店向け）
+   * - 新規案件数（今月の配信件数）
+   * - 成約率（成約/配信）
+   * - 対応中（ステータスが配信済み・ヒアリング中など）
+   * - 最近の案件（直近5件）
+   */
+  getDashboardStats: function(merchantId) {
+    try {
+      if (!merchantId) {
+        return { success: false, error: '加盟店IDが指定されていません' };
+      }
+
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+
+      // 配信管理シート
+      const deliverySheet = ss.getSheetByName(this.SHEETS.DELIVERY);
+      if (!deliverySheet) {
+        return { success: false, error: '配信管理シートが見つかりません' };
+      }
+
+      // ユーザー登録シート（顧客名取得用）
+      const userSheet = ss.getSheetByName('ユーザー登録');
+
+      // 配信管理データ取得
+      const deliveryData = deliverySheet.getDataRange().getValues();
+      const deliveryHeaders = deliveryData[0];
+      const dIdx = {
+        cvId: deliveryHeaders.indexOf('CV ID'),
+        merchantId: deliveryHeaders.indexOf('加盟店ID'),
+        deliveryDate: deliveryHeaders.indexOf('配信日時'),
+        deliveryStatus: deliveryHeaders.indexOf('配信ステータス'),
+        deliveryAmount: deliveryHeaders.indexOf('配信金額'),
+        contractAmount: deliveryHeaders.indexOf('成約金額'),
+        contractDate: deliveryHeaders.indexOf('成約日時')
+      };
+
+      // ユーザー情報マップ作成
+      const cvInfoMap = {};
+      if (userSheet) {
+        const userData = userSheet.getDataRange().getValues();
+        const userHeaders = userData[0];
+        const uIdx = {
+          cvId: userHeaders.indexOf('CV ID'),
+          name: userHeaders.indexOf('氏名')
+        };
+        for (let i = 1; i < userData.length; i++) {
+          const cvId = userData[i][uIdx.cvId];
+          if (cvId) {
+            cvInfoMap[cvId] = userData[i][uIdx.name] || '名前なし';
+          }
+        }
+      }
+
+      // 今月の期間
+      const now = new Date();
+      const thisYear = now.getFullYear();
+      const thisMonth = now.getMonth(); // 0-based
+
+      // 統計変数
+      let newCases = 0;      // 今月の新規案件
+      let totalCases = 0;    // 加盟店の全案件
+      let contractedCases = 0; // 成約件数
+      let inProgressCases = 0; // 対応中
+      const recentCases = []; // 最近の案件
+
+      // データ走査
+      for (let i = 1; i < deliveryData.length; i++) {
+        const row = deliveryData[i];
+        const rowMerchantId = row[dIdx.merchantId];
+
+        // 加盟店IDでフィルタ
+        if (rowMerchantId !== merchantId) continue;
+
+        totalCases++;
+        const status = row[dIdx.deliveryStatus];
+        const deliveryDate = row[dIdx.deliveryDate];
+        const cvId = row[dIdx.cvId];
+        const contractAmount = row[dIdx.contractAmount] || 0;
+
+        // 今月の新規案件カウント
+        if (deliveryDate) {
+          const date = new Date(deliveryDate);
+          if (date.getFullYear() === thisYear && date.getMonth() === thisMonth) {
+            newCases++;
+          }
+        }
+
+        // ステータス別カウント
+        if (status === '成約') {
+          contractedCases++;
+        } else if (status === '配信済み' || status === 'ヒアリング中' || status === '見積中' || status === '商談中') {
+          inProgressCases++;
+        }
+
+        // 最近の案件リストに追加（後で日付ソート）
+        recentCases.push({
+          cvId: cvId,
+          customerName: cvInfoMap[cvId] || '名前なし',
+          status: status,
+          deliveryDate: deliveryDate,
+          contractAmount: contractAmount
+        });
+      }
+
+      // 成約率計算（配信済み+成約 に対する成約の割合）
+      const deliveredAndContracted = contractedCases + inProgressCases;
+      const contractRate = deliveredAndContracted > 0 ? Math.round((contractedCases / deliveredAndContracted) * 100) : 0;
+
+      // 最近の案件を日付降順ソート、上位5件
+      recentCases.sort((a, b) => {
+        const dateA = a.deliveryDate ? new Date(a.deliveryDate) : new Date(0);
+        const dateB = b.deliveryDate ? new Date(b.deliveryDate) : new Date(0);
+        return dateB - dateA;
+      });
+      const top5Cases = recentCases.slice(0, 5).map((c, idx) => ({
+        id: c.cvId,
+        customerName: c.customerName,
+        status: c.status || '新規',
+        updatedAt: this._formatDateForApi(c.deliveryDate)
+      }));
+
+      return {
+        success: true,
+        stats: {
+          newCases: newCases,
+          contractRate: contractRate,
+          inProgress: inProgressCases,
+          totalCases: totalCases
+        },
+        recentCases: top5Cases
+      };
+    } catch (e) {
+      console.error('[BillingSystem] getDashboardStats error:', e);
       return { success: false, error: e.message };
     }
   }
