@@ -7469,7 +7469,7 @@ window.addEventListener('beforeunload', function(e) {
                 
                 row.innerHTML = `
                     <td class="px-3 py-4 whitespace-nowrap">
-                        <input type="checkbox" class="rounded text-blue-600 case-checkbox" data-case-id="${caseId}" onchange="updateSelectedCount()">
+                        <input type="checkbox" class="rounded text-blue-600 case-checkbox" data-case-id="${caseId}" onchange="updateCheckboxSelectedCount()">
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap">
                         <button class="px-4 py-1.5 ${statusColor} rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all text-xs font-semibold" onclick="event.stopPropagation(); openListStatusModal('${caseId}', this)">
@@ -7619,7 +7619,7 @@ window.addEventListener('beforeunload', function(e) {
             }
 
             updateStatistics();
-            updateSelectedCount();
+            updateCheckboxSelectedCount();
 
             // リスト表示時の件数表示を表示
             document.getElementById('listCountDisplay')?.classList.remove('hidden');
@@ -7709,8 +7709,8 @@ window.addEventListener('beforeunload', function(e) {
             initializeListView();
         }
         
-        // 選択件数の更新
-        function updateSelectedCount() {
+        // 選択件数の更新（チェックボックス用）
+        function updateCheckboxSelectedCount() {
             const checkboxes = document.querySelectorAll('#casesListBody input[type="checkbox"]:checked');
             const selectedCount = checkboxes.length;
             const selectedCountEl = document.getElementById('selectedCount');
@@ -7734,7 +7734,7 @@ window.addEventListener('beforeunload', function(e) {
             checkboxes.forEach(checkbox => {
                 checkbox.checked = selectAll.checked;
             });
-            updateSelectedCount();
+            updateCheckboxSelectedCount();
         }
         
         // ステータス変更
@@ -11306,7 +11306,7 @@ window.addEventListener('beforeunload', function(e) {
                 initializeListView();
 
                 // リスト表示時は選択件数の表示を更新
-                updateSelectedCount();
+                updateCheckboxSelectedCount();
             } else {
                 document.getElementById('listView').classList.add('hidden');
                 document.getElementById('crmView').classList.remove('hidden');
