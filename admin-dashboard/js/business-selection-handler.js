@@ -664,12 +664,34 @@ const BusinessSelectionHandler = {
       ...(rankings?.premium || [])
     ];
 
+    // V2218: マージ時にデータが欠落している場合は後から来た完全なデータで補完
+    const mergedMap = new Map();
+
     lists.forEach(business => {
       const key = business.companyName;
-      if (!seen.has(key)) {
-        seen.add(key);
-        merged.push(this.convertToFranchiseFormat(business));
+      if (!mergedMap.has(key)) {
+        mergedMap.set(key, business);
+      } else {
+        // 既存データと比較して、より完全なデータで補完
+        const existing = mergedMap.get(key);
+        // constructionTypesが空の場合は上書き
+        if (!existing.constructionTypes && business.constructionTypes) {
+          console.log('[V2218-MERGE] constructionTypes補完:', key, business.constructionTypes?.substring(0, 50));
+          existing.constructionTypes = business.constructionTypes;
+        }
+        // citiesが空の場合は上書き
+        if (!existing.cities && business.cities) {
+          existing.cities = business.cities;
+        }
+        // maxFloorsが空の場合は上書き
+        if (!existing.maxFloors && business.maxFloors) {
+          existing.maxFloors = business.maxFloors;
+        }
       }
+    });
+
+    mergedMap.forEach((business) => {
+      merged.push(this.convertToFranchiseFormat(business));
     });
 
     return merged;
@@ -2863,7 +2885,15 @@ const BusinessSelectionHandler = {
           initializeListView();
         }
 
-        alert(`${companyName} への転送を取り消しました`);
+        // V2218: 返金情報を含むメッセージ
+        let message = `${companyName} への転送を取り消しました`;
+        if (response.refundMessage) {
+          message += `\n\n【課金/返金情報】\n${response.refundMessage}`;
+          if (response.deliveryDate) {
+            message += `\n配信日時: ${response.deliveryDate}`;
+          }
+        }
+        alert(message);
       } else {
         throw new Error(response?.error || '取り消しに失敗しました');
       }

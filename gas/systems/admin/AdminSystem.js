@@ -2551,6 +2551,7 @@ const AdminSystem = {
    * 転送取り消し
    * - 配信管理シートから該当レコードを削除
    * - ユーザー登録シートのステータスを臨機応変に調整
+   * - V2218: 48時間判定で課金/返金を決定
    */
   cancelTransfer: function(params) {
     try {
@@ -2576,8 +2577,12 @@ const AdminSystem = {
       const cvIdIdx = deliveryHeaders.indexOf('CV ID');
       const franchiseIdIdx = deliveryHeaders.indexOf('加盟店ID');
       const deliveryStatusIdx = deliveryHeaders.indexOf('配信ステータス');
+      const deliveryDateIdx = deliveryHeaders.indexOf('配信日時');  // V2218: 配信日時カラム
 
       let deletedRow = -1;
+      let deliveryDate = null;  // V2218: 配信日時を記録
+      let isRefundable = false;  // V2218: 返金対象フラグ
+
       for (let i = deliveryData.length - 1; i >= 1; i--) {
         const rowCvId = deliveryData[i][cvIdIdx];
         const rowFranchiseId = deliveryData[i][franchiseIdIdx];
@@ -2587,6 +2592,23 @@ const AdminSystem = {
         if (rowCvId === cvId &&
             (rowFranchiseId === franchiseId || !franchiseId) &&
             (rowStatus === '配信済' || rowStatus === '配信済み')) {
+
+          // V2218: 配信日時を取得して48時間判定
+          if (deliveryDateIdx >= 0) {
+            deliveryDate = deliveryData[i][deliveryDateIdx];
+            if (deliveryDate) {
+              const deliveryTime = new Date(deliveryDate).getTime();
+              const now = new Date().getTime();
+              const hoursDiff = (now - deliveryTime) / (1000 * 60 * 60);
+              isRefundable = hoursDiff <= 48;
+              console.log('[cancelTransfer] V2218 48時間判定:', {
+                deliveryDate,
+                hoursDiff: hoursDiff.toFixed(1),
+                isRefundable
+              });
+            }
+          }
+
           deletedRow = i + 1; // 1-indexed
           deliverySheet.deleteRow(deletedRow);
           console.log('[cancelTransfer] 配信管理から削除: 行', deletedRow);
@@ -2653,7 +2675,11 @@ const AdminSystem = {
         success: true,
         deletedRow: deletedRow,
         remainingCount: remainingCount,
-        newStatus: newStatus
+        newStatus: newStatus,
+        // V2218: 課金/返金情報
+        isRefundable: isRefundable,
+        deliveryDate: deliveryDate ? Utilities.formatDate(new Date(deliveryDate), 'Asia/Tokyo', 'yyyy/MM/dd HH:mm') : null,
+        refundMessage: isRefundable ? '返金対象（配信後48時間以内）' : '課金済み（配信後48時間超過）'
       };
     } catch (error) {
       console.error('[cancelTransfer] エラー:', error);

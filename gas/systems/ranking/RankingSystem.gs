@@ -259,6 +259,15 @@ const RankingSystem = {
           console.log('  対応市区町村: ' + cities);
         }
 
+        // V2218-DEBUG: やまもとくんの工事種別デバッグ
+        if (companyName === 'やまもとくん') {
+          console.log('[V2218-DEBUG] やまもとくん発見:');
+          console.log('  constructionTypes列Index:', colIndex.constructionTypes);
+          console.log('  constructionTypes値:', constructionTypes);
+          console.log('  constructionTypes長さ:', constructionTypes ? constructionTypes.length : 0);
+          console.log('  row全体長さ:', row.length);
+        }
+
         // ステータスチェック（承認済み + 配信停止以外 + サイレントフラグOFF）（V1893修正）
         if (approvalStatus !== '承認済み') {
           filterStats.rejectedByApproval++;
