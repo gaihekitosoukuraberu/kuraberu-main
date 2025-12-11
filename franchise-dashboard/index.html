@@ -29316,8 +29316,16 @@
                 if (thisMonthResult.success) allEvents = allEvents.concat(thisMonthResult.events || []);
                 if (nextMonthResult.success) allEvents = allEvents.concat(nextMonthResult.events || []);
 
-                // V2198: ダッシュボードのキャッシュに保存（日付タップ用）
+                // V2201: ダッシュボードのキャッシュに保存（日付タップ用）+ カレンダー用にも同期
                 dashboardEventsCache = allEvents;
+                calendarEvents = allEvents.map((e, idx) => ({
+                    id: e.id || idx,
+                    title: e.customerName + ' ' + e.type,
+                    date: e.date,
+                    color: e.color || 'blue'
+                }));
+                // ミニカレンダーを再描画
+                renderMiniCalendar();
 
                 // 今日以降の予定のみフィルタ
                 const today = now.toISOString().split('T')[0];
