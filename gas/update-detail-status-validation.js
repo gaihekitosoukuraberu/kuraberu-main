@@ -19,21 +19,27 @@ function updateDetailStatusValidation() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheets = ss.getSheets();
 
-  // 新しい詳細ステータスの選択肢
+  // V2212: 最新の詳細ステータス選択肢（StatusDefinitionsと同期）
   const newStatuses = [
+    // 追客中
     '新着',
     '未アポ',
     'アポ済',
     '現調済',
-    '見積提出済み',
-    '入金予定',
-    '成約',
-    '入金済',
+    '見積提出済',
+    // 成約済（入金×工事の組み合わせ）
+    '入金予定・未着工',
+    '入金予定・施工中',
+    '入金予定・工事済',
+    '入金済・未着工',
+    '入金済・施工中',
+    '完了',
+    // 終了（失注・キャンセル）
     '現調前キャンセル',
     '現調後失注',
     '他社契約済',
     '別加盟店契約済',
-    'クレーム'
+    '顧客クレーム'
   ];
 
   // 入力規則を作成
