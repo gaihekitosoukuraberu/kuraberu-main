@@ -8894,18 +8894,17 @@ window.addEventListener('beforeunload', function(e) {
         // V1943: コール回数とメモ件数を分離してカウント
         function getCallAndMemoCounts(caseData) {
             const history = caseData.callHistory || [];
-            const today = new Date().toLocaleDateString('ja-JP');
 
-            // V2058: 接続回数
+            // V2214: 総架電回数（📞で始まる全ての記録）
+            const totalCallRecords = history.filter(item => {
+                const note = item.note || '';
+                return note.startsWith('📞') || note.startsWith('📵');
+            });
+
+            // V2214: 接続回数（📞 接続、転送OK、検討中、お断りなど）
             const connectedRecords = history.filter(item => {
                 const note = item.note || '';
                 return note.includes('接続') || note.includes('転送OK') || note.includes('検討中') || note.includes('お断り');
-            });
-
-            // V2058: 不在回数
-            const absentRecords = history.filter(item => {
-                const note = item.note || '';
-                return note.includes('不在') || note.startsWith('📵');
             });
 
             // メモ記録（架電記録以外）
@@ -8916,7 +8915,7 @@ window.addEventListener('beforeunload', function(e) {
 
             return {
                 connectedTotal: connectedRecords.length, // 接続回数（分子）
-                absentTotal: absentRecords.length,       // 不在回数（分母）
+                callTotal: totalCallRecords.length,      // 総架電回数（分母）
                 memoTotal: memoRecords.length
             };
         }
@@ -8937,14 +8936,14 @@ window.addEventListener('beforeunload', function(e) {
             }
         }
 
-        // V2058: スタイリッシュな履歴表示（📞 接続/不在 | 📝 5）
+        // V2214: スタイリッシュな履歴表示（📞 接続/総架電 | 📝 5）
         function getCallCountDisplay(caseData) {
             const counts = getCallAndMemoCounts(caseData);
-            if (counts.connectedTotal === 0 && counts.absentTotal === 0 && counts.memoTotal === 0) return '';
+            if (counts.callTotal === 0 && counts.memoTotal === 0) return '';
 
             const parts = [];
-            if (counts.connectedTotal > 0 || counts.absentTotal > 0) {
-                parts.push(`<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-xs font-medium">📞 ${counts.connectedTotal}/${counts.absentTotal}</span>`);
+            if (counts.callTotal > 0) {
+                parts.push(`<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-xs font-medium">📞 ${counts.connectedTotal}/${counts.callTotal}</span>`);
             }
             if (counts.memoTotal > 0) {
                 parts.push(`<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-50 text-amber-600 rounded text-xs font-medium">📝 ${counts.memoTotal}</span>`);
@@ -8952,12 +8951,11 @@ window.addEventListener('beforeunload', function(e) {
             return `<div class="flex items-center gap-1">${parts.join('')}</div>`;
         }
 
-        // V2056: アイコン横のコンパクトなカウント表示（接続回数/総架電回数）
-        // V2058: 接続回数/不在回数
+        // V2214: アイコン横のコンパクトなカウント表示（接続回数/総架電回数）
         function getCallCountBadge(caseData) {
             const counts = getCallAndMemoCounts(caseData);
-            if (counts.connectedTotal === 0 && counts.absentTotal === 0) return '';
-            return `<span class="text-xs text-blue-600 font-medium ml-0.5">${counts.connectedTotal}/${counts.absentTotal}</span>`;
+            if (counts.callTotal === 0) return '';
+            return `<span class="text-xs text-blue-600 font-medium ml-0.5">${counts.connectedTotal}/${counts.callTotal}</span>`;
         }
 
         function getMemoCountBadge(caseData) {
