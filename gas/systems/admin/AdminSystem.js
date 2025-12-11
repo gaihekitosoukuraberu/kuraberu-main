@@ -2757,14 +2757,18 @@ const AdminSystem = {
       const deliveryStatusToSet = totalTransferCount >= desiredCount ? '配信済み' : '配信中';
 
       // V2218: 管理ステータスは初回転送時のみ「新着」に設定
-      // 追加転送時（existingCount > 0）は変更しない（加盟店が進めている可能性があるため）
+      // 追加転送時は変更しない（加盟店が進めている可能性があるため）
+      // 注意: existingCountは今回の転送分も含まれている（setValues後に呼ばれるため）
+      // → 今回分を引いて「転送前に既存レコードがあったか」を判定
+      const previousCount = existingCount - newFranchiseCount;
       const currentManagementStatus = managementStatusIdx !== -1 ? targetRowData[managementStatusIdx] : '';
-      const isFirstDelivery = existingCount === 0;
+      const isFirstDelivery = previousCount <= 0;
       const managementStatusToSet = isFirstDelivery ? '新着' : currentManagementStatus;
 
       console.log('[updateUserSheetDeliveryStatus] ステータス判定:', {
         existingCount,
         newFranchiseCount,
+        previousCount,
         totalTransferCount,
         desiredCount,
         deliveryStatusToSet,
