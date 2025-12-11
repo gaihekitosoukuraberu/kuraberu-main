@@ -1341,16 +1341,18 @@ const BusinessSelectionHandler = {
           }
         });
 
+        // V2217: チェック済み業者（転送済みは除外）
         const checkedFranchises = displayFranchises.filter(f =>
-          currentCheckedCompanies.includes(f.companyName)
+          currentCheckedCompanies.includes(f.companyName) && !deliveredNames.includes(f.companyName)
         );
 
-        // V1915: チェックなしAS列業者を抽出（_isUserSelectedフラグを優先使用）
+        // V1915: チェックなしAS列業者を抽出（転送済みは除外）
         const uncheckedUserSelected = displayFranchises.filter(f => {
           const isChecked = currentCheckedCompanies.includes(f.companyName);
+          const isDelivered = deliveredNames.includes(f.companyName);
           // _isUserSelectedフラグがあればそれを使用、なければisUserSelected()を呼ぶ
           const isUserSel = f._isUserSelected !== undefined ? f._isUserSelected : this.isUserSelected(f.companyName);
-          return !isChecked && isUserSel;
+          return !isChecked && !isDelivered && isUserSel;
         });
 
         // V1915: それ以外はマッチ度順→同率内おすすめ順でソート
@@ -1403,8 +1405,9 @@ const BusinessSelectionHandler = {
       } else {
         // V1912: ユーザー選択以外のソート: チェック済み → マッチ度/ソート条件順
         // AS列業者の優先なし（マッチ度優先）
+        // V2217: チェック済み業者（転送済みは除外）
         const checkedFranchises = displayFranchises.filter(f =>
-          currentCheckedCompanies.includes(f.companyName)
+          currentCheckedCompanies.includes(f.companyName) && !deliveredNames.includes(f.companyName)
         );
         // V2217: 転送済み業者を除外、limit は「表示社数 - 転送済み社数」
         const remainingSlotsOther = Math.max(0, limit - deliveredNames.length);
