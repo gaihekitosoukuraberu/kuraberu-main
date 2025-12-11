@@ -669,20 +669,9 @@
                             <button onclick="showSection('calendar')" class="text-sm text-blue-600 hover:text-blue-800">全て表示</button>
                         </div>
                         <div id="miniCalendar" class="text-sm"><div class="grid grid-cols-7 gap-1 text-xs"><div class="text-center font-medium text-gray-500 py-1">日</div><div class="text-center font-medium text-gray-500 py-1">月</div><div class="text-center font-medium text-gray-500 py-1">火</div><div class="text-center font-medium text-gray-500 py-1">水</div><div class="text-center font-medium text-gray-500 py-1">木</div><div class="text-center font-medium text-gray-500 py-1">金</div><div class="text-center font-medium text-gray-500 py-1">土</div><div></div><div></div><div></div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-01')">1</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-02')">2</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-03')">3</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-04')">4</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded bg-blue-500 text-white hover:bg-blue-600" onclick="goToDate('2025-10-05')">5</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded font-bold text-blue-600" onclick="goToDate('2025-10-06')">6</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-07')">7</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded font-bold text-blue-600" onclick="goToDate('2025-10-08')">8</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-09')">9</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-10')">10</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-11')">11</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-12')">12</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-13')">13</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-14')">14</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-15')">15</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-16')">16</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-17')">17</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-18')">18</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-19')">19</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-20')">20</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-21')">21</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-22')">22</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-23')">23</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-24')">24</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-25')">25</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-26')">26</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-27')">27</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-28')">28</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-29')">29</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-30')">30</div><div class="text-center py-1 cursor-pointer hover:bg-gray-100 rounded" onclick="goToDate('2025-10-31')">31</div></div></div>
-                        <div class="mt-4 space-y-2">
-                            <div class="flex items-center p-2 bg-blue-50 rounded">
-                                <div class="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                                <div class="flex-1">
-                                    <div class="text-sm font-medium">田中様 現地調査</div>
-                                    <div class="text-xs text-gray-500">今日 14:00-15:00</div>
-                                </div>
-                            </div>
-                            <div class="flex items-center p-2 bg-green-50 rounded">
-                                <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                                <div class="flex-1">
-                                    <div class="text-sm font-medium">佐藤様 工事開始</div>
-                                    <div class="text-xs text-gray-500">明日 9:00-</div>
-                                </div>
+                        <div id="dashScheduleList" class="mt-4 space-y-2">
+                            <div class="text-center text-gray-400 text-sm py-4">
+                                予定を読み込んでいます...
                             </div>
                         </div>
                     </div>
@@ -29566,6 +29555,7 @@
 
             // ダッシュボードデータを読み込む
             loadDashboardStats();
+            loadScheduleEvents();
         }
 
         // ダッシュボード統計データ読み込み
@@ -29638,6 +29628,64 @@
                 }
             } catch (e) {
                 console.error('[loadDashboardStats] 例外:', e);
+            }
+        }
+
+        // スケジュールイベント読み込み（カレンダー用）
+        async function loadScheduleEvents() {
+            const merchantId = window.merchantId || (window.merchantData && window.merchantData['登録ID']);
+            if (!merchantId) {
+                console.warn('[loadScheduleEvents] 加盟店IDが取得できません');
+                return;
+            }
+
+            try {
+                console.log('[loadScheduleEvents] 読み込み開始:', merchantId);
+                const now = new Date();
+                const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                const result = await callGasApi('billing_getScheduleEvents', { merchantId, month });
+                console.log('[loadScheduleEvents] 結果:', result);
+
+                const container = document.getElementById('dashScheduleList');
+                if (!container) return;
+
+                if (result.success) {
+                    const events = result.events || [];
+                    if (events.length === 0) {
+                        container.innerHTML = `
+                            <div class="text-center text-gray-400 text-sm py-4">
+                                今月の予定はありません
+                            </div>`;
+                    } else {
+                        // 直近3件だけ表示
+                        const displayEvents = events.slice(0, 3);
+                        const colorMap = {
+                            blue: { bg: 'bg-blue-50', dot: 'bg-blue-500' },
+                            green: { bg: 'bg-green-50', dot: 'bg-green-500' },
+                            purple: { bg: 'bg-purple-50', dot: 'bg-purple-500' },
+                            orange: { bg: 'bg-orange-50', dot: 'bg-orange-500' }
+                        };
+                        container.innerHTML = displayEvents.map(e => {
+                            const colors = colorMap[e.color] || colorMap.blue;
+                            const timeStr = e.time ? ` ${e.time}` : '';
+                            return `
+                            <div class="flex items-center p-2 ${colors.bg} rounded">
+                                <div class="w-2 h-2 ${colors.dot} rounded-full mr-2"></div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-medium">${e.customerName} ${e.type}</div>
+                                    <div class="text-xs text-gray-500">${e.date}${timeStr}</div>
+                                </div>
+                            </div>`;
+                        }).join('');
+                    }
+                } else {
+                    container.innerHTML = `
+                        <div class="text-center text-gray-400 text-sm py-4">
+                            予定の取得に失敗しました
+                        </div>`;
+                }
+            } catch (e) {
+                console.error('[loadScheduleEvents] 例外:', e);
             }
         }
 

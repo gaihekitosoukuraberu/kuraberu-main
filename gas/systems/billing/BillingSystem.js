@@ -80,6 +80,8 @@ const BillingSystem = {
         return this.bulkUpdateDueDate(params.targetMonth, params.newDueDate, params.reason);
       case 'billing_getDashboardStats':
         return this.getDashboardStats(params.merchantId);
+      case 'billing_getScheduleEvents':
+        return this.getScheduleEvents(params.merchantId, params.month);
       default:
         return { success: false, error: 'Unknown billing action: ' + action };
     }
@@ -2635,6 +2637,126 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
       };
     } catch (e) {
       console.error('[BillingSystem] getDashboardStats error:', e);
+      return { success: false, error: e.message };
+    }
+  },
+
+  /**
+   * スケジュールイベント取得（カレンダー表示用）
+   * 配信管理シートから予定日時を取得
+   */
+  getScheduleEvents: function(merchantId, month) {
+    try {
+      if (!merchantId) {
+        return { success: false, error: '加盟店IDが指定されていません' };
+      }
+
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+
+      // 配信管理シート
+      const deliverySheet = ss.getSheetByName(this.SHEETS.DELIVERY);
+      if (!deliverySheet) {
+        return { success: false, error: '配信管理シートが見つかりません' };
+      }
+
+      // ユーザー登録シート（顧客名取得用）
+      const userSheet = ss.getSheetByName('ユーザー登録');
+
+      // 配信管理データ取得
+      const deliveryData = deliverySheet.getDataRange().getValues();
+      const deliveryHeaders = deliveryData[0];
+      const dIdx = {
+        cvId: deliveryHeaders.indexOf('CV ID'),
+        merchantId: deliveryHeaders.indexOf('加盟店ID'),
+        nextContactDate: deliveryHeaders.indexOf('次回連絡予定日時'),
+        appointmentDate: deliveryHeaders.indexOf('アポ予定日時'),
+        visitDate: deliveryHeaders.indexOf('訪問予定日時'),
+        estimateDate: deliveryHeaders.indexOf('見積提出予定日')
+      };
+
+      // ユーザー情報マップ作成
+      const cvInfoMap = {};
+      if (userSheet) {
+        const userData = userSheet.getDataRange().getValues();
+        const userHeaders = userData[0];
+        const uIdx = {
+          cvId: userHeaders.indexOf('CV ID'),
+          name: userHeaders.indexOf('氏名')
+        };
+        for (let i = 1; i < userData.length; i++) {
+          const cvId = userData[i][uIdx.cvId];
+          if (cvId) {
+            cvInfoMap[cvId] = userData[i][uIdx.name] || '名前なし';
+          }
+        }
+      }
+
+      // 対象月のフィルタ
+      let targetYear, targetMonth;
+      if (month) {
+        const parts = month.split('-');
+        targetYear = parseInt(parts[0]);
+        targetMonth = parseInt(parts[1]);
+      } else {
+        const now = new Date();
+        targetYear = now.getFullYear();
+        targetMonth = now.getMonth() + 1;
+      }
+
+      // イベント収集
+      const events = [];
+      const eventTypes = [
+        { key: 'nextContactDate', label: '連絡予定', color: 'blue' },
+        { key: 'appointmentDate', label: 'アポ', color: 'green' },
+        { key: 'visitDate', label: '訪問', color: 'purple' },
+        { key: 'estimateDate', label: '見積提出', color: 'orange' }
+      ];
+
+      for (let i = 1; i < deliveryData.length; i++) {
+        const row = deliveryData[i];
+        const rowMerchantId = row[dIdx.merchantId];
+
+        // 加盟店IDでフィルタ
+        if (rowMerchantId !== merchantId) continue;
+
+        const cvId = row[dIdx.cvId];
+        const customerName = cvInfoMap[cvId] || '名前なし';
+
+        // 各予定タイプをチェック
+        for (const type of eventTypes) {
+          const dateVal = row[dIdx[type.key]];
+          if (!dateVal) continue;
+
+          const date = new Date(dateVal);
+          if (isNaN(date.getTime())) continue;
+
+          // 月フィルタ
+          if (date.getFullYear() !== targetYear || (date.getMonth() + 1) !== targetMonth) continue;
+
+          events.push({
+            id: `${cvId}_${type.key}`,
+            cvId: cvId,
+            customerName: customerName,
+            type: type.label,
+            color: type.color,
+            date: this._formatDateForApi(date),
+            time: date.getHours() > 0 ? `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}` : null,
+            day: date.getDate()
+          });
+        }
+      }
+
+      // 日付順にソート
+      events.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      return {
+        success: true,
+        events: events,
+        month: `${targetYear}-${String(targetMonth).padStart(2, '0')}`
+      };
+    } catch (e) {
+      console.error('[BillingSystem] getScheduleEvents error:', e);
       return { success: false, error: e.message };
     }
   }
