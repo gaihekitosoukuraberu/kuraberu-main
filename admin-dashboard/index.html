@@ -8033,11 +8033,18 @@ window.addEventListener('beforeunload', function(e) {
             currentEditingCaseId = caseId;
             currentEditingButton = buttonElement;
 
-            // V2213: 顧客名をヘッダーに表示
             const caseData = casesData[caseId];
-            if (caseData) {
-                document.getElementById('statusTargetName').textContent = `${caseData.customerName || '---'} 様`;
+            if (!caseData) return;
+
+            // V2214: 配信済み案件はステータス変更不可
+            const transferCount = caseData.transferCount || 0;
+            if (transferCount > 0) {
+                showToast('配信済み案件のステータスは加盟店の進捗に応じて自動更新されます', 'info');
+                return;
             }
+
+            // V2213: 顧客名をヘッダーに表示
+            document.getElementById('statusTargetName').textContent = `${caseData.customerName || '---'} 様`;
 
             document.getElementById('listStatusModal').classList.remove('hidden');
         }
