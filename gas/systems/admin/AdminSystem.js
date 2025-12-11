@@ -105,6 +105,14 @@ const AdminSystem = {
         case 'admin_bulkUpdateDeliveryStatus':
           return this.bulkUpdateDeliveryStatus(params);
 
+        case 'executeCancelFlow':
+        case 'admin_executeCancelFlow':
+          return this.executeCancelFlow(params);
+
+        case 'executeContractFlow':
+        case 'admin_executeContractFlow':
+          return this.executeContractFlow(params);
+
         default:
           return {
             success: false,
@@ -156,6 +164,15 @@ const AdminSystem = {
 
         case 'updateCVStatus':
           return this.updateCVStatus(postData);
+
+        // V2225: キャンセル/成約フロー
+        case 'executeCancelFlow':
+        case 'admin_executeCancelFlow':
+          return this.executeCancelFlow(postData);
+
+        case 'executeContractFlow':
+        case 'admin_executeContractFlow':
+          return this.executeContractFlow(postData);
 
         default:
           return {
@@ -3999,6 +4016,421 @@ info@gaihekikuraberu.com
 
     } catch (error) {
       console.error('[bulkUpdateDeliveryStatus] エラー:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  /**
+   * V2225: キャンセルフロー実行（ステータス更新 + 通知 + 請求処理）
+   * フロントエンドから呼ばれる統合処理
+   * @param {Object} params - {
+   *   cvId: string,
+   *   newStatus: string, // 'キャンセル', '現調前キャンセル', etc.
+   *   message: string,
+   *   franchiseSettings: { [franchiseId]: { notify: boolean, refund: boolean } }
+   * }
+   */
+  executeCancelFlow: function(params) {
+    try {
+      const { cvId, newStatus, message, franchiseSettings } = params;
+
+      if (!cvId) {
+        return { success: false, error: 'CV IDが指定されていません' };
+      }
+      if (!newStatus) {
+        return { success: false, error: '新ステータスが指定されていません' };
+      }
+
+      console.log('[executeCancelFlow] 開始:', { cvId, newStatus, franchiseCount: Object.keys(franchiseSettings || {}).length });
+
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+      // 1. ユーザー登録シートの管理ステータスを更新
+      const userSheet = ss.getSheetByName('ユーザー登録');
+      if (userSheet) {
+        const userData = userSheet.getDataRange().getValues();
+        const userHeaders = userData[0];
+        const userCvIdIdx = userHeaders.indexOf('CV ID');
+        const adminStatusIdx = userHeaders.indexOf('管理ステータス');
+
+        if (userCvIdIdx !== -1 && adminStatusIdx !== -1) {
+          for (let i = 1; i < userData.length; i++) {
+            if (userData[i][userCvIdIdx] === cvId) {
+              userSheet.getRange(i + 1, adminStatusIdx + 1).setValue(newStatus);
+              console.log('[executeCancelFlow] ユーザー登録シート更新:', cvId, '→', newStatus);
+              break;
+            }
+          }
+        }
+      }
+
+      // 2. 配信管理シートの詳細ステータスを更新
+      const deliverySheet = ss.getSheetByName('配信管理');
+      if (deliverySheet) {
+        const dData = deliverySheet.getDataRange().getValues();
+        const dHeaders = dData[0];
+        const dCvIdIdx = dHeaders.indexOf('CV ID');
+        const dFranchiseIdIdx = dHeaders.indexOf('加盟店ID');
+        const dDetailStatusIdx = dHeaders.indexOf('詳細ステータス');
+        const dDeliveryStatusIdx = dHeaders.indexOf('配信ステータス');
+
+        for (let i = 1; i < dData.length; i++) {
+          if (dData[i][dCvIdIdx] === cvId) {
+            // 詳細ステータスを更新
+            if (dDetailStatusIdx !== -1) {
+              deliverySheet.getRange(i + 1, dDetailStatusIdx + 1).setValue(newStatus);
+            }
+            // 配信ステータスもキャンセル系に
+            if (dDeliveryStatusIdx !== -1) {
+              deliverySheet.getRange(i + 1, dDeliveryStatusIdx + 1).setValue('キャンセル承認済み');
+            }
+            console.log('[executeCancelFlow] 配信管理更新: row', i + 1, '→', newStatus);
+          }
+        }
+      }
+
+      // 3. 加盟店登録シートからメールアドレスを取得
+      const franchiseSheet = ss.getSheetByName('加盟店登録');
+      const franchiseEmailMap = {};
+      if (franchiseSheet) {
+        const fData = franchiseSheet.getDataRange().getValues();
+        const fHeaders = fData[0];
+        const fIdIdx = fHeaders.indexOf('登録ID');
+        const fEmailIdx = fHeaders.indexOf('メールアドレス');
+        const fSalesEmailIdx = fHeaders.indexOf('営業用メールアドレス');
+        const fNameIdx = fHeaders.indexOf('会社名');
+
+        for (let i = 1; i < fData.length; i++) {
+          const fId = fData[i][fIdIdx];
+          if (fId) {
+            franchiseEmailMap[fId] = {
+              email: fData[i][fSalesEmailIdx] || fData[i][fEmailIdx] || '',
+              name: fNameIdx !== -1 ? (fData[i][fNameIdx] || '') : ''
+            };
+          }
+        }
+      }
+
+      // 4. 通知送信 & 請求処理
+      let notifiedCount = 0;
+      let refundCount = 0;
+      let chargeCount = 0;
+
+      const billingSheet = ss.getSheetByName('請求管理');
+
+      for (const franchiseId in franchiseSettings) {
+        const setting = franchiseSettings[franchiseId];
+        const info = franchiseEmailMap[franchiseId];
+
+        console.log('[executeCancelFlow] 加盟店処理:', franchiseId, setting);
+
+        // 通知送信
+        if (setting.notify && message) {
+          let customMessage = message;
+
+          // 返金の場合
+          if (setting.refund) {
+            if (!customMessage.includes('費用は一切発生いたしません') && !customMessage.includes('返金')) {
+              customMessage = customMessage.replace(
+                '外壁塗装くらべる運営事務局',
+                '※本案件につきましては、紹介料等の費用は一切発生いたしません。\n\n外壁塗装くらべる運営事務局'
+              );
+            }
+          } else {
+            // 請求維持の場合
+            if (customMessage.includes('費用は一切発生いたしません')) {
+              customMessage = customMessage.replace(
+                '紹介料等の費用は一切発生いたしませんのでご安心ください',
+                '規定に基づき紹介料が発生いたしますのでご了承ください'
+              );
+            }
+          }
+
+          // メール送信
+          if (info && info.email) {
+            try {
+              MailApp.sendEmail({
+                to: info.email,
+                subject: '【外壁塗装くらべる】案件キャンセルのお知らせ',
+                body: customMessage
+              });
+              notifiedCount++;
+              console.log('[executeCancelFlow] メール送信成功:', info.email);
+            } catch (mailError) {
+              console.error('[executeCancelFlow] メール送信エラー:', info.email, mailError);
+            }
+          }
+
+          // プッシュ通知
+          try {
+            if (typeof NotificationDispatcher !== 'undefined' && NotificationDispatcher.sendNotification) {
+              NotificationDispatcher.sendNotification({
+                merchantId: franchiseId,
+                type: 'case_cancel',
+                title: '案件キャンセルのお知らせ',
+                body: `ご紹介済みの案件がキャンセルとなりました。詳細はメールをご確認ください。`,
+                data: { cvId: cvId, type: 'cancel', refund: setting.refund }
+              });
+            }
+          } catch (notifyError) {
+            console.error('[executeCancelFlow] 通知送信エラー:', franchiseId, notifyError);
+          }
+        }
+
+        // 請求処理
+        if (setting.refund) {
+          // 返金: 請求管理シートから削除
+          if (billingSheet) {
+            const bData = billingSheet.getDataRange().getValues();
+            const bHeaders = bData[0];
+            const bCvIdIdx = bHeaders.indexOf('CV ID');
+            const bFranchiseIdIdx = bHeaders.indexOf('加盟店ID');
+
+            for (let i = bData.length - 1; i >= 1; i--) {
+              if (bData[i][bCvIdIdx] === cvId && bData[i][bFranchiseIdIdx] === franchiseId) {
+                billingSheet.deleteRow(i + 1);
+                console.log('[executeCancelFlow] 請求削除:', franchiseId, 'row:', i + 1);
+                break;
+              }
+            }
+          }
+          refundCount++;
+        } else {
+          chargeCount++;
+          console.log('[executeCancelFlow] 課金維持:', franchiseId);
+        }
+      }
+
+      console.log('[executeCancelFlow] 完了:', { notifiedCount, refundCount, chargeCount });
+
+      return {
+        success: true,
+        cvId: cvId,
+        newStatus: newStatus,
+        notifiedCount: notifiedCount,
+        refundCount: refundCount,
+        chargeCount: chargeCount
+      };
+
+    } catch (error) {
+      console.error('[executeCancelFlow] エラー:', error);
+      return { success: false, error: error.message };
+    }
+  },
+
+  /**
+   * V2225: 成約フロー実行（勝者に成約ステータス + 敗者に通知/返金処理）
+   * @param {Object} params - {
+   *   cvId: string,
+   *   newStatus: string, // '成約', '入金待ち', etc.
+   *   winnerId: string, // 成約した加盟店ID
+   *   message: string,
+   *   loserSettings: { [franchiseId]: { notify: boolean, refund: boolean, status: string } }
+   * }
+   */
+  executeContractFlow: function(params) {
+    try {
+      const { cvId, newStatus, winnerId, message, loserSettings } = params;
+
+      if (!cvId) {
+        return { success: false, error: 'CV IDが指定されていません' };
+      }
+      if (!newStatus) {
+        return { success: false, error: '新ステータスが指定されていません' };
+      }
+      if (!winnerId) {
+        return { success: false, error: '成約加盟店IDが指定されていません' };
+      }
+
+      console.log('[executeContractFlow] 開始:', { cvId, newStatus, winnerId, loserCount: Object.keys(loserSettings || {}).length });
+
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+      // 1. ユーザー登録シートの管理ステータスを更新
+      const userSheet = ss.getSheetByName('ユーザー登録');
+      if (userSheet) {
+        const userData = userSheet.getDataRange().getValues();
+        const userHeaders = userData[0];
+        const userCvIdIdx = userHeaders.indexOf('CV ID');
+        const adminStatusIdx = userHeaders.indexOf('管理ステータス');
+
+        if (userCvIdIdx !== -1 && adminStatusIdx !== -1) {
+          for (let i = 1; i < userData.length; i++) {
+            if (userData[i][userCvIdIdx] === cvId) {
+              userSheet.getRange(i + 1, adminStatusIdx + 1).setValue(newStatus);
+              console.log('[executeContractFlow] ユーザー登録シート更新:', cvId, '→', newStatus);
+              break;
+            }
+          }
+        }
+      }
+
+      // 2. 配信管理シートの詳細ステータスを更新（勝者/敗者で分岐）
+      const deliverySheet = ss.getSheetByName('配信管理');
+      if (deliverySheet) {
+        const dData = deliverySheet.getDataRange().getValues();
+        const dHeaders = dData[0];
+        const dCvIdIdx = dHeaders.indexOf('CV ID');
+        const dFranchiseIdIdx = dHeaders.indexOf('加盟店ID');
+        const dDetailStatusIdx = dHeaders.indexOf('詳細ステータス');
+        const dDeliveryStatusIdx = dHeaders.indexOf('配信ステータス');
+
+        for (let i = 1; i < dData.length; i++) {
+          if (dData[i][dCvIdIdx] === cvId) {
+            const rowFranchiseId = dData[i][dFranchiseIdIdx];
+
+            if (rowFranchiseId === winnerId) {
+              // 勝者: 成約ステータス
+              if (dDetailStatusIdx !== -1) {
+                deliverySheet.getRange(i + 1, dDetailStatusIdx + 1).setValue(newStatus);
+              }
+              if (dDeliveryStatusIdx !== -1) {
+                deliverySheet.getRange(i + 1, dDeliveryStatusIdx + 1).setValue('成約');
+              }
+              console.log('[executeContractFlow] 勝者更新:', rowFranchiseId, '→', newStatus);
+            } else {
+              // 敗者: 別加盟店契約済
+              const loserStatus = (loserSettings && loserSettings[rowFranchiseId]?.status) || '別加盟店契約済';
+              if (dDetailStatusIdx !== -1) {
+                deliverySheet.getRange(i + 1, dDetailStatusIdx + 1).setValue(loserStatus);
+              }
+              if (dDeliveryStatusIdx !== -1) {
+                deliverySheet.getRange(i + 1, dDeliveryStatusIdx + 1).setValue('失注');
+              }
+              console.log('[executeContractFlow] 敗者更新:', rowFranchiseId, '→', loserStatus);
+            }
+          }
+        }
+      }
+
+      // 3. 加盟店登録シートからメールアドレスを取得
+      const franchiseSheet = ss.getSheetByName('加盟店登録');
+      const franchiseEmailMap = {};
+      if (franchiseSheet) {
+        const fData = franchiseSheet.getDataRange().getValues();
+        const fHeaders = fData[0];
+        const fIdIdx = fHeaders.indexOf('登録ID');
+        const fEmailIdx = fHeaders.indexOf('メールアドレス');
+        const fSalesEmailIdx = fHeaders.indexOf('営業用メールアドレス');
+        const fNameIdx = fHeaders.indexOf('会社名');
+
+        for (let i = 1; i < fData.length; i++) {
+          const fId = fData[i][fIdIdx];
+          if (fId) {
+            franchiseEmailMap[fId] = {
+              email: fData[i][fSalesEmailIdx] || fData[i][fEmailIdx] || '',
+              name: fNameIdx !== -1 ? (fData[i][fNameIdx] || '') : ''
+            };
+          }
+        }
+      }
+
+      // 4. 敗者への通知送信 & 請求処理
+      let notifiedCount = 0;
+      let refundCount = 0;
+      let chargeCount = 0;
+
+      const billingSheet = ss.getSheetByName('請求管理');
+
+      for (const franchiseId in loserSettings) {
+        const setting = loserSettings[franchiseId];
+        const info = franchiseEmailMap[franchiseId];
+
+        console.log('[executeContractFlow] 敗者処理:', franchiseId, setting);
+
+        // 通知送信
+        if (setting.notify && message) {
+          let customMessage = message;
+
+          // 返金の場合
+          if (setting.refund) {
+            if (!customMessage.includes('費用は一切発生いたしません')) {
+              customMessage = customMessage.replace(
+                '外壁塗装くらべる運営事務局',
+                '※本案件につきましては、紹介料等の費用は一切発生いたしません。\n\n外壁塗装くらべる運営事務局'
+              );
+            }
+          } else {
+            // 請求維持の場合
+            if (customMessage.includes('費用は一切発生いたしません')) {
+              customMessage = customMessage.replace(
+                '紹介料等の費用は一切発生いたしませんのでご安心ください',
+                '規定に基づき紹介料が発生いたしますのでご了承ください'
+              );
+            }
+          }
+
+          // メール送信
+          if (info && info.email) {
+            try {
+              MailApp.sendEmail({
+                to: info.email,
+                subject: '【外壁塗装くらべる】他社成約のお知らせ',
+                body: customMessage
+              });
+              notifiedCount++;
+              console.log('[executeContractFlow] メール送信成功:', info.email);
+            } catch (mailError) {
+              console.error('[executeContractFlow] メール送信エラー:', info.email, mailError);
+            }
+          }
+
+          // プッシュ通知
+          try {
+            if (typeof NotificationDispatcher !== 'undefined' && NotificationDispatcher.sendNotification) {
+              NotificationDispatcher.sendNotification({
+                merchantId: franchiseId,
+                type: 'case_lost',
+                title: '他社成約のお知らせ',
+                body: `ご紹介済みの案件が他社にて成約となりました。詳細はメールをご確認ください。`,
+                data: { cvId: cvId, type: 'lost', refund: setting.refund }
+              });
+            }
+          } catch (notifyError) {
+            console.error('[executeContractFlow] 通知送信エラー:', franchiseId, notifyError);
+          }
+        }
+
+        // 請求処理
+        if (setting.refund) {
+          // 返金: 請求管理シートから削除
+          if (billingSheet) {
+            const bData = billingSheet.getDataRange().getValues();
+            const bHeaders = bData[0];
+            const bCvIdIdx = bHeaders.indexOf('CV ID');
+            const bFranchiseIdIdx = bHeaders.indexOf('加盟店ID');
+
+            for (let i = bData.length - 1; i >= 1; i--) {
+              if (bData[i][bCvIdIdx] === cvId && bData[i][bFranchiseIdIdx] === franchiseId) {
+                billingSheet.deleteRow(i + 1);
+                console.log('[executeContractFlow] 請求削除:', franchiseId, 'row:', i + 1);
+                break;
+              }
+            }
+          }
+          refundCount++;
+        } else {
+          chargeCount++;
+          console.log('[executeContractFlow] 課金維持:', franchiseId);
+        }
+      }
+
+      console.log('[executeContractFlow] 完了:', { notifiedCount, refundCount, chargeCount, winnerId });
+
+      return {
+        success: true,
+        cvId: cvId,
+        newStatus: newStatus,
+        winnerId: winnerId,
+        notifiedCount: notifiedCount,
+        refundCount: refundCount,
+        chargeCount: chargeCount
+      };
+
+    } catch (error) {
+      console.error('[executeContractFlow] エラー:', error);
       return { success: false, error: error.message };
     }
   }

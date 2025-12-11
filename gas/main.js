@@ -266,7 +266,9 @@ const SystemRouter = {
         'approveRegistration',
         'rejectRegistration',
         'revertRegistration',
-        'getAdminDashboardStats'
+        'getAdminDashboardStats',
+        'executeCancelFlow',
+        'executeContractFlow'
       ]
     },
 
