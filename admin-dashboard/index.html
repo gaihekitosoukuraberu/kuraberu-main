@@ -8871,14 +8871,8 @@ window.addEventListener('beforeunload', function(e) {
             // 未配信なら表示しない
             if (transferCount === 0) return '';
 
-            // 配信中（未達）= 緑系、配信済み（達成）= 紫系
-            const isComplete = transferCount >= desiredCount;
-            const bgColor = isComplete ? 'bg-purple-100' : 'bg-green-100';
-            const textColor = isComplete ? 'text-purple-700' : 'text-green-700';
-            const borderColor = isComplete ? 'border-purple-300' : 'border-green-300';
-            const label = isComplete ? '配信済み' : '配信中';
-
-            return `<span onclick="event.stopPropagation(); openDeliveryDetailModal('${caseId}')" class="inline-flex items-center px-1.5 py-0.5 ${bgColor} ${textColor} border ${borderColor} rounded text-xs font-medium cursor-pointer hover:shadow-md transition-all" title="${label}">${transferCount}/${desiredCount}社</span>`;
+            // バッジの色は元のまま（紫系）、タップで詳細モーダル
+            return `<span onclick="event.stopPropagation(); openDeliveryDetailModal('${caseId}')" class="inline-flex items-center px-1.5 py-0.5 bg-purple-50 text-purple-600 border border-purple-200 rounded text-xs font-medium cursor-pointer hover:shadow-md transition-all">${transferCount}/${desiredCount}社</span>`;
         }
 
         // V2213: 配信先詳細モーダルを開く

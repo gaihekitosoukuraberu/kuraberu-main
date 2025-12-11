@@ -77,6 +77,7 @@ const AdminSystem = {
           return this.sendOrderTransfer(params);
 
         case 'getDeliveredFranchises':
+        case 'admin_getDeliveredFranchises':
           return this.getDeliveredFranchises(params);
 
         case 'cancelTransfer':
