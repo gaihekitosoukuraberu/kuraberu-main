@@ -8356,52 +8356,11 @@ window.addEventListener('beforeunload', function(e) {
             document.getElementById('cancelStatusModal').classList.add('hidden');
         }
 
-        // キャンセル用ステータス選択 → 通知モーダルへ
+        // V2223: キャンセル用ステータス選択 → V2218の通知モーダル（課金/返金設定付き）へ
         async function selectCancelStatus(newStatus) {
-            cancelFlowNewStatus = newStatus;
             closeCancelStatusModal();
-
-            const caseData = casesData[cancelFlowCaseId];
-            if (!caseData) return;
-
-            // 配信済み加盟店を取得
-            try {
-                const result = await window.apiClient.postRequest('admin_getDeliveredFranchises', { cvId: cancelFlowCaseId });
-                cancelFlowFranchises = result.deliveredFranchises || [];
-            } catch (e) {
-                console.error('[selectCancelStatus] 配信先取得エラー:', e);
-                cancelFlowFranchises = [];
-            }
-
-            // 通知モーダルを表示
-            document.getElementById('cancelNotifyTargetName').textContent = `${caseData.name || caseData.customerName || '---'} 様 → ${newStatus}`;
-
-            // 配信先一覧を表示
-            const listEl = document.getElementById('cancelNotifyFranchiseList');
-            if (cancelFlowFranchises.length > 0) {
-                listEl.innerHTML = cancelFlowFranchises.map(f => `
-                    <span class="px-2 py-1 bg-white border border-gray-300 rounded-lg text-xs font-medium text-gray-700">${f.franchiseName || f.franchiseId}</span>
-                `).join('');
-            } else {
-                listEl.innerHTML = '<span class="text-xs text-gray-400">配信先がありません</span>';
-            }
-
-            // デフォルトメッセージを設定
-            const customerName = caseData.name || caseData.customerName || 'お客様';
-            document.getElementById('cancelNotifyMessage').value = `いつもお世話になっております。
-外壁塗装くらべる運営事務局です。
-
-ご紹介済みの「${customerName}」様の案件につきまして、お客様のご都合によりキャンセルとなりましたのでご連絡申し上げます。
-
-本案件につきましては、紹介料等の費用は一切発生いたしませんのでご安心ください。
-
-つきましては、大変恐れ入りますが、本案件に関する情報は削除いただき、ご対応はなさらないようお願いいたします。
-
-ご不便をおかけして申し訳ございませんが、何卒よろしくお願い申し上げます。
-
-外壁塗装くらべる運営事務局`;
-
-            document.getElementById('cancelNotifyModal').classList.remove('hidden');
+            // V2218のstatusChangeNotifyModal（課金/返金設定付き）を使用
+            await showStatusChangeNotifyModal(cancelFlowCaseId, newStatus);
         }
 
         function closeCancelNotifyModal() {
