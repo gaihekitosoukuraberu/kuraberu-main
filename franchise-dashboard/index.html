@@ -654,8 +654,8 @@
                                 </svg>
                             </div>
                             <div class="ml-4">
-                                <p class="text-sm font-medium text-gray-500">累計案件</p>
-                                <p class="text-2xl font-semibold text-gray-900" id="dashTotalCases">0</p>
+                                <p class="text-sm font-medium text-gray-500">メンバー</p>
+                                <p class="text-2xl font-semibold text-gray-900" id="dashMemberCount">1</p>
                             </div>
                         </div>
                     </div>
@@ -29577,7 +29577,7 @@
                     document.getElementById('dashNewCases').textContent = stats.newCases || 0;
                     document.getElementById('dashContractRate').textContent = (stats.contractRate || 0) + '%';
                     document.getElementById('dashInProgress').textContent = stats.inProgress || 0;
-                    document.getElementById('dashTotalCases').textContent = stats.totalCases || 0;
+                    document.getElementById('dashMemberCount').textContent = stats.memberCount || 1;
 
                     // 最近の案件更新
                     const recentCases = result.recentCases || [];

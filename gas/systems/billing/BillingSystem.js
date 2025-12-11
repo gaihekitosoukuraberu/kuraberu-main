@@ -2618,12 +2618,29 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
         const dateB = b.deliveryDate ? new Date(b.deliveryDate) : new Date(0);
         return dateB - dateA;
       });
-      const top5Cases = recentCases.slice(0, 5).map((c, idx) => ({
+      const top5Cases = recentCases.slice(0, 5).map((c) => ({
         id: c.cvId,
         customerName: c.customerName,
         status: c.status || '新規',
         updatedAt: this._formatDateForApi(c.deliveryDate)
       }));
+
+      // メンバー数を取得（認証情報シートから）
+      let memberCount = 1;
+      try {
+        const authSheet = ss.getSheetByName('認証情報');
+        if (authSheet) {
+          const authData = authSheet.getDataRange().getValues();
+          const authHeaders = authData[0];
+          const merchantIdIdx = authHeaders.indexOf('加盟店ID');
+          if (merchantIdIdx >= 0) {
+            memberCount = authData.filter((row, i) => i > 0 && row[merchantIdIdx] === merchantId).length;
+            if (memberCount === 0) memberCount = 1;
+          }
+        }
+      } catch (e) {
+        console.log('[BillingSystem] メンバー数取得エラー（デフォルト1）:', e);
+      }
 
       return {
         success: true,
@@ -2631,7 +2648,7 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
           newCases: newCases,
           contractRate: contractRate,
           inProgress: inProgressCases,
-          totalCases: totalCases
+          memberCount: memberCount
         },
         recentCases: top5Cases
       };
@@ -2670,9 +2687,8 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
         cvId: deliveryHeaders.indexOf('CV ID'),
         merchantId: deliveryHeaders.indexOf('加盟店ID'),
         nextContactDate: deliveryHeaders.indexOf('次回連絡予定日時'),
-        appointmentDate: deliveryHeaders.indexOf('アポ予定日時'),
-        visitDate: deliveryHeaders.indexOf('訪問予定日時'),
-        estimateDate: deliveryHeaders.indexOf('見積提出予定日')
+        surveyDate: deliveryHeaders.indexOf('現調日時'),
+        meetingDate: deliveryHeaders.indexOf('商談日時')
       };
 
       // ユーザー情報マップ作成
@@ -2708,9 +2724,8 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
       const events = [];
       const eventTypes = [
         { key: 'nextContactDate', label: '連絡予定', color: 'blue' },
-        { key: 'appointmentDate', label: 'アポ', color: 'green' },
-        { key: 'visitDate', label: '訪問', color: 'purple' },
-        { key: 'estimateDate', label: '見積提出', color: 'orange' }
+        { key: 'surveyDate', label: '現調', color: 'green' },
+        { key: 'meetingDate', label: '商談', color: 'purple' }
       ];
 
       for (let i = 1; i < deliveryData.length; i++) {
