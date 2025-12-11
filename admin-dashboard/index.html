@@ -8036,10 +8036,10 @@ window.addEventListener('beforeunload', function(e) {
             const caseData = casesData[caseId];
             if (!caseData) return;
 
-            // V2214: 配信済み案件はステータス変更不可
+            // V2214: 配信済みで新着以上に進んでいたら変更不可（何も起こらない）
             const transferCount = caseData.transferCount || 0;
-            if (transferCount > 0) {
-                showToast('配信済み案件のステータスは加盟店の進捗に応じて自動更新されます', 'info');
+            const lockedStatuses = ['未アポ', 'アポ済', '現調済', '見積提出済', '入金予定・未着工', '入金予定・施工中', '入金予定・工事済', '入金済・未着工', '入金済・施工中', '完了', '現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', '顧客クレーム'];
+            if (transferCount > 0 && lockedStatuses.includes(caseData.status)) {
                 return;
             }
 
