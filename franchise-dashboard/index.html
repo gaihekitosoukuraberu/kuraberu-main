@@ -587,33 +587,30 @@
             <div id="dashboardSection" class="section" style="display: none;">
                 <h2 class="text-2xl font-bold text-gray-900 mb-6">ダッシュボード</h2>
 
-                <!-- V2198: 売上サマリー（上部に配置） -->
-                <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow-lg p-4 md:p-6 mb-6">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <p class="text-blue-100 text-sm">今月の売上</p>
-                            <p class="text-2xl md:text-3xl font-bold" id="dashRevenue">¥0</p>
-                        </div>
-                        <button onclick="showSection('billing')" class="text-xs bg-white/20 hover:bg-white/30 px-3 py-1 rounded transition">
-                            詳細 →
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                            <p class="text-blue-200">紹介料支出</p>
-                            <p class="text-lg font-semibold" id="dashCost">¥0</p>
-                        </div>
-                        <div>
-                            <p class="text-blue-200">粗利</p>
-                            <p class="text-lg font-semibold" id="dashProfit">¥0</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 統計カードとミニカレンダー -->
+                <!-- V2200: 統計カード（7つ→2行表示）デザイン統一 -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    <!-- 統計カード（4つ→横並び） -->
+                    <!-- 統計カード -->
                     <div class="lg:col-span-2">
+                        <!-- 上段：売上系3つ + 詳細ボタン -->
+                        <div class="grid grid-cols-4 gap-2 md:gap-4 mb-2 md:mb-4">
+                            <div class="bg-white p-3 md:p-4 rounded-lg shadow text-center">
+                                <p class="text-xs text-gray-500 mb-1">売上</p>
+                                <p class="text-xl md:text-2xl font-bold text-blue-600" id="dashRevenue">¥0</p>
+                            </div>
+                            <div class="bg-white p-3 md:p-4 rounded-lg shadow text-center">
+                                <p class="text-xs text-gray-500 mb-1">支出</p>
+                                <p class="text-xl md:text-2xl font-bold text-red-500" id="dashCost">¥0</p>
+                            </div>
+                            <div class="bg-white p-3 md:p-4 rounded-lg shadow text-center">
+                                <p class="text-xs text-gray-500 mb-1">粗利</p>
+                                <p class="text-xl md:text-2xl font-bold text-green-600" id="dashProfit">¥0</p>
+                            </div>
+                            <button onclick="showSection('billing')" class="bg-blue-600 hover:bg-blue-700 text-white p-3 md:p-4 rounded-lg shadow text-center transition">
+                                <p class="text-xs mb-1">財務管理</p>
+                                <p class="text-xl md:text-2xl font-bold">→</p>
+                            </button>
+                        </div>
+                        <!-- 下段：案件系4つ -->
                         <div class="grid grid-cols-4 gap-2 md:gap-4">
                             <div class="bg-white p-3 md:p-4 rounded-lg shadow text-center">
                                 <p class="text-xs text-gray-500 mb-1">新規</p>

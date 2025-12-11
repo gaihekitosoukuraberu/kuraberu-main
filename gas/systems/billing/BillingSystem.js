@@ -1905,77 +1905,78 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
       const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
       const ss = SpreadsheetApp.openById(ssId);
 
-      // 請求管理シートから集計
-      const billingSheet = ss.getSheetByName(this.SHEETS.BILLING);
-      if (!billingSheet) {
-        return { success: false, error: '請求管理シートが見つかりません' };
+      // 配信管理シートから紹介料・成約を集計（V2198: 請求管理→配信管理に変更）
+      const deliverySheet = ss.getSheetByName(this.SHEETS.DELIVERY);
+      if (!deliverySheet) {
+        return { success: false, error: '配信管理シートが見つかりません' };
       }
 
-      const data = billingSheet.getDataRange().getValues();
+      const data = deliverySheet.getDataRange().getValues();
       const headers = data[0];
       const idx = {
         merchantId: headers.indexOf('加盟店ID'),
-        type: headers.indexOf('請求種別'),
-        period: headers.indexOf('対象期間'),
-        taxIncluded: headers.indexOf('税込金額'),
-        status: headers.indexOf('ステータス')
+        deliveryDate: headers.indexOf('配信日時'),
+        deliveryAmount: headers.indexOf('配信金額'),
+        contractDate: headers.indexOf('成約日時'),
+        contractAmount: headers.indexOf('成約金額')
       };
 
       const now = new Date();
-      const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
       const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth(); // 0-based
 
       let monthlyReferral = 0;
-      let monthlyCommission = 0;
       let monthlyReferralCount = 0;
+      let monthlyCommission = 0;
       let monthlyCommissionCount = 0;
       let yearlyProfit = 0;
-      let totalPaid = 0;
 
       for (let i = 1; i < data.length; i++) {
         const row = data[i];
         if (row[idx.merchantId] !== merchantId) continue;
 
-        const type = row[idx.type];
-        const period = row[idx.period];
-        const amount = row[idx.taxIncluded] || 0;
-        const status = row[idx.status];
+        const deliveryDate = row[idx.deliveryDate];
+        const deliveryAmount = Number(row[idx.deliveryAmount]) || 0;
+        const contractDate = row[idx.contractDate];
+        const contractAmount = Number(row[idx.contractAmount]) || 0;
 
-        // 今月の紹介料
-        if (type === '紹介料' && period === currentMonth) {
-          monthlyReferral += amount;
-          monthlyReferralCount++;
+        // 今月の紹介料（配信日ベース）
+        if (deliveryDate && deliveryAmount > 0) {
+          const d = new Date(deliveryDate);
+          if (d.getFullYear() === currentYear && d.getMonth() === currentMonth) {
+            monthlyReferral += deliveryAmount;
+            monthlyReferralCount++;
+          }
+          // 年間の紹介料
+          if (d.getFullYear() === currentYear) {
+            yearlyProfit += deliveryAmount;
+          }
         }
 
-        // 今月の成約手数料
-        if (type === '成約手数料' && period === currentMonth) {
-          monthlyCommission += amount;
-          monthlyCommissionCount++;
-        }
-
-        // 年間累計（入金済みのみ）
-        if (status === '入金済み' && period && period.startsWith(String(currentYear))) {
-          yearlyProfit += amount;
-        }
-
-        // 総入金額
-        if (status === '入金済み') {
-          totalPaid += amount;
+        // 今月の成約（成約日ベース）
+        if (contractDate && contractAmount > 0) {
+          const c = new Date(contractDate);
+          if (c.getFullYear() === currentYear && c.getMonth() === currentMonth) {
+            monthlyCommission += contractAmount;
+            monthlyCommissionCount++;
+          }
         }
       }
+
+      const currentMonthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
 
       return {
         success: true,
         merchantId: merchantId,
-        currentMonth: currentMonth,
+        currentMonth: currentMonthStr,
         summary: {
           monthlyReferral: monthlyReferral,
           monthlyReferralCount: monthlyReferralCount,
           monthlyCommission: monthlyCommission,
           monthlyCommissionCount: monthlyCommissionCount,
           yearlyProfit: yearlyProfit,
-          totalPaid: totalPaid,
-          roi: yearlyProfit > 0 ? Math.round((yearlyProfit / (monthlyReferral || 1)) * 100) : 0
+          totalPaid: 0, // 請求管理シートからは別途取得が必要
+          roi: monthlyReferral > 0 ? Math.round((monthlyCommission / monthlyReferral) * 100) : 0
         }
       };
 
@@ -1993,7 +1994,8 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
     try {
       const d = new Date(date);
       if (isNaN(d.getTime())) return null;
-      return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+      // V2200: YYYY-MM-DD形式に統一（カレンダーUIとの互換性）
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     } catch (e) {
       return null;
     }
@@ -2562,14 +2564,28 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
       const thisYear = now.getFullYear();
       const thisMonth = now.getMonth(); // 0-based
 
+      // V2200: 詳細ステータスを使用して正確に分類
+      // アクティブステータス（対応中）
+      const activeStatuses = ['架電済/未アポ', 'アポ済', '現調済', '見積提出済'];
+      // 終了成功ステータス
+      const closedSuccessStatuses = ['成約', '入金予定', '入金済'];
+      // 終了失敗ステータス
+      const closedFailedStatuses = ['現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', 'クレーム or 失注'];
+      // 全終了ステータス
+      const allClosedStatuses = [...closedSuccessStatuses, ...closedFailedStatuses];
+
       // 統計変数
-      let newCases = 0;      // 今月の新規案件
+      let newCases = 0;      // 未対応の案件数（ステータスが「未対応」）
       let totalCases = 0;    // 加盟店の全案件
-      let contractedCases = 0; // 成約件数
-      let inProgressCases = 0; // 対応中
+      let contractedCases = 0; // 成約成功件数
+      let closedFailedCases = 0; // 終了失敗件数
+      let inProgressCases = 0; // 対応中（アクティブ）
       let thisMonthRevenue = 0; // 今月の売上
       let thisMonthCost = 0;    // 今月の紹介料支出
       const recentCases = []; // 最近の案件
+
+      // 詳細ステータスカラムのインデックス
+      const detailStatusIdx = deliveryHeaders.indexOf('詳細ステータス');
 
       // データ走査
       for (let i = 1; i < deliveryData.length; i++) {
@@ -2581,18 +2597,17 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
 
         totalCases++;
         const status = row[dIdx.deliveryStatus];
+        const detailStatus = detailStatusIdx >= 0 ? row[detailStatusIdx] : status;
         const deliveryDate = row[dIdx.deliveryDate];
         const contractDate = row[dIdx.contractDate];
         const cvId = row[dIdx.cvId];
         const contractAmount = Number(row[dIdx.contractAmount]) || 0;
         const deliveryAmount = Number(row[dIdx.deliveryAmount]) || 0;
 
-        // 今月の新規案件カウント
-        if (deliveryDate) {
+        // 今月の紹介料支出（配信日ベース）
+        if (deliveryDate && deliveryAmount > 0) {
           const date = new Date(deliveryDate);
           if (date.getFullYear() === thisYear && date.getMonth() === thisMonth) {
-            newCases++;
-            // 今月の紹介料支出
             thisMonthCost += deliveryAmount;
           }
         }
@@ -2605,26 +2620,39 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
           }
         }
 
-        // ステータス別カウント
-        if (status === '成約') {
-          contractedCases++;
-        } else if (status === '配信済み' || status === 'ヒアリング中' || status === '見積中' || status === '商談中') {
+        // V2200: ステータス別カウント（詳細ステータスベース）
+        if (detailStatus === '未対応') {
+          newCases++;
+        } else if (activeStatuses.includes(detailStatus)) {
           inProgressCases++;
+        } else if (closedSuccessStatuses.includes(detailStatus)) {
+          contractedCases++;
+        } else if (closedFailedStatuses.includes(detailStatus)) {
+          closedFailedCases++;
+        } else {
+          // フォールバック: 配信ステータスで判定
+          if (status === '成約') {
+            contractedCases++;
+          } else if (status === '辞退' || status === 'キャンセル') {
+            closedFailedCases++;
+          } else {
+            inProgressCases++; // デフォルトは対応中
+          }
         }
 
         // 最近の案件リストに追加（後で日付ソート）
         recentCases.push({
           cvId: cvId,
           customerName: cvInfoMap[cvId] || '名前なし',
-          status: status,
+          status: detailStatus || status || '未対応',
           deliveryDate: deliveryDate,
           contractAmount: contractAmount
         });
       }
 
-      // 成約率計算（配信済み+成約 に対する成約の割合）
-      const deliveredAndContracted = contractedCases + inProgressCases;
-      const contractRate = deliveredAndContracted > 0 ? Math.round((contractedCases / deliveredAndContracted) * 100) : 0;
+      // V2200: 成約率計算（終了した案件のうち成功の割合）
+      const totalClosed = contractedCases + closedFailedCases;
+      const contractRate = totalClosed > 0 ? Math.round((contractedCases / totalClosed) * 100) : 0;
 
       // 最近の案件を日付降順ソート、上位5件
       recentCases.sort((a, b) => {
