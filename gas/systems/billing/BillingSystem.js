@@ -1635,89 +1635,6 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
     } catch (e) {
       console.error('[BillingSystem] Slack通知エラー:', e);
     }
-  }
-};
-
-// freee連携モジュール
-const FreeeIntegration = {
-  /**
-   * freee APIアクセストークン取得
-   */
-  getAccessToken: function() {
-    // OAuth2.0フロー実装が必要
-    // Script Propertiesから取得
-    return PropertiesService.getScriptProperties().getProperty('FREEE_ACCESS_TOKEN');
-  },
-
-  /**
-   * 請求書作成
-   */
-  createInvoice: function(invoiceData) {
-    const token = this.getAccessToken();
-    if (!token) {
-      return { success: false, error: 'freeeアクセストークンが設定されていません' };
-    }
-
-    const companyId = PropertiesService.getScriptProperties().getProperty('FREEE_COMPANY_ID');
-    if (!companyId) {
-      return { success: false, error: 'freee会社IDが設定されていません' };
-    }
-
-    // TODO: freee API呼び出し実装
-    // https://developer.freee.co.jp/docs/accounting/reference#/Invoices/create_invoice
-
-    return {
-      success: true,
-      message: 'freee請求書作成（未実装）',
-      hint: 'FREEE_ACCESS_TOKEN, FREEE_COMPANY_IDをScript Propertiesに設定してください'
-    };
-  }
-};
-
-// GMOあおぞら銀行連携モジュール
-const GmoAozoraIntegration = {
-  /**
-   * APIトークン取得
-   */
-  getApiToken: function() {
-    return PropertiesService.getScriptProperties().getProperty('GMO_AOZORA_API_TOKEN');
-  },
-
-  /**
-   * 振込依頼作成
-   */
-  createTransferRequest: function(transferData) {
-    const token = this.getApiToken();
-    if (!token) {
-      return { success: false, error: 'GMOあおぞらAPIトークンが設定されていません' };
-    }
-
-    // TODO: GMOあおぞらAPI呼び出し実装
-    // https://gmo-aozora.com/api/
-
-    return {
-      success: true,
-      message: 'GMOあおぞら振込依頼（未実装）',
-      hint: 'GMO_AOZORA_API_TOKENをScript Propertiesに設定してください'
-    };
-  },
-
-  /**
-   * 入金確認
-   */
-  checkDeposits: function(accountId, fromDate, toDate) {
-    const token = this.getApiToken();
-    if (!token) {
-      return { success: false, error: 'GMOあおぞらAPIトークンが設定されていません' };
-    }
-
-    // TODO: 入金明細取得API実装
-
-    return {
-      success: true,
-      message: 'GMOあおぞら入金確認（未実装）',
-      deposits: []
-    };
   },
 
   // ========================================
@@ -1966,9 +1883,6 @@ const GmoAozoraIntegration = {
         }
       }
 
-      // ROI計算（仮：前月比など）
-      // TODO: 実際のROI計算ロジック
-
       return {
         success: true,
         merchantId: merchantId,
@@ -2013,6 +1927,89 @@ const GmoAozoraIntegration = {
   }
 };
 
+// freee連携モジュール
+const FreeeIntegration = {
+  /**
+   * freee APIアクセストークン取得
+   */
+  getAccessToken: function() {
+    // OAuth2.0フロー実装が必要
+    // Script Propertiesから取得
+    return PropertiesService.getScriptProperties().getProperty('FREEE_ACCESS_TOKEN');
+  },
+
+  /**
+   * 請求書作成
+   */
+  createInvoice: function(invoiceData) {
+    const token = this.getAccessToken();
+    if (!token) {
+      return { success: false, error: 'freeeアクセストークンが設定されていません' };
+    }
+
+    const companyId = PropertiesService.getScriptProperties().getProperty('FREEE_COMPANY_ID');
+    if (!companyId) {
+      return { success: false, error: 'freee会社IDが設定されていません' };
+    }
+
+    // TODO: freee API呼び出し実装
+    // https://developer.freee.co.jp/docs/accounting/reference#/Invoices/create_invoice
+
+    return {
+      success: true,
+      message: 'freee請求書作成（未実装）',
+      hint: 'FREEE_ACCESS_TOKEN, FREEE_COMPANY_IDをScript Propertiesに設定してください'
+    };
+  }
+};
+
+// GMOあおぞら銀行連携モジュール
+const GmoAozoraIntegration = {
+  /**
+   * APIトークン取得
+   */
+  getApiToken: function() {
+    return PropertiesService.getScriptProperties().getProperty('GMO_AOZORA_API_TOKEN');
+  },
+
+  /**
+   * 振込依頼作成
+   */
+  createTransferRequest: function(transferData) {
+    const token = this.getApiToken();
+    if (!token) {
+      return { success: false, error: 'GMOあおぞらAPIトークンが設定されていません' };
+    }
+
+    // TODO: GMOあおぞらAPI呼び出し実装
+    // https://gmo-aozora.com/api/
+
+    return {
+      success: true,
+      message: 'GMOあおぞら振込依頼（未実装）',
+      hint: 'GMO_AOZORA_API_TOKENをScript Propertiesに設定してください'
+    };
+  },
+
+  /**
+   * 入金確認
+   */
+  checkDeposits: function(accountId, fromDate, toDate) {
+    const token = this.getApiToken();
+    if (!token) {
+      return { success: false, error: 'GMOあおぞらAPIトークンが設定されていません' };
+    }
+
+    // TODO: 入金明細取得API実装
+
+    return {
+      success: true,
+      message: 'GMOあおぞら入金確認（未実装）',
+      deposits: []
+    };
+  }
+};
+
 // ========== トリガー設定・テスト関数 ==========
 
 /**
@@ -2047,20 +2044,15 @@ function setupMonthlyBillingTrigger() {
  */
 function runMonthlyBillingAuto() {
   console.log('========== トリガー実行: 月次請求自動生成 ==========');
-  const result = BillingSystem.autoGenerateMonthlyInvoices();
-  console.log('結果:', JSON.stringify(result, null, 2));
-  return result;
+  return BillingSystem.autoGenerateMonthlyInvoices();
 }
 
 /**
- * 月次請求自動生成テスト（手動実行用）
+ * 月次請求生成テスト（手動実行用）
  */
 function testAutoGenerateMonthlyInvoices() {
-  console.log('========== 月次請求自動生成テスト ==========');
-  const result = BillingSystem.autoGenerateMonthlyInvoices();
-  console.log('結果:', JSON.stringify(result, null, 2));
-  console.log('========== 完了 ==========');
-  return result;
+  console.log('========== 月次自動請求生成テスト ==========');
+  return BillingSystem.autoGenerateMonthlyInvoices();
 }
 
 /**
