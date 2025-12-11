@@ -4773,7 +4773,7 @@ window.addEventListener('beforeunload', function(e) {
         let selectedItems = new Set();
         let currentStatusFilter = '';
         let isReversed = false; // V1958: 逆順表示フラグ
-        let deliveryFilter = 'pre'; // V1958: 配信前/後フィルタ（'pre', 'post', 'all'）
+        let deliveryFilter = 'all'; // V2213: デフォルトを'all'に変更（新UIではcurrentQuickFilterAdminを使用）
         let dateFilterType = 'none'; // V1974: 日付フィルタ種別（none/call/reg）
         let dateFilterFrom = null; // V1974: 日付フィルタ開始日
         let dateFilterTo = null; // V1974: 日付フィルタ終了日
