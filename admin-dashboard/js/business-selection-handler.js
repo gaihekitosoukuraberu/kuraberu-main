@@ -636,7 +636,8 @@ const BusinessSelectionHandler = {
       roofWorkType,
       buildingAgeMin,
       buildingAgeMax,
-      concernedArea
+      concernedArea,
+      displayCount: this.displayCount || 8  // V2217: 表示社数をGASに送信
     };
   },
 

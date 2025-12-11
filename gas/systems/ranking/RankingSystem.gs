@@ -279,22 +279,25 @@ const RankingSystem = {
           continue;
         }
 
-        // 市区町村チェック（V1903修正: 逆方向マッチ - cityが市区町村リストのいずれかを含むかチェック）
-        // 例: city="横浜市青葉区市ケ尾町" で cities="横浜市青葉区,横浜市都筑区" なら
-        //     city.indexOf("横浜市青葉区") !== -1 でマッチ
+        // V2217: 市区町村チェックは除外ではなくマッチ度計算で反映
+        // 都道府県が合っていれば候補として残し、市区町村マッチはスコアで調整
+        // これにより、希望エリア外でも候補として表示される
+        let cityMatchFlag = false;
         if (city && cities) {
           const cityList = cities.split(',').map(function(c) { return c.trim(); });
-          let cityMatch = false;
           for (var j = 0; j < cityList.length; j++) {
             if (city.indexOf(cityList[j]) !== -1 || cityList[j].indexOf(city) !== -1) {
-              cityMatch = true;
+              cityMatchFlag = true;
               break;
             }
           }
-          if (!cityMatch) {
+          // V2217: 市区町村が合わなくても除外しない（フィルタ統計は記録）
+          if (!cityMatchFlag) {
             filterStats.rejectedByCity++;
-            continue;
+            // continue; を削除 - 除外しない
           }
+        } else {
+          cityMatchFlag = true; // 市区町村指定なしは全マッチ扱い
         }
 
         // V1830: 工事種別チェック（単品 vs 複合工事対応）
@@ -430,12 +433,11 @@ const RankingSystem = {
         const pastDataMetrics = this.getPastDataMetrics(companyName);
 
         // V1713: 完全マッチ判定（都道府県 + 市区町村 + 工事種別 + 築年数100%マッチ）
-        // 市区町村マッチ: cityがnull（取得できなかった）またはマッチしている場合はtrue
-        const cityMatch = !city || (cities && cities.indexOf(city) !== -1);
+        // V2217: cityMatchFlagを使用（上で計算済み）
         // 築年数100%マッチ: ユーザーの希望範囲が業者の対応範囲に完全に含まれる
         const buildingAgeFullMatch = (buildingAgeMatchScore === 100);
         // 完全マッチフラグ: 上記すべてがtrue（都道府県と工事種別は既にフィルタ済み）
-        const isCompleteMatch = cityMatch && buildingAgeFullMatch;
+        const isCompleteMatch = cityMatchFlag && buildingAgeFullMatch;
 
         // V1713: ボーナスフィールド取得
         const priorityArea = row[colIndex.priorityArea];
@@ -756,12 +758,17 @@ const RankingSystem = {
         }
       }
 
+      // V2217: 表示社数をパラメータから取得（デフォルト8）
+      const displayCount = parseInt(params.displayCount) || 8;
+      const rankLimit = Math.min(Math.max(displayCount, 8), 20); // 最小8、最大20
+      console.log('[V2217] ランキング件数制限:', rankLimit, '(displayCount:', displayCount, ')');
+
       // 4つのソート順で並べ替え（V1828: 優先エリア3箇所選択式に修正）
       const rankings = {
-        cheap: this.applyRankBonus(this.sortByPrice(filtered.slice(), city), city).slice(0, 8),
-        recommended: this.applyRankBonus(this.sortByMatchScore(filtered.slice(), city), city).slice(0, 8),
-        review: this.applyRankBonus(this.sortByReview(filtered.slice(), city), city).slice(0, 8),
-        premium: this.applyRankBonus(this.sortByRating(filtered.slice(), city), city).slice(0, 8)
+        cheap: this.applyRankBonus(this.sortByPrice(filtered.slice(), city), city).slice(0, rankLimit),
+        recommended: this.applyRankBonus(this.sortByMatchScore(filtered.slice(), city), city).slice(0, rankLimit),
+        review: this.applyRankBonus(this.sortByReview(filtered.slice(), city), city).slice(0, rankLimit),
+        premium: this.applyRankBonus(this.sortByRating(filtered.slice(), city), city).slice(0, rankLimit)
       };
 
       return {
