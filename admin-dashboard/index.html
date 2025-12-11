@@ -9685,15 +9685,30 @@ window.addEventListener('beforeunload', function(e) {
         // オートセーブシステム ここまで
         // ========================================
 
-        // ステータスモーダルのトグル
+        // V2223: ステータスモーダルのトグル（配信済みの場合は大きいモーダルを表示）
         function toggleStatusModal() {
-            const modal = document.getElementById('statusModal');
-            if (modal) {
-                modal.classList.toggle('hidden');
+            const caseData = casesData[currentCaseId];
+            if (!caseData) {
+                // フォールバック：古いモーダルを表示
+                const modal = document.getElementById('statusModal');
+                if (modal) modal.classList.toggle('hidden');
+                return;
+            }
+
+            const transferCount = caseData.transferCount || 0;
+            if (transferCount > 0) {
+                // V2223: 配信済み案件はcancelStatusModal（配信後ステータス選択）へ
+                cancelFlowCaseId = currentCaseId;
+                document.getElementById('cancelStatusTargetName').textContent = `${caseData.name || caseData.customerName || '---'} 様`;
+                document.getElementById('cancelStatusModal').classList.remove('hidden');
+            } else {
+                // 未配信 → 配信前ステータスモーダル（従来）
+                const modal = document.getElementById('statusModal');
+                if (modal) modal.classList.toggle('hidden');
             }
         }
 
-        // V2214: CRMステータスモーダルを表示（配信状況に応じてセクション切り替え）
+        // V2214: CRMステータスモーダルを表示（配信状況に応じてセクション切り替え）- 未使用だが互換性維持
         function showStatusModal() {
             const modal = document.getElementById('statusModal');
             if (!modal) return;
@@ -9701,11 +9716,12 @@ window.addEventListener('beforeunload', function(e) {
             const caseData = casesData[currentCaseId];
             if (!caseData) return;
 
-            // V2214: 配信済みで新着以上に進んでいたら確認ダイアログ
+            // V2223: 配信済み（transferCount > 0）なら配信後ステータスモーダルへ
             const transferCount = caseData.transferCount || 0;
-            const lockedStatuses = ['未アポ', 'アポ済', '現調済', '見積提出済', '入金予定・未着工', '入金予定・施工中', '入金予定・工事済', '入金済・未着工', '入金済・施工中', '完了', '現調前キャンセル', '現調後失注', '他社契約済', '別加盟店契約済', '顧客クレーム'];
-            if (transferCount > 0 && lockedStatuses.includes(caseData.status)) {
-                showCancelConfirmModal(currentCaseId);
+            if (transferCount > 0) {
+                cancelFlowCaseId = currentCaseId;
+                document.getElementById('cancelStatusTargetName').textContent = `${caseData.name || caseData.customerName || '---'} 様`;
+                document.getElementById('cancelStatusModal').classList.remove('hidden');
                 return;
             }
 
