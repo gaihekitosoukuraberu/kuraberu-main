@@ -8647,6 +8647,8 @@ window.addEventListener('beforeunload', function(e) {
                 if (result.success) {
                     showToast('キャンセル処理が完了しました', 'success');
                     closeCancelFlowModal();
+                    // CV一覧を再取得してステータス反映
+                    await loadCasesData();
                     initializeListView();
                 } else {
                     showToast('処理に失敗しました: ' + (result.error || ''), 'error');
@@ -8788,6 +8790,8 @@ window.addEventListener('beforeunload', function(e) {
                 if (result.success) {
                     showToast('成約処理が完了しました', 'success');
                     closeContractFlowModal();
+                    // CV一覧を再取得してステータス反映
+                    await loadCasesData();
                     initializeListView();
                 } else {
                     showToast('処理に失敗しました: ' + (result.error || ''), 'error');
