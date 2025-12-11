@@ -587,28 +587,28 @@
             <div id="dashboardSection" class="section" style="display: none;">
                 <h2 class="text-2xl font-bold text-gray-900 mb-6">ダッシュボード</h2>
 
-                <!-- V2200: 統計カード（7つ→2行表示）デザイン統一 -->
+                <!-- V2201: 統計カード（8つ→2行表示）全デザイン統一・タップでリンク -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                     <!-- 統計カード -->
                     <div class="lg:col-span-2">
-                        <!-- 上段：売上系3つ + 詳細ボタン -->
+                        <!-- 上段：財務系4つ（タップで財務管理へ） -->
                         <div class="grid grid-cols-4 gap-2 md:gap-4 mb-2 md:mb-4">
-                            <div class="bg-white p-3 md:p-4 rounded-lg shadow text-center">
+                            <div onclick="showSection('billing')" class="bg-white p-3 md:p-4 rounded-lg shadow text-center cursor-pointer hover:bg-gray-50 transition">
                                 <p class="text-xs text-gray-500 mb-1">売上</p>
                                 <p class="text-xl md:text-2xl font-bold text-blue-600" id="dashRevenue">¥0</p>
                             </div>
-                            <div class="bg-white p-3 md:p-4 rounded-lg shadow text-center">
+                            <div onclick="showSection('billing')" class="bg-white p-3 md:p-4 rounded-lg shadow text-center cursor-pointer hover:bg-gray-50 transition">
                                 <p class="text-xs text-gray-500 mb-1">支出</p>
                                 <p class="text-xl md:text-2xl font-bold text-red-500" id="dashCost">¥0</p>
                             </div>
-                            <div class="bg-white p-3 md:p-4 rounded-lg shadow text-center">
+                            <div onclick="showSection('billing')" class="bg-white p-3 md:p-4 rounded-lg shadow text-center cursor-pointer hover:bg-gray-50 transition">
                                 <p class="text-xs text-gray-500 mb-1">粗利</p>
                                 <p class="text-xl md:text-2xl font-bold text-green-600" id="dashProfit">¥0</p>
                             </div>
-                            <button onclick="showSection('billing')" class="bg-blue-600 hover:bg-blue-700 text-white p-3 md:p-4 rounded-lg shadow text-center transition">
-                                <p class="text-xs mb-1">財務管理</p>
-                                <p class="text-xl md:text-2xl font-bold">→</p>
-                            </button>
+                            <div onclick="showSection('billing')" class="bg-white p-3 md:p-4 rounded-lg shadow text-center cursor-pointer hover:bg-gray-50 transition">
+                                <p class="text-xs text-gray-500 mb-1">ROI</p>
+                                <p class="text-xl md:text-2xl font-bold text-purple-600" id="dashRoi">0%</p>
+                            </div>
                         </div>
                         <!-- 下段：案件系4つ -->
                         <div class="grid grid-cols-4 gap-2 md:gap-4">
@@ -624,7 +624,7 @@
                                 <p class="text-xs text-gray-500 mb-1">対応中</p>
                                 <p class="text-xl md:text-2xl font-bold text-yellow-600" id="dashInProgress">0</p>
                             </div>
-                            <div class="bg-white p-3 md:p-4 rounded-lg shadow text-center">
+                            <div onclick="showSection('sales')" class="bg-white p-3 md:p-4 rounded-lg shadow text-center cursor-pointer hover:bg-gray-50 transition">
                                 <p class="text-xs text-gray-500 mb-1">メンバー</p>
                                 <p class="text-xl md:text-2xl font-bold text-purple-600" id="dashMemberCount">1</p>
                             </div>
@@ -29267,11 +29267,14 @@
                     document.getElementById('dashInProgress').textContent = stats.inProgress || 0;
                     document.getElementById('dashMemberCount').textContent = stats.memberCount || 1;
 
-                    // V2198: 売上サマリー更新
+                    // V2201: 売上サマリー更新（ROI追加）
                     const formatYen = (n) => '¥' + (n || 0).toLocaleString();
                     document.getElementById('dashRevenue').textContent = formatYen(stats.thisMonthRevenue);
                     document.getElementById('dashCost').textContent = formatYen(stats.thisMonthCost);
                     document.getElementById('dashProfit').textContent = formatYen(stats.thisMonthProfit);
+                    // ROI計算: (売上 - 支出) / 支出 * 100
+                    const roi = stats.thisMonthCost > 0 ? Math.round(((stats.thisMonthRevenue - stats.thisMonthCost) / stats.thisMonthCost) * 100) : 0;
+                    document.getElementById('dashRoi').textContent = roi + '%';
                     console.log('[loadDashboardStats] 表示更新完了');
                 } else {
                     console.error('[loadDashboardStats] エラー:', result.error);
