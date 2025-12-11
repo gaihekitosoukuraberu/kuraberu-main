@@ -1852,8 +1852,8 @@ window.addEventListener('beforeunload', function(e) {
                         </div>
                     </div>
 
-                    <!-- 配信後ステータス（詳細ステータス） -->
-                    <div id="crmPostDeliverySection">
+                    <!-- 配信後ステータス（詳細ステータス）- 初期は非表示、転送済み時に表示 -->
+                    <div id="crmPostDeliverySection" class="hidden">
                         <h4 class="text-xs font-bold text-gray-500 mb-2 flex items-center gap-2">
                             <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
                             配信後ステータス
