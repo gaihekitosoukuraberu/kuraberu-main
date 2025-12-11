@@ -11321,8 +11321,8 @@ window.addEventListener('beforeunload', function(e) {
                 currentView = 'list';
 
                 // リスト表示時のUI要素表示
-                document.getElementById('listCountDisplay').classList.remove('hidden');
-                document.getElementById('casePositionDisplay').classList.add('hidden');
+                document.getElementById('listCountDisplay')?.classList.remove('hidden');
+                document.getElementById('casePositionDisplay')?.classList.add('hidden');
 
                 // initializeListView() が検索フィルタを自動適用
                 initializeListView();
@@ -11339,9 +11339,9 @@ window.addEventListener('beforeunload', function(e) {
                 currentView = 'crm';
 
                 // CRM表示時のUI要素表示
-                document.getElementById('selectionCountDisplay').classList.add('hidden');
-                document.getElementById('listCountDisplay').classList.add('hidden');
-                document.getElementById('casePositionDisplay').classList.remove('hidden');
+                document.getElementById('selectionCountDisplay')?.classList.add('hidden');
+                document.getElementById('listCountDisplay')?.classList.add('hidden');
+                document.getElementById('casePositionDisplay')?.classList.remove('hidden');
 
                 // V1977: CRMビューに切り替え時、現在のソート/フィルタ状態でcurrentDisplayedCaseIdsを更新
                 // initializeListViewを呼ばずに、ソート済みIDリストだけ更新
