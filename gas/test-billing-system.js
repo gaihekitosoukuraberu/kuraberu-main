@@ -481,3 +481,34 @@ function testCancelBillingForCV() {
   console.log('========== 完了 ==========');
   return result;
 }
+
+/**
+ * フランチャイズダッシュボード向けAPI テスト
+ * 紹介料履歴を取得
+ */
+function testGetReferralHistory() {
+  console.log('========== 紹介料履歴取得テスト ==========');
+  const testMerchantId = 'FR251121143810';
+  console.log('加盟店ID:', testMerchantId);
+
+  const result = BillingSystem.getReferralHistory(testMerchantId, null);
+  console.log('結果:', JSON.stringify(result, null, 2));
+
+  if (result.success) {
+    console.log('件数:', result.count);
+  }
+  return result;
+}
+
+/**
+ * 財務サマリー取得テスト
+ */
+function testGetFinancialSummary() {
+  console.log('========== 財務サマリー取得テスト ==========');
+  const testMerchantId = 'FR251121143810';
+  console.log('加盟店ID:', testMerchantId);
+
+  const result = BillingSystem.getFinancialSummary(testMerchantId);
+  console.log('結果:', JSON.stringify(result, null, 2));
+  return result;
+}
