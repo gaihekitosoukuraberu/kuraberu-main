@@ -2770,11 +2770,19 @@ const AdminSystem = {
       let existingCount = 0;
       if (deliverySheet) {
         const deliveryData = deliverySheet.getDataRange().getValues();
-        for (let i = 1; i < deliveryData.length; i++) {
-          const rowCvId = deliveryData[i][1]; // 2列目: CV ID
-          const status = deliveryData[i][5]; // 6列目: 配信ステータス
-          if (rowCvId === cvId && (status === '配信済' || status === '配信済み')) {
-            existingCount++;
+        const deliveryHeaders = deliveryData[0];
+        const dCvIdIdx = deliveryHeaders.indexOf('CV ID');
+        const dStatusIdx = deliveryHeaders.indexOf('配信ステータス');
+
+        console.log('[updateUserSheetDeliveryStatus] 配信管理シートヘッダー:', { dCvIdIdx, dStatusIdx });
+
+        if (dCvIdIdx !== -1 && dStatusIdx !== -1) {
+          for (let i = 1; i < deliveryData.length; i++) {
+            const rowCvId = deliveryData[i][dCvIdIdx];
+            const status = deliveryData[i][dStatusIdx];
+            if (rowCvId === cvId && (status === '配信済' || status === '配信済み')) {
+              existingCount++;
+            }
           }
         }
       }
