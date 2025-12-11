@@ -2384,6 +2384,79 @@ window.addEventListener('beforeunload', function(e) {
         </div>
     </div>
 
+    <!-- V2213: メッセージ送信モーダル（フランチャイズ統一デザイン） -->
+    <div id="smsModal" class="fixed inset-0 z-50 hidden">
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeSmsModal()"></div>
+        <div class="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden">
+                <!-- ヘッダー -->
+                <div class="px-5 py-4 bg-gradient-to-r from-purple-500 to-purple-600 flex-shrink-0">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <span>💬</span> メッセージ送信
+                            </h3>
+                            <p id="smsTargetInfo" class="text-sm text-purple-100 mt-0.5">---</p>
+                        </div>
+                        <button onclick="closeSmsModal()" class="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-2 transition-all">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 本文 -->
+                <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                    <!-- テンプレート選択 -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">テンプレート</label>
+                        <select id="smsTemplateSelect" onchange="applySmsTemplate()" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-base">
+                            <option value="call_missed">不在後フォロー</option>
+                            <option value="delivery_notice">配信通知</option>
+                            <option value="status_check">状況確認</option>
+                            <option value="appointment">アポ確定</option>
+                            <option value="custom">カスタム（自由入力）</option>
+                        </select>
+                    </div>
+
+                    <!-- メッセージプレビュー -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-sm font-bold text-gray-700">メッセージ内容</label>
+                            <button onclick="copySmsMessage()" class="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all" title="メッセージをコピー">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <textarea id="smsMessageText" rows="6" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all text-base resize-none" placeholder="メッセージを入力..." oninput="updateSmsCharCount()"></textarea>
+                        <div class="flex justify-between items-center mt-1">
+                            <p class="text-xs text-gray-400">※ {顧客名} は自動置換</p>
+                            <p id="smsCharCount" class="text-xs font-medium text-gray-500">0文字</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- アクションボタン -->
+                <div class="p-4 border-t bg-gray-50 flex-shrink-0">
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="sendViaSms()" class="py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-all flex flex-col items-center justify-center gap-1">
+                            <span class="text-lg">💬</span>
+                            <span class="text-xs">SMS</span>
+                        </button>
+                        <button onclick="sendViaLine()" class="py-3 bg-[#06C755] text-white rounded-xl font-bold hover:opacity-90 transition-all flex flex-col items-center justify-center gap-1">
+                            <span class="text-lg">💚</span>
+                            <span class="text-xs">LINE</span>
+                        </button>
+                        <button onclick="sendViaEmail()" class="py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-all flex flex-col items-center justify-center gap-1">
+                            <span class="text-lg">✉️</span>
+                            <span class="text-xs">メール</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- V2055: 次回架電日設定専用モーダル -->
     <div id="nextCallDateModal" class="fixed inset-0 z-50 hidden">
         <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick="closeNextCallModal()"></div>
@@ -7472,7 +7545,7 @@ window.addEventListener('beforeunload', function(e) {
                             <button onclick="event.stopPropagation(); callCase('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="電話（履歴自動追加）">
                                 📞
                             </button>
-                            <button onclick="event.stopPropagation(); window.location.href='sms:${caseData.phone}'" class="text-xl hover:scale-110 transition-transform" title="SMS">
+                            <button onclick="event.stopPropagation(); openSmsModal('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="メッセージ">
                                 💬
                             </button>
                             <button onclick="event.stopPropagation(); openCallHistoryModal('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="メモ">
@@ -7572,7 +7645,7 @@ window.addEventListener('beforeunload', function(e) {
                                     <button onclick="callCase('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="電話">📞</button>
                                     ${getCallCountBadge(caseData)}
                                 </div>
-                                <button onclick="window.location.href='sms:${caseData.phone}'" class="text-xl hover:scale-110 transition-transform" title="SMS">💬</button>
+                                <button onclick="openSmsModal('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="メッセージ">💬</button>
                                 <div class="flex items-center">
                                     <button onclick="openCallHistoryModal('${caseId}')" class="text-xl hover:scale-110 transition-transform" title="メモ">📝</button>
                                     ${getMemoCountBadge(caseData)}
@@ -9680,6 +9753,94 @@ window.addEventListener('beforeunload', function(e) {
 
         // V2057: 接続フロー用フラグ
         let isConnectedFlow = false;
+
+        // ===== V2213: メッセージ送信モーダル関連 =====
+        let currentSmsCaseId = null;
+
+        // アドミン用テンプレート
+        const adminSmsTemplates = {
+            call_missed: '{顧客名}様\n\nお電話差し上げましたがお繋ぎできませんでした。\n\n外壁塗装のお見積りについて、ご都合のよいお時間にお電話いただければ幸いです。\n\nくらべるネット',
+            delivery_notice: '{顧客名}様\n\nこの度はお問い合わせいただき誠にありがとうございます。\n\nご希望の条件に合う業者様をご紹介させていただきました。近日中にご連絡がございますのでお待ちください。\n\nくらべるネット',
+            status_check: '{顧客名}様\n\nその後、ご検討状況はいかがでしょうか？\n\nご不明点などございましたらお気軽にお問い合わせください。\n\nくらべるネット',
+            appointment: '{顧客名}様\n\nお電話ありがとうございました。\n\n現地調査の日程は下記にて承りました。\n日時：○月○日（○）○時〜\n\n当日担当業者よりご連絡いたします。\n\nくらべるネット',
+            custom: ''
+        };
+
+        function openSmsModal(caseId) {
+            currentSmsCaseId = caseId;
+            const caseData = casesData[caseId];
+            if (!caseData) return;
+
+            // 宛先表示
+            document.getElementById('smsTargetInfo').textContent = `${caseData.customerName || '---'} 様 (${caseData.phone || '---'})`;
+
+            // デフォルトテンプレート適用
+            document.getElementById('smsTemplateSelect').value = 'call_missed';
+            applySmsTemplate();
+
+            document.getElementById('smsModal').classList.remove('hidden');
+        }
+
+        function closeSmsModal() {
+            document.getElementById('smsModal').classList.add('hidden');
+            currentSmsCaseId = null;
+        }
+
+        function applySmsTemplate() {
+            const templateKey = document.getElementById('smsTemplateSelect').value;
+            let template = adminSmsTemplates[templateKey] || '';
+
+            // 変数置換
+            if (currentSmsCaseId && casesData[currentSmsCaseId]) {
+                const caseData = casesData[currentSmsCaseId];
+                template = template.replace(/{顧客名}/g, caseData.customerName || 'お客');
+            }
+
+            document.getElementById('smsMessageText').value = template;
+            updateSmsCharCount();
+        }
+
+        function updateSmsCharCount() {
+            const text = document.getElementById('smsMessageText').value;
+            document.getElementById('smsCharCount').textContent = `${text.length}文字`;
+        }
+
+        function copySmsMessage() {
+            const text = document.getElementById('smsMessageText').value;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('コピーしました');
+            });
+        }
+
+        function sendViaSms() {
+            const caseData = casesData[currentSmsCaseId];
+            if (!caseData?.phone) {
+                alert('電話番号がありません');
+                return;
+            }
+            const message = document.getElementById('smsMessageText').value;
+            navigator.clipboard.writeText(message);
+            window.location.href = `sms:${caseData.phone}`;
+            closeSmsModal();
+        }
+
+        function sendViaLine() {
+            const message = document.getElementById('smsMessageText').value;
+            const encoded = encodeURIComponent(message);
+            window.open(`https://line.me/R/share?text=${encoded}`, '_blank');
+            closeSmsModal();
+        }
+
+        function sendViaEmail() {
+            const caseData = casesData[currentSmsCaseId];
+            const message = document.getElementById('smsMessageText').value;
+            const subject = encodeURIComponent('【くらべるネット】ご連絡');
+            const body = encodeURIComponent(message);
+            const email = caseData?.email || '';
+            window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+            closeSmsModal();
+        }
+        // ===== メッセージ送信モーダル関連 END =====
 
         function openCallHistoryModal(caseId) {
             // リストから開いた場合はcaseIdを設定
