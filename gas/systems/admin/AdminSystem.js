@@ -93,6 +93,10 @@ const AdminSystem = {
         case 'admin_getAdminDashboardStats':
           return this.getAdminDashboardStats();
 
+        case 'sendCancelNotify':
+        case 'admin_sendCancelNotify':
+          return this.sendCancelNotify(params);
+
         default:
           return {
             success: false,
@@ -3528,6 +3532,121 @@ info@gaihekikuraberu.com
         success: false,
         error: error.message || 'ダッシュボード統計の取得に失敗しました'
       };
+    }
+  },
+
+  /**
+   * V2214: キャンセル通知送信（＋配信取消オプション）
+   * @param {Object} params - { cvId, message, franchises, cancelDelivery }
+   */
+  sendCancelNotify: function(params) {
+    try {
+      const { cvId, message, franchises, cancelDelivery } = params;
+
+      if (!cvId) {
+        return { success: false, error: 'CV IDが指定されていません' };
+      }
+
+      console.log('[sendCancelNotify] CV ID:', cvId, 'cancelDelivery:', cancelDelivery);
+
+      const SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+      // 加盟店登録シートからメールアドレスを取得
+      const franchiseSheet = ss.getSheetByName('加盟店登録');
+      const franchiseEmailMap = {};
+      if (franchiseSheet) {
+        const fData = franchiseSheet.getDataRange().getValues();
+        const fHeaders = fData[0];
+        const fIdIdx = fHeaders.indexOf('登録ID');
+        const fEmailIdx = fHeaders.indexOf('メールアドレス');
+        const fNameIdx = fHeaders.indexOf('会社名');
+        if (fIdIdx !== -1 && fEmailIdx !== -1) {
+          for (let i = 1; i < fData.length; i++) {
+            const fId = fData[i][fIdIdx];
+            if (fId) {
+              franchiseEmailMap[fId] = {
+                email: fData[i][fEmailIdx] || '',
+                name: fNameIdx !== -1 ? (fData[i][fNameIdx] || '') : ''
+              };
+            }
+          }
+        }
+      }
+
+      // メール送信
+      let sentCount = 0;
+      if (franchises && franchises.length > 0) {
+        for (const franchiseId of franchises) {
+          const info = franchiseEmailMap[franchiseId];
+          if (info && info.email) {
+            try {
+              MailApp.sendEmail({
+                to: info.email,
+                subject: '【くらべるネット】案件キャンセルのお知らせ',
+                body: message
+              });
+              sentCount++;
+              console.log('[sendCancelNotify] メール送信成功:', info.email);
+            } catch (mailError) {
+              console.error('[sendCancelNotify] メール送信エラー:', info.email, mailError);
+            }
+          }
+        }
+      }
+
+      // 配信取消の場合は配信管理・請求管理から削除
+      if (cancelDelivery) {
+        // 配信管理シートから削除
+        const deliverySheet = ss.getSheetByName('配信管理');
+        if (deliverySheet) {
+          const dData = deliverySheet.getDataRange().getValues();
+          const dHeaders = dData[0];
+          const dCvIdIdx = dHeaders.indexOf('CV ID');
+
+          // 削除対象行を逆順で取得（後ろから削除するため）
+          const rowsToDelete = [];
+          for (let i = 1; i < dData.length; i++) {
+            if (dData[i][dCvIdIdx] === cvId) {
+              rowsToDelete.push(i + 1); // シートは1-indexed
+            }
+          }
+          // 逆順で削除
+          for (let i = rowsToDelete.length - 1; i >= 0; i--) {
+            deliverySheet.deleteRow(rowsToDelete[i]);
+          }
+          console.log('[sendCancelNotify] 配信管理から削除:', rowsToDelete.length, '件');
+        }
+
+        // 請求管理シートから削除
+        const billingSheet = ss.getSheetByName('請求管理');
+        if (billingSheet) {
+          const bData = billingSheet.getDataRange().getValues();
+          const bHeaders = bData[0];
+          const bCvIdIdx = bHeaders.indexOf('CV ID');
+
+          const bRowsToDelete = [];
+          for (let i = 1; i < bData.length; i++) {
+            if (bData[i][bCvIdIdx] === cvId) {
+              bRowsToDelete.push(i + 1);
+            }
+          }
+          for (let i = bRowsToDelete.length - 1; i >= 0; i--) {
+            billingSheet.deleteRow(bRowsToDelete[i]);
+          }
+          console.log('[sendCancelNotify] 請求管理から削除:', bRowsToDelete.length, '件');
+        }
+      }
+
+      return {
+        success: true,
+        sentCount: sentCount,
+        cancelDelivery: cancelDelivery
+      };
+
+    } catch (error) {
+      console.error('[sendCancelNotify] エラー:', error);
+      return { success: false, error: error.message };
     }
   }
 };
