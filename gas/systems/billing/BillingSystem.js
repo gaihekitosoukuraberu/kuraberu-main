@@ -2626,6 +2626,7 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
       }));
 
       // メンバー数を取得（認証情報シートから）
+      // 管理者（1列目が加盟店ID）+ 招待メンバー（6列目が親加盟店ID）をカウント
       let memberCount = 1;
       try {
         const authSheet = ss.getSheetByName('認証情報');
@@ -2633,8 +2634,13 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
           const authData = authSheet.getDataRange().getValues();
           const authHeaders = authData[0];
           const merchantIdIdx = authHeaders.indexOf('加盟店ID');
+          const parentMerchantIdIdx = 5; // 6列目（0始まり）= 親の加盟店ID
           if (merchantIdIdx >= 0) {
-            memberCount = authData.filter((row, i) => i > 0 && row[merchantIdIdx] === merchantId).length;
+            // 管理者（1列目が一致）または招待メンバー（6列目が一致）
+            memberCount = authData.filter((row, i) => {
+              if (i === 0) return false; // ヘッダー行除外
+              return row[merchantIdIdx] === merchantId || row[parentMerchantIdIdx] === merchantId;
+            }).length;
             if (memberCount === 0) memberCount = 1;
           }
         }
