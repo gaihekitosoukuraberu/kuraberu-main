@@ -40,13 +40,19 @@ class ApiClient {
       let script = null;
 
       // クリーンアップ関数
+      // V2237: 遅延レスポンス対策 - 即削除ではなく空関数に置き換えてエラー防止
       const cleanup = () => {
         if (timeoutId) {
           clearTimeout(timeoutId);
           timeoutId = null;
         }
         if (window[callbackName]) {
-          delete window[callbackName];
+          // 遅延レスポンスが来てもエラーにならないよう空関数に置き換え
+          window[callbackName] = function() {
+            console.log(`[ApiClient] 遅延レスポンス受信（無視）: ${callbackName}`);
+          };
+          // 10秒後に完全削除
+          setTimeout(() => { delete window[callbackName]; }, 10000);
         }
         if (script && script.parentNode) {
           script.parentNode.removeChild(script);
