@@ -86,16 +86,16 @@
   - `deposit_updateSetting`: 繰越/返金設定変更
 - [x] main.js SystemRouterにルーティング追加
 
-### Phase 2: GAS修正 🔄進行中
-- [ ] 2-1. プラン選択を自由入力に変更
-- [ ] 2-2. キャンセル承諾時にデポジット戻す処理追加
-- [ ] 2-3. 残高0時のメール通知追加
+### Phase 2: GAS修正 ✅完了
+- [x] 2-1. プラン選択を自由入力に変更（requestDepositPurchase）
+- [x] 2-2. キャンセル承諾時にデポジット戻す処理追加（refundDepositOnCancel）
+- [x] 2-3. 残高0時のメール通知追加（_sendDepositZeroNotification）
 
-### Phase 3: フロントエンドAPI連携 ⏳未着手
-- [ ] 3-1. loadDepositInfo(): デポジット情報取得・表示
-- [ ] 3-2. showDepositModal(): 自由入力で購入申請
-- [ ] 3-3. updateDepositSetting(): 繰越/返金設定変更API連携
-- [ ] 3-4. loadDepositHistory(): 取引履歴動的表示
+### Phase 3: フロントエンドAPI連携 ✅完了
+- [x] 3-1. loadDepositInfo(): デポジット情報取得・表示
+- [x] 3-2. showDepositModal(): 自由入力で購入申請
+- [x] 3-3. updateDepositSetting(): 繰越/返金設定変更API連携
+- [x] 3-4. showSection('deposit')時に自動読み込み
 
 ### Phase 4: 管理者側機能 ⏳未着手
 - [ ] 4-1. 入金確認画面（admin-dashboard）
