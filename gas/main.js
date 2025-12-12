@@ -673,6 +673,14 @@ const SystemRouter = {
       ]
     },
 
+    // V2236: 請求管理（billingAction経由）
+    'billing': {
+      system: 'BillingSystem',
+      description: '請求管理（routeAction経由）',
+      prefix: false,
+      actions: ['billing']
+    },
+
   },
 
   /**
