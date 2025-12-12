@@ -224,6 +224,7 @@ const BusinessSelectionHandler = {
   distancesCalculated: false, // 距離計算済みフラグ
   deliveredFranchises: [],    // V2004: 転送済み業者リスト（二重転送防止用）
   appliedFranchises: [],      // V2007: 申込済み業者リスト（一斉配信から申込）
+  depositInfoMap: {},         // V2235: デポジット情報マップ（加盟店名→{remaining, total}）
 
   /**
    * V2046: 加盟店へのコール回数を取得（types に 'call' が含まれるもの）
@@ -362,6 +363,39 @@ const BusinessSelectionHandler = {
   },
 
   /**
+   * V2235: 全加盟店のデポジット情報を取得
+   */
+  async loadDepositInfoAll() {
+    try {
+      console.log('[V2235] デポジット情報取得開始');
+      this.depositInfoMap = {};
+
+      const response = await window.apiClient.postRequest('billing', {
+        billingAction: 'deposit_getAllInfo'
+      });
+
+      if (response && response.success && response.depositMap) {
+        this.depositInfoMap = response.depositMap;
+        console.log('[V2235] デポジット情報:', Object.keys(this.depositInfoMap).length, '件');
+      } else {
+        console.log('[V2235] デポジット情報なし');
+      }
+    } catch (error) {
+      console.error('[V2235] デポジット情報取得エラー:', error);
+      this.depositInfoMap = {};
+    }
+  },
+
+  /**
+   * V2235: 業者のデポジット情報を取得
+   * @param {string} companyName - 会社名
+   * @returns {object|null} デポジット情報（{remaining, total}）またはnull
+   */
+  getDepositInfo(companyName) {
+    return this.depositInfoMap[companyName] || null;
+  },
+
+  /**
    * AS列（業者選定履歴）をパースして業者名配列を取得
    * @param {string} businessHistoryText - AS列のテキスト
    * @returns {Array<string>} 業者名の配列
@@ -440,6 +474,9 @@ const BusinessSelectionHandler = {
 
       // V2007: 申込済み業者リストを取得（一斉配信から）
       await this.loadAppliedFranchises(cvId);
+
+      // V2235: デポジット情報を取得（全加盟店分）
+      await this.loadDepositInfoAll();
 
       // AS列から業者名を取得（V1902: franchiseSelectionHistoryキーもサポート）
       const businessHistory = currentCaseData.businessHistory || currentCaseData.franchiseSelectionHistory || '';
@@ -2289,6 +2326,12 @@ const BusinessSelectionHandler = {
     // V2046: お断りかどうかを確認
     const isDeclined = this.declinedCompanies.has(card.companyName);
 
+    // V2235: デポジット情報取得
+    const depositInfo = this.getDepositInfo(card.companyName);
+    const depositBadgeHtml = depositInfo
+      ? `<span class="flex-shrink-0 px-1.5 py-0.5 bg-green-600 text-white text-[10px] font-bold rounded" title="デポジット残${depositInfo.remaining}件/購入${depositInfo.total}件">デポ${depositInfo.remaining}/${depositInfo.total}</span>`
+      : '';
+
     // V2013: iPhone SE最適化 - 3行レイアウト（はみ出し防止）
     div.innerHTML = `
       <!-- 1行目: 順位 + チェック + 会社名 + バッジ -->
@@ -2296,6 +2339,7 @@ const BusinessSelectionHandler = {
         <span class="text-base font-bold ${isDelivered ? 'text-purple-600' : 'text-pink-600'} flex-shrink-0">${card.rank}</span>
         ${checkboxHtml ? `<div class="flex-shrink-0">${checkboxHtml}</div>` : ''}
         <span class="font-semibold ${isDelivered ? 'text-purple-700' : 'text-gray-900'} text-sm">${card.companyName}</span>
+        ${depositBadgeHtml}
         ${isDeclined ? '<span class="flex-shrink-0 ml-auto px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded">お断り</span>' : ''}
         ${isDelivered ? '<span class="flex-shrink-0 ml-auto px-1.5 py-0.5 bg-purple-600 text-white text-[10px] font-bold rounded">転送済</span>' : ''}
         ${isApplied ? '<span class="flex-shrink-0 ml-auto px-1.5 py-0.5 bg-orange-500 text-white text-[10px] font-bold rounded">申込済</span>' : ''}

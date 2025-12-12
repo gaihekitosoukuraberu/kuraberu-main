@@ -97,6 +97,12 @@
 - [x] 3-3. updateDepositSetting(): 繰越/返金設定変更API連携
 - [x] 3-4. showSection('deposit')時に自動読み込み
 
+### Phase 3.5: 管理画面デポジット表示 ✅完了
+- [x] 3.5-1. GASにdeposit_getAllInfo API追加（全加盟店のデポジット情報一括取得）
+- [x] 3.5-2. business-selection-handlerにdepositInfoMap追加
+- [x] 3.5-3. loadDepositInfoAll()関数追加
+- [x] 3.5-4. 加盟店カードにデポジットバッジ表示（「デポX/Y」形式）
+
 ### Phase 4: 管理者側機能 ⏳未着手
 - [ ] 4-1. 入金確認画面（admin-dashboard）
 - [ ] 4-2. 返金リスト自動生成
@@ -109,13 +115,18 @@
 /gas/
   systems/
     billing/
-      BillingSystem.js  ← デポジットAPI追加済み
+      BillingSystem.js  ← デポジットAPI追加済み（deposit_getAllInfo含む）
+    admin/
+      AdminSystem.js    ← オーダー転送時デポジット有り業者のみ希望社数表示
+      AdminCancelSystem.js ← キャンセル承諾時デポジット戻し処理
   main.js               ← ルーティング追加済み
 
 /franchise-dashboard/
-  index.html            ← デポジットセクションUI（静的）あり、API連携未
+  index.html            ← デポジットセクションUI + API連携完了
+
+/admin-dashboard/
   js/
-    billing-manager.js  ← デポジット関数追加予定
+    business-selection-handler.js ← 加盟店カードにデポジットバッジ表示
 ```
 
 ---

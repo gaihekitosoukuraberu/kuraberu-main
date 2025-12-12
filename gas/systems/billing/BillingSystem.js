@@ -97,6 +97,8 @@ const BillingSystem = {
         return this.consumeDeposit(params.merchantId, params.cvId, params.deliveryAmount);
       case 'deposit_updateSetting':
         return this.updateDepositSetting(params.merchantId, params.setting);
+      case 'deposit_getAllInfo':
+        return this.getAllDepositInfo();
       default:
         return { success: false, error: 'Unknown billing action: ' + action };
     }
@@ -3445,6 +3447,56 @@ CV ID: ${lastCvId}
       };
     } catch (e) {
       console.error('[BillingSystem] getDepositInfo error:', e);
+      return { success: false, error: e.message };
+    }
+  },
+
+  /**
+   * V2235: 全加盟店のデポジット情報一括取得（管理画面用）
+   * @returns {Object} 加盟店名をキーとするデポジットマップ
+   */
+  getAllDepositInfo: function() {
+    try {
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+
+      const depositSheet = ss.getSheetByName(this.DEPOSIT_SHEET);
+      if (!depositSheet) {
+        console.log('[BillingSystem] デポジット管理シートが存在しません');
+        return { success: true, depositMap: {} };
+      }
+
+      const depositData = depositSheet.getDataRange().getValues();
+      if (depositData.length <= 1) {
+        return { success: true, depositMap: {} };
+      }
+
+      const headers = depositData[0];
+      const nameIdx = headers.indexOf('加盟店名');
+      const remainingIdx = headers.indexOf('デポジット残件数');
+      const totalIdx = headers.indexOf('デポジット総件数');
+
+      const depositMap = {};
+      for (let i = 1; i < depositData.length; i++) {
+        const row = depositData[i];
+        const name = row[nameIdx];
+        if (name) {
+          const remaining = parseInt(row[remainingIdx]) || 0;
+          const total = parseInt(row[totalIdx]) || 0;
+          // 残件数または総件数が1以上の場合のみ登録
+          if (remaining > 0 || total > 0) {
+            depositMap[name] = {
+              remaining: remaining,
+              total: total
+            };
+          }
+        }
+      }
+
+      console.log('[BillingSystem] getAllDepositInfo:', Object.keys(depositMap).length, '件');
+      return { success: true, depositMap: depositMap };
+    } catch (e) {
+      console.error('[BillingSystem] getAllDepositInfo error:', e);
       return { success: false, error: e.message };
     }
   },
