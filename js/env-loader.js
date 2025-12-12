@@ -22,13 +22,13 @@ const ENV = {
   // ============================================
 
   // プライマリGAS URL（メイン運用）- V2229 @2249
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxJLMxg7_P_tN4g9jk4ctWjMkz64pmO5x0cGGbEz93N7aXCP6gzcxyWuoa2pBWtyMwUIA/exec',
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbwHPXBtd9hhkO8K1lmEae3hvleuzIftJ7CVCCxwtYXTGUx27DgoqGiOysB8vPJ1qWPjtw/exec',
 
   // フォールバックGAS URL（バックアップ）- V2229 @2249
-  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbxJLMxg7_P_tN4g9jk4ctWjMkz64pmO5x0cGGbEz93N7aXCP6gzcxyWuoa2pBWtyMwUIA/exec',
+  FALLBACK_GAS_URL: 'https://script.google.com/macros/s/AKfycbwHPXBtd9hhkO8K1lmEae3hvleuzIftJ7CVCCxwtYXTGUx27DgoqGiOysB8vPJ1qWPjtw/exec',
 
   // 緊急時URL（最終フォールバック）- V2229 @2249
-  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbxJLMxg7_P_tN4g9jk4ctWjMkz64pmO5x0cGGbEz93N7aXCP6gzcxyWuoa2pBWtyMwUIA/exec',
+  EMERGENCY_GAS_URL: 'https://script.google.com/macros/s/AKfycbwHPXBtd9hhkO8K1lmEae3hvleuzIftJ7CVCCxwtYXTGUx27DgoqGiOysB8vPJ1qWPjtw/exec',
 
   // ============================================
   // 🔧 システム設定
@@ -45,7 +45,7 @@ const ENV = {
   RETRY_DELAY: 1000, // 1秒
 
   // キャッシュバスター（V2169 - 強制更新）
-  CACHE_BUSTER: 'v1765564000' + Date.now()
+  CACHE_BUSTER: 'v1765564414092-h1yzml' + Date.now()
 };
 
 // グローバルに公開（全てのファイルから参照可能）
