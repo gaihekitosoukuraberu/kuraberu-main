@@ -128,6 +128,19 @@ var AdminCancelSystem = {
         console.log('[AdminCancelSystem] 請求取り消し完了:', billingResult.message);
       }
 
+      // V2231: デポジット戻し処理（キャンセル承諾時に1件戻す）
+      let depositRefundResult = { success: true, refunded: false };
+      try {
+        depositRefundResult = BillingSystem.refundDepositOnCancel(merchantId, cvId);
+        if (depositRefundResult.refunded) {
+          console.log('[AdminCancelSystem] デポジット戻し完了:', depositRefundResult.message);
+        } else {
+          console.log('[AdminCancelSystem] デポジット戻し対象外:', depositRefundResult.reason);
+        }
+      } catch (e) {
+        console.error('[AdminCancelSystem] デポジット戻し処理エラー:', e);
+      }
+
       // V2184: 承認成功時のSlack通知
       this._sendApprovalNotification(applicationId, cvId, merchantId, approverName, billingResult);
 
@@ -139,7 +152,9 @@ var AdminCancelSystem = {
           cvId: cvId,
           userSheetUpdated: userResult.success,
           billingCancelled: billingResult.success,
-          billingMessage: billingResult.message
+          billingMessage: billingResult.message,
+          depositRefunded: depositRefundResult.refunded,
+          depositMessage: depositRefundResult.message || depositRefundResult.reason
         }
       };
 

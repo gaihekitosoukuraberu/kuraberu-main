@@ -90,7 +90,7 @@ const BillingSystem = {
       case 'deposit_getInfo':
         return this.getDepositInfo(params.merchantId);
       case 'deposit_purchase':
-        return this.requestDepositPurchase(params.merchantId, params.planId);
+        return this.requestDepositPurchase(params.merchantId, params.count);
       case 'deposit_confirmPayment':
         return this.confirmDepositPayment(params.invoiceId, params.paymentAmount);
       case 'deposit_consume':
@@ -2917,48 +2917,29 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
   },
 
   /**
-   * デポジット購入申請
+   * デポジット購入申請（自由入力）
    * @param {string} merchantId - 加盟店ID
-   * @param {string} planId - プランID (trial/light/standard/premium)
+   * @param {number} count - 購入件数
    * @returns {Object} 申請結果（請求書ID含む）
    */
-  requestDepositPurchase: function(merchantId, planId) {
+  requestDepositPurchase: function(merchantId, count) {
     try {
       if (!merchantId) {
         return { success: false, error: '加盟店IDが指定されていません' };
       }
 
-      const plan = this.DEPOSIT_PLANS.find(p => p.id === planId);
-      if (!plan) {
-        return { success: false, error: '無効なプランIDです' };
+      const depositCount = parseInt(count) || 0;
+      if (depositCount <= 0) {
+        return { success: false, error: '購入件数を1以上で指定してください' };
       }
+
+      // 金額計算
+      const totalPrice = depositCount * this.DEPOSIT_PRICE_PER_CASE;
+      const taxExcluded = Math.floor(totalPrice / 1.1);
+      const tax = totalPrice - taxExcluded;
 
       const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
       const ss = SpreadsheetApp.openById(ssId);
-
-      // お試しプラン（初回のみ）の場合、過去の購入履歴をチェック
-      if (plan.firstTimeOnly) {
-        const depositSheet = ss.getSheetByName(this.DEPOSIT_SHEET);
-        if (depositSheet) {
-          const depositData = depositSheet.getDataRange().getValues();
-          const headers = depositData[0];
-          const mIdIdx = headers.indexOf('加盟店ID');
-          const totalIdx = headers.indexOf('デポジット総件数');
-
-          for (let i = 1; i < depositData.length; i++) {
-            if (depositData[i][mIdIdx] === merchantId) {
-              const totalPurchased = parseInt(depositData[i][totalIdx]) || 0;
-              if (totalPurchased > 0) {
-                return {
-                  success: false,
-                  error: 'お試しプランは初回購入時のみご利用いただけます。ライト以上のプランをお選びください。'
-                };
-              }
-              break;
-            }
-          }
-        }
-      }
 
       // 加盟店名取得
       const masterSheet = ss.getSheetByName(this.SHEETS.MERCHANT_MASTER);
@@ -3003,9 +2984,9 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
           case '請求種別': newRow.push('デポジット'); break;
           case '対象月': newRow.push(Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM')); break;
           case '対象CV ID': newRow.push(''); break;
-          case '税抜金額': newRow.push(Math.floor(plan.price / 1.1)); break;
-          case '消費税': newRow.push(plan.price - Math.floor(plan.price / 1.1)); break;
-          case '税込金額': newRow.push(plan.price); break;
+          case '税抜金額': newRow.push(taxExcluded); break;
+          case '消費税': newRow.push(tax); break;
+          case '税込金額': newRow.push(totalPrice); break;
           case 'ステータス': newRow.push('入金待ち'); break;
           case '発行日': newRow.push(Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM-dd')); break;
           case '支払期限':
@@ -3014,7 +2995,7 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
             break;
           case '入金日': newRow.push(''); break;
           case '入金額': newRow.push(''); break;
-          case '備考': newRow.push(`デポジット${plan.count}件（${plan.name}プラン）`); break;
+          case '備考': newRow.push(`デポジット${depositCount}件`); break;
           case '作成日時': newRow.push(now); break;
           case '更新日時': newRow.push(now); break;
           default: newRow.push('');
@@ -3025,15 +3006,16 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
 
       // TODO: 請求書PDFメール送信
 
-      console.log('[BillingSystem] デポジット購入申請:', invoiceId, merchantId, plan.name);
+      console.log('[BillingSystem] デポジット購入申請:', invoiceId, merchantId, depositCount + '件');
 
       return {
         success: true,
         invoiceId: invoiceId,
         merchantId: merchantId,
         merchantName: merchantName,
-        plan: plan,
-        message: `デポジット${plan.count}件の請求書を発行しました`
+        count: depositCount,
+        totalPrice: totalPrice,
+        message: `デポジット${depositCount}件の請求書を発行しました`
       };
     } catch (e) {
       console.error('[BillingSystem] requestDepositPurchase error:', e);
@@ -3239,6 +3221,83 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
   },
 
   /**
+   * デポジット残高0通知送信（内部メソッド）
+   * @param {string} merchantId - 加盟店ID
+   * @param {string} lastCvId - 最後に消化したCV ID
+   */
+  _sendDepositZeroNotification: function(merchantId, lastCvId) {
+    try {
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+
+      // 加盟店情報取得
+      const masterSheet = ss.getSheetByName(this.SHEETS.MERCHANT_MASTER);
+      const masterData = masterSheet.getDataRange().getValues();
+      const masterHeaders = masterData[0];
+      const mIdIdx = masterHeaders.indexOf('加盟店ID');
+      const mNameIdx = masterHeaders.indexOf('加盟店名');
+      const emailIdx = masterHeaders.indexOf('メールアドレス');
+
+      let merchantName = '';
+      let merchantEmail = '';
+      for (let i = 1; i < masterData.length; i++) {
+        if (masterData[i][mIdIdx] === merchantId) {
+          merchantName = masterData[i][mNameIdx];
+          merchantEmail = masterData[i][emailIdx] || '';
+          break;
+        }
+      }
+
+      // 管理者メール
+      const adminEmail = PropertiesService.getScriptProperties().getProperty('ADMIN_EMAIL');
+
+      const subject = '【くらべる】デポジット残高0のお知らせ - ' + merchantName;
+      const body = `
+${merchantName} 様
+
+デポジットの残高が0になりました。
+
+■ 対象案件
+CV ID: ${lastCvId}
+
+■ 今後の配信について
+デポジット残高がなくなったため、通常配信に切り替わりました。
+表示ランクの優遇特典も一時停止となります。
+
+引き続きデポジットをご利用いただく場合は、
+加盟店管理ページより追加購入をお願いいたします。
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+外壁塗装くらべる 運営事務局
+━━━━━━━━━━━━━━━━━━━━━━━━━
+`;
+
+      // 加盟店にメール送信
+      if (merchantEmail) {
+        MailApp.sendEmail({
+          to: merchantEmail,
+          subject: subject,
+          body: body
+        });
+        console.log('[BillingSystem] デポジット残高0通知送信（加盟店）:', merchantEmail);
+      }
+
+      // 管理者にメール送信
+      if (adminEmail) {
+        MailApp.sendEmail({
+          to: adminEmail,
+          subject: '【管理者】' + subject,
+          body: `管理者様\n\n以下の加盟店のデポジット残高が0になりました。\n\n加盟店ID: ${merchantId}\n加盟店名: ${merchantName}\n最終消化CV: ${lastCvId}\n\n通常配信に切り替わりました。`
+        });
+        console.log('[BillingSystem] デポジット残高0通知送信（管理者）:', adminEmail);
+      }
+    } catch (e) {
+      console.error('[BillingSystem] _sendDepositZeroNotification error:', e);
+      // 通知エラーでも処理は続行
+    }
+  },
+
+  /**
    * デポジット消化（配信時に呼び出し）
    * @param {string} merchantId - 加盟店ID
    * @param {string} cvId - CV ID
@@ -3299,8 +3358,8 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
         // デポジット前金フラグをFALSEに
         this._setDepositFlag(merchantId, false);
 
-        // TODO: 通知送信（管理者・加盟店）
-        console.log('[BillingSystem] デポジット残高0 - 通知送信対象:', merchantId);
+        // V2231: 残高0通知送信（管理者・加盟店）
+        this._sendDepositZeroNotification(merchantId, cvId);
       }
 
       console.log('[BillingSystem] デポジット消化:', merchantId, cvId, '残り' + newRemaining + '件');
@@ -3457,14 +3516,93 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
   },
 
   /**
-   * デポジットプラン一覧取得
+   * デポジット単価情報取得（プラン廃止後）
    */
   getDepositPlans: function() {
     return {
       success: true,
-      plans: this.DEPOSIT_PLANS,
       pricePerCase: this.DEPOSIT_PRICE_PER_CASE
     };
+  },
+
+  /**
+   * キャンセル承諾時にデポジットを1件戻す
+   * @param {string} merchantId - 加盟店ID
+   * @param {string} cvId - CV ID
+   * @returns {Object} 処理結果
+   */
+  refundDepositOnCancel: function(merchantId, cvId) {
+    try {
+      if (!merchantId || !cvId) {
+        return { success: false, refunded: false, reason: 'パラメータ不足' };
+      }
+
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+
+      const depositSheet = ss.getSheetByName(this.DEPOSIT_SHEET);
+      if (!depositSheet) {
+        return { success: true, refunded: false, reason: 'デポジット管理シートなし' };
+      }
+
+      const depositData = depositSheet.getDataRange().getValues();
+      const headers = depositData[0];
+      const dIdx = {
+        merchantId: headers.indexOf('加盟店ID'),
+        remaining: headers.indexOf('デポジット残件数'),
+        history: headers.indexOf('適用履歴'),
+        updatedAt: headers.indexOf('更新日時')
+      };
+
+      // 該当加盟店のデポジットレコードを検索
+      for (let i = 1; i < depositData.length; i++) {
+        if (depositData[i][dIdx.merchantId] === merchantId) {
+          const history = depositData[i][dIdx.history] || '';
+          const historyArray = history ? history.split(',') : [];
+
+          // このCV IDがデポジットで消化されていたか確認
+          const cvIndex = historyArray.indexOf(cvId);
+          if (cvIndex === -1) {
+            return { success: true, refunded: false, reason: 'このCVはデポジット消化されていない' };
+          }
+
+          // デポジット戻し処理
+          const rowIndex = i + 1;
+          const currentRemaining = parseInt(depositData[i][dIdx.remaining]) || 0;
+          const newRemaining = currentRemaining + 1;
+
+          // 適用履歴からCV IDを削除
+          historyArray.splice(cvIndex, 1);
+          const newHistory = historyArray.join(',');
+
+          const now = new Date();
+
+          depositSheet.getRange(rowIndex, dIdx.remaining + 1).setValue(newRemaining);
+          depositSheet.getRange(rowIndex, dIdx.history + 1).setValue(newHistory);
+          depositSheet.getRange(rowIndex, dIdx.updatedAt + 1).setValue(now);
+
+          // デポジット前金フラグをTRUEに戻す（残高が1以上になったため）
+          if (newRemaining > 0) {
+            this._setDepositFlag(merchantId, true);
+          }
+
+          console.log('[BillingSystem] キャンセルでデポジット戻し:', merchantId, cvId, '残り' + newRemaining + '件');
+
+          return {
+            success: true,
+            refunded: true,
+            remaining: newRemaining,
+            cvId: cvId,
+            message: 'デポジット1件を戻しました'
+          };
+        }
+      }
+
+      return { success: true, refunded: false, reason: '加盟店のデポジットレコードなし' };
+    } catch (e) {
+      console.error('[BillingSystem] refundDepositOnCancel error:', e);
+      return { success: false, refunded: false, error: e.message };
+    }
   }
 };
 
