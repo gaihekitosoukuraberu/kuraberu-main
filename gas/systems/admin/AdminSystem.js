@@ -2368,6 +2368,24 @@ const AdminSystem = {
       }
       console.log('[sendOrderTransfer] メールマップ:', Object.keys(emailMap).length, '件');
 
+      // V2234: 加盟店マスタからデポジット前金フラグを取得
+      const masterSheet = ss.getSheetByName('加盟店マスタ');
+      const depositFlagMap = {};
+      if (masterSheet) {
+        const masterData = masterSheet.getDataRange().getValues();
+        const mHeaders = masterData[0];
+        const mCompanyIdx = mHeaders.indexOf('会社名');
+        const mDepositIdx = mHeaders.indexOf('デポジット前金');
+        for (let i = 1; i < masterData.length; i++) {
+          const name = masterData[i][mCompanyIdx] || '';
+          const depositFlag = masterData[i][mDepositIdx];
+          if (name) {
+            depositFlagMap[name] = (depositFlag === true || depositFlag === 'TRUE');
+          }
+        }
+      }
+      console.log('[sendOrderTransfer] デポジット前金マップ:', Object.keys(depositFlagMap).length, '件');
+
       const now = new Date();
       const timestamp = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss');
       const deliveryDate = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
@@ -2380,11 +2398,13 @@ const AdminSystem = {
         const fee = franchise.fee || 20000;
 
         // V1996: GAS側で転送文を生成してメール送信
-        console.log('[sendOrderTransfer] メール送信チェック:', { franchiseName, toEmail: toEmail || 'なし', cvDataExists: !!cvData });
+        // V2234: デポジット有り業者にのみ希望社数を表示
+        const hasDeposit = depositFlagMap[franchiseName] || false;
+        console.log('[sendOrderTransfer] メール送信チェック:', { franchiseName, toEmail: toEmail || 'なし', cvDataExists: !!cvData, hasDeposit });
         if (toEmail && cvData) {
           try {
             const franchiseId = franchise.franchiseId || '';
-            const transferMessage = this.generateTransferMessage(cvData, franchiseName, franchiseId, fee, deliveryDate, cvId);
+            const transferMessage = this.generateTransferMessage(cvData, franchiseName, franchiseId, fee, deliveryDate, cvId, hasDeposit);
             GmailApp.sendEmail(toEmail, `【外壁塗装くらべる】案件紹介のご連絡 (${cvId})`, transferMessage, {
               name: '外壁塗装くらべる運営事務局'
             });
@@ -2873,7 +2893,7 @@ const AdminSystem = {
   /**
    * V2002: 転送文を生成（全項目対応・空項目は除外）
    */
-  generateTransferMessage: function(cv, franchiseName, franchiseId, fee, deliveryDate, cvId) {
+  generateTransferMessage: function(cv, franchiseName, franchiseId, fee, deliveryDate, cvId, hasDeposit) {
     const formatFee = (n) => '¥' + Number(n).toLocaleString('ja-JP');
     // V2028: デバッグログ - 住所関連フィールドの確認
     console.log('[generateTransferMessage] V2028 住所デバッグ:', {
@@ -2885,6 +2905,18 @@ const AdminSystem = {
     const addr = [cv['都道府県（物件）'], cv['市区町村（物件）'], cv['住所詳細（物件）']].filter(v => v).join('');
     console.log('[generateTransferMessage] V2028 addr結果:', addr);
     const mapLink = cv['Google Mapsリンク'] || '';
+
+    // V2234: デポジット有り業者のみアイミツ状況を表示
+    let aimituSection = '';
+    if (hasDeposit && cv['希望社数']) {
+      aimituSection = `
+-------------------------------------------
+【アイミツ状況】※デポジット特典
+-------------------------------------------
+現状の希望紹介社数: ${cv['希望社数']}社
+
+`;
+    }
 
     let msg = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 外壁塗装くらべる 案件紹介のご連絡
@@ -2905,8 +2937,7 @@ ${franchiseName} 御中
 配信日時: ${deliveryDate}
 紹介料: ${formatFee(fee)}（税別）
 管理番号: ${cvId}
-
--------------------------------------------
+${aimituSection}-------------------------------------------
 【お客様情報】
 -------------------------------------------
 氏名: ${cv['氏名'] || ''}様${cv['フリガナ'] ? `（${cv['フリガナ']}）` : ''}
@@ -2963,7 +2994,7 @@ ${franchiseName} 御中
     let wishContent = '';
     if (cv['見積もり希望箇所']) wishContent += `\n見積もり希望箇所: ${cv['見積もり希望箇所']}`;
     if (cv['施工時期']) wishContent += `\n施工時期: ${cv['施工時期']}`;
-    if (cv['希望社数']) wishContent += `\n希望社数: ${cv['希望社数']}`;
+    // V2234: 希望社数は業者には見せない（アイミツ状況を伏せる）
     if (cv['Q11_見積もり保有数']) wishContent += `\n他社見積: ${cv['Q11_見積もり保有数']}`;
     if (cv['Q12_見積もり取得先']) wishContent += `\n見積もり取得先: ${cv['Q12_見積もり取得先']}`;
     if (cv['Q13_訪問業者有無']) wishContent += `\n訪問業者: ${cv['Q13_訪問業者有無']}`;
