@@ -82,6 +82,21 @@ const BillingSystem = {
         return this.getDashboardStats(params.merchantId);
       case 'billing_getScheduleEvents':
         return this.getScheduleEvents(params.merchantId, params.month);
+      // デポジット管理API
+      case 'deposit_setup':
+        return this.setupDepositSheet();
+      case 'deposit_getPlans':
+        return this.getDepositPlans();
+      case 'deposit_getInfo':
+        return this.getDepositInfo(params.merchantId);
+      case 'deposit_purchase':
+        return this.requestDepositPurchase(params.merchantId, params.planId);
+      case 'deposit_confirmPayment':
+        return this.confirmDepositPayment(params.invoiceId, params.paymentAmount);
+      case 'deposit_consume':
+        return this.consumeDeposit(params.merchantId, params.cvId, params.deliveryAmount);
+      case 'deposit_updateSetting':
+        return this.updateDepositSetting(params.merchantId, params.setting);
       default:
         return { success: false, error: 'Unknown billing action: ' + action };
     }
@@ -2828,6 +2843,628 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
       console.error('[BillingSystem] getScheduleEvents error:', e);
       return { success: false, error: e.message };
     }
+  },
+
+  // =====================================
+  // デポジット管理機能
+  // =====================================
+
+  DEPOSIT_SHEET: 'デポジット管理',
+  DEPOSIT_PRICE_PER_CASE: 22000, // 1件あたり税込金額
+  DEPOSIT_PLANS: [
+    { id: 'trial', name: 'お試し', count: 1, price: 22000, firstTimeOnly: true },
+    { id: 'light', name: 'ライト', count: 3, price: 66000, firstTimeOnly: false },
+    { id: 'standard', name: 'スタンダード', count: 5, price: 110000, firstTimeOnly: false },
+    { id: 'premium', name: 'プレミアム', count: 10, price: 220000, firstTimeOnly: false }
+  ],
+
+  /**
+   * デポジット管理シート初期セットアップ
+   */
+  setupDepositSheet: function() {
+    try {
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+
+      let depositSheet = ss.getSheetByName(this.DEPOSIT_SHEET);
+      if (!depositSheet) {
+        depositSheet = ss.insertSheet(this.DEPOSIT_SHEET);
+
+        // ヘッダー設定
+        const headers = [
+          '加盟店ID',
+          '加盟店名',
+          'デポジット残件数',
+          'デポジット総件数',
+          '最終入金日',
+          '有効期限',
+          '設定',           // 繰越 or 返金
+          '設定更新日',
+          '返金状況',       // 未返金 / 返金予定 / 返金済
+          '返金予定日',
+          '返金処理日',
+          '返金額',
+          '適用履歴',       // CV IDカンマ区切り
+          '作成日時',
+          '更新日時'
+        ];
+        depositSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+
+        // ヘッダー書式
+        depositSheet.getRange(1, 1, 1, headers.length)
+          .setBackground('#4285f4')
+          .setFontColor('#ffffff')
+          .setFontWeight('bold');
+
+        // 列幅調整
+        depositSheet.setColumnWidth(1, 120);  // 加盟店ID
+        depositSheet.setColumnWidth(2, 150);  // 加盟店名
+        depositSheet.setColumnWidth(3, 100);  // 残件数
+        depositSheet.setColumnWidth(4, 100);  // 総件数
+        depositSheet.setColumnWidth(5, 120);  // 最終入金日
+        depositSheet.setColumnWidth(6, 120);  // 有効期限
+        depositSheet.setColumnWidth(7, 80);   // 設定
+        depositSheet.setColumnWidth(13, 300); // 適用履歴
+
+        console.log('[BillingSystem] デポジット管理シート作成完了');
+      }
+
+      return { success: true, message: 'デポジット管理シートセットアップ完了' };
+    } catch (e) {
+      console.error('[BillingSystem] setupDepositSheet error:', e);
+      return { success: false, error: e.message };
+    }
+  },
+
+  /**
+   * デポジット購入申請
+   * @param {string} merchantId - 加盟店ID
+   * @param {string} planId - プランID (trial/light/standard/premium)
+   * @returns {Object} 申請結果（請求書ID含む）
+   */
+  requestDepositPurchase: function(merchantId, planId) {
+    try {
+      if (!merchantId) {
+        return { success: false, error: '加盟店IDが指定されていません' };
+      }
+
+      const plan = this.DEPOSIT_PLANS.find(p => p.id === planId);
+      if (!plan) {
+        return { success: false, error: '無効なプランIDです' };
+      }
+
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+
+      // お試しプラン（初回のみ）の場合、過去の購入履歴をチェック
+      if (plan.firstTimeOnly) {
+        const depositSheet = ss.getSheetByName(this.DEPOSIT_SHEET);
+        if (depositSheet) {
+          const depositData = depositSheet.getDataRange().getValues();
+          const headers = depositData[0];
+          const mIdIdx = headers.indexOf('加盟店ID');
+          const totalIdx = headers.indexOf('デポジット総件数');
+
+          for (let i = 1; i < depositData.length; i++) {
+            if (depositData[i][mIdIdx] === merchantId) {
+              const totalPurchased = parseInt(depositData[i][totalIdx]) || 0;
+              if (totalPurchased > 0) {
+                return {
+                  success: false,
+                  error: 'お試しプランは初回購入時のみご利用いただけます。ライト以上のプランをお選びください。'
+                };
+              }
+              break;
+            }
+          }
+        }
+      }
+
+      // 加盟店名取得
+      const masterSheet = ss.getSheetByName(this.SHEETS.MERCHANT_MASTER);
+      const masterData = masterSheet.getDataRange().getValues();
+      const masterHeaders = masterData[0];
+      const mIdIdx = masterHeaders.indexOf('加盟店ID');
+      const mNameIdx = masterHeaders.indexOf('加盟店名');
+
+      let merchantName = '';
+      let merchantEmail = '';
+      const emailIdx = masterHeaders.indexOf('メールアドレス');
+      for (let i = 1; i < masterData.length; i++) {
+        if (masterData[i][mIdIdx] === merchantId) {
+          merchantName = masterData[i][mNameIdx];
+          merchantEmail = emailIdx >= 0 ? masterData[i][emailIdx] : '';
+          break;
+        }
+      }
+
+      if (!merchantName) {
+        return { success: false, error: '加盟店が見つかりません' };
+      }
+
+      // 請求書番号生成
+      const now = new Date();
+      const invoiceId = 'DEP-' + Utilities.formatDate(now, 'Asia/Tokyo', 'yyyyMMddHHmmss') + '-' + merchantId.slice(-4);
+
+      // 請求管理シートに追加
+      const billingSheet = ss.getSheetByName(this.SHEETS.BILLING);
+      if (!billingSheet) {
+        return { success: false, error: '請求管理シートが見つかりません' };
+      }
+
+      const billingHeaders = billingSheet.getRange(1, 1, 1, billingSheet.getLastColumn()).getValues()[0];
+      const newRow = [];
+
+      for (const header of billingHeaders) {
+        switch (header) {
+          case '請求ID': newRow.push(invoiceId); break;
+          case '加盟店ID': newRow.push(merchantId); break;
+          case '加盟店名': newRow.push(merchantName); break;
+          case '請求種別': newRow.push('デポジット'); break;
+          case '対象月': newRow.push(Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM')); break;
+          case '対象CV ID': newRow.push(''); break;
+          case '税抜金額': newRow.push(Math.floor(plan.price / 1.1)); break;
+          case '消費税': newRow.push(plan.price - Math.floor(plan.price / 1.1)); break;
+          case '税込金額': newRow.push(plan.price); break;
+          case 'ステータス': newRow.push('入金待ち'); break;
+          case '発行日': newRow.push(Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM-dd')); break;
+          case '支払期限':
+            const dueDate = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000); // 2週間後
+            newRow.push(Utilities.formatDate(dueDate, 'Asia/Tokyo', 'yyyy-MM-dd'));
+            break;
+          case '入金日': newRow.push(''); break;
+          case '入金額': newRow.push(''); break;
+          case '備考': newRow.push(`デポジット${plan.count}件（${plan.name}プラン）`); break;
+          case '作成日時': newRow.push(now); break;
+          case '更新日時': newRow.push(now); break;
+          default: newRow.push('');
+        }
+      }
+
+      billingSheet.appendRow(newRow);
+
+      // TODO: 請求書PDFメール送信
+
+      console.log('[BillingSystem] デポジット購入申請:', invoiceId, merchantId, plan.name);
+
+      return {
+        success: true,
+        invoiceId: invoiceId,
+        merchantId: merchantId,
+        merchantName: merchantName,
+        plan: plan,
+        message: `デポジット${plan.count}件の請求書を発行しました`
+      };
+    } catch (e) {
+      console.error('[BillingSystem] requestDepositPurchase error:', e);
+      return { success: false, error: e.message };
+    }
+  },
+
+  /**
+   * デポジット入金確認・反映
+   * @param {string} invoiceId - 請求ID
+   * @param {number} paymentAmount - 入金額
+   * @returns {Object} 反映結果
+   */
+  confirmDepositPayment: function(invoiceId, paymentAmount) {
+    try {
+      if (!invoiceId) {
+        return { success: false, error: '請求IDが指定されていません' };
+      }
+
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+
+      // 請求管理シートから請求情報取得
+      const billingSheet = ss.getSheetByName(this.SHEETS.BILLING);
+      const billingData = billingSheet.getDataRange().getValues();
+      const billingHeaders = billingData[0];
+      const bIdx = {
+        invoiceId: billingHeaders.indexOf('請求ID'),
+        merchantId: billingHeaders.indexOf('加盟店ID'),
+        merchantName: billingHeaders.indexOf('加盟店名'),
+        type: billingHeaders.indexOf('請求種別'),
+        amount: billingHeaders.indexOf('税込金額'),
+        status: billingHeaders.indexOf('ステータス'),
+        paymentDate: billingHeaders.indexOf('入金日'),
+        paymentAmount: billingHeaders.indexOf('入金額'),
+        note: billingHeaders.indexOf('備考'),
+        updatedAt: billingHeaders.indexOf('更新日時')
+      };
+
+      let invoiceRowIndex = -1;
+      let invoiceData = null;
+      for (let i = 1; i < billingData.length; i++) {
+        if (billingData[i][bIdx.invoiceId] === invoiceId) {
+          invoiceRowIndex = i + 1;
+          invoiceData = billingData[i];
+          break;
+        }
+      }
+
+      if (!invoiceData) {
+        return { success: false, error: '請求が見つかりません' };
+      }
+
+      if (invoiceData[bIdx.type] !== 'デポジット') {
+        return { success: false, error: 'この請求はデポジットではありません' };
+      }
+
+      if (invoiceData[bIdx.status] === '入金済み') {
+        return { success: false, error: 'この請求は既に入金済みです' };
+      }
+
+      const merchantId = invoiceData[bIdx.merchantId];
+      const merchantName = invoiceData[bIdx.merchantName];
+      const amount = invoiceData[bIdx.amount];
+      const depositCount = Math.floor(amount / this.DEPOSIT_PRICE_PER_CASE);
+
+      const now = new Date();
+
+      // 請求管理シート更新
+      billingSheet.getRange(invoiceRowIndex, bIdx.status + 1).setValue('入金済み');
+      billingSheet.getRange(invoiceRowIndex, bIdx.paymentDate + 1).setValue(Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM-dd'));
+      billingSheet.getRange(invoiceRowIndex, bIdx.paymentAmount + 1).setValue(paymentAmount || amount);
+      billingSheet.getRange(invoiceRowIndex, bIdx.updatedAt + 1).setValue(now);
+
+      // デポジット管理シート更新
+      this._updateDepositBalance(merchantId, merchantName, depositCount, now);
+
+      // 加盟店マスタのデポジット前金フラグをTRUEに
+      this._setDepositFlag(merchantId, true);
+
+      console.log('[BillingSystem] デポジット入金確認:', invoiceId, merchantId, depositCount + '件');
+
+      return {
+        success: true,
+        invoiceId: invoiceId,
+        merchantId: merchantId,
+        depositCount: depositCount,
+        message: `デポジット${depositCount}件を反映しました`
+      };
+    } catch (e) {
+      console.error('[BillingSystem] confirmDepositPayment error:', e);
+      return { success: false, error: e.message };
+    }
+  },
+
+  /**
+   * デポジット残高更新（内部メソッド）
+   */
+  _updateDepositBalance: function(merchantId, merchantName, addCount, paymentDate) {
+    const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    const ss = SpreadsheetApp.openById(ssId);
+
+    let depositSheet = ss.getSheetByName(this.DEPOSIT_SHEET);
+    if (!depositSheet) {
+      this.setupDepositSheet();
+      depositSheet = ss.getSheetByName(this.DEPOSIT_SHEET);
+    }
+
+    const depositData = depositSheet.getDataRange().getValues();
+    const headers = depositData[0];
+    const dIdx = {
+      merchantId: headers.indexOf('加盟店ID'),
+      merchantName: headers.indexOf('加盟店名'),
+      remaining: headers.indexOf('デポジット残件数'),
+      total: headers.indexOf('デポジット総件数'),
+      lastPayment: headers.indexOf('最終入金日'),
+      expiry: headers.indexOf('有効期限'),
+      setting: headers.indexOf('設定'),
+      settingDate: headers.indexOf('設定更新日'),
+      refundStatus: headers.indexOf('返金状況'),
+      history: headers.indexOf('適用履歴'),
+      createdAt: headers.indexOf('作成日時'),
+      updatedAt: headers.indexOf('更新日時')
+    };
+
+    // 有効期限計算（翌々月末）
+    const expiryDate = new Date(paymentDate);
+    expiryDate.setMonth(expiryDate.getMonth() + 2);
+    expiryDate.setDate(0); // 翌々月末
+    const expiryStr = Utilities.formatDate(expiryDate, 'Asia/Tokyo', 'yyyy-MM-dd');
+
+    let existingRowIndex = -1;
+    for (let i = 1; i < depositData.length; i++) {
+      if (depositData[i][dIdx.merchantId] === merchantId) {
+        existingRowIndex = i + 1;
+        break;
+      }
+    }
+
+    const now = new Date();
+
+    if (existingRowIndex > 0) {
+      // 既存レコード更新
+      const currentRemaining = parseInt(depositData[existingRowIndex - 1][dIdx.remaining]) || 0;
+      const currentTotal = parseInt(depositData[existingRowIndex - 1][dIdx.total]) || 0;
+
+      depositSheet.getRange(existingRowIndex, dIdx.remaining + 1).setValue(currentRemaining + addCount);
+      depositSheet.getRange(existingRowIndex, dIdx.total + 1).setValue(currentTotal + addCount);
+      depositSheet.getRange(existingRowIndex, dIdx.lastPayment + 1).setValue(Utilities.formatDate(paymentDate, 'Asia/Tokyo', 'yyyy-MM-dd'));
+      depositSheet.getRange(existingRowIndex, dIdx.expiry + 1).setValue(expiryStr);
+      depositSheet.getRange(existingRowIndex, dIdx.updatedAt + 1).setValue(now);
+    } else {
+      // 新規レコード追加
+      const newRow = [];
+      for (const header of headers) {
+        switch (header) {
+          case '加盟店ID': newRow.push(merchantId); break;
+          case '加盟店名': newRow.push(merchantName); break;
+          case 'デポジット残件数': newRow.push(addCount); break;
+          case 'デポジット総件数': newRow.push(addCount); break;
+          case '最終入金日': newRow.push(Utilities.formatDate(paymentDate, 'Asia/Tokyo', 'yyyy-MM-dd')); break;
+          case '有効期限': newRow.push(expiryStr); break;
+          case '設定': newRow.push('繰越'); break;
+          case '設定更新日': newRow.push(Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM-dd')); break;
+          case '返金状況': newRow.push('未返金'); break;
+          case '返金予定日': newRow.push(''); break;
+          case '返金処理日': newRow.push(''); break;
+          case '返金額': newRow.push(''); break;
+          case '適用履歴': newRow.push(''); break;
+          case '作成日時': newRow.push(now); break;
+          case '更新日時': newRow.push(now); break;
+          default: newRow.push('');
+        }
+      }
+      depositSheet.appendRow(newRow);
+    }
+  },
+
+  /**
+   * 加盟店マスタのデポジット前金フラグ更新（内部メソッド）
+   */
+  _setDepositFlag: function(merchantId, value) {
+    const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    const ss = SpreadsheetApp.openById(ssId);
+
+    const masterSheet = ss.getSheetByName(this.SHEETS.MERCHANT_MASTER);
+    const masterData = masterSheet.getDataRange().getValues();
+    const headers = masterData[0];
+    const mIdIdx = headers.indexOf('加盟店ID');
+    const depositFlagIdx = headers.indexOf('デポジット前金');
+
+    if (depositFlagIdx < 0) {
+      console.warn('[BillingSystem] デポジット前金カラムが見つかりません');
+      return;
+    }
+
+    for (let i = 1; i < masterData.length; i++) {
+      if (masterData[i][mIdIdx] === merchantId) {
+        masterSheet.getRange(i + 1, depositFlagIdx + 1).setValue(value ? 'TRUE' : 'FALSE');
+        break;
+      }
+    }
+  },
+
+  /**
+   * デポジット消化（配信時に呼び出し）
+   * @param {string} merchantId - 加盟店ID
+   * @param {string} cvId - CV ID
+   * @param {number} deliveryAmount - 配信金額（税抜）
+   * @returns {Object} 消化結果
+   */
+  consumeDeposit: function(merchantId, cvId, deliveryAmount) {
+    try {
+      // 定価案件（税抜20000円）のみ消化可能
+      if (deliveryAmount !== 20000) {
+        return { success: false, consumed: false, reason: '値引き案件のためデポジット消化対象外' };
+      }
+
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+
+      const depositSheet = ss.getSheetByName(this.DEPOSIT_SHEET);
+      if (!depositSheet) {
+        return { success: false, consumed: false, reason: 'デポジット管理シートがありません' };
+      }
+
+      const depositData = depositSheet.getDataRange().getValues();
+      const headers = depositData[0];
+      const dIdx = {
+        merchantId: headers.indexOf('加盟店ID'),
+        remaining: headers.indexOf('デポジット残件数'),
+        history: headers.indexOf('適用履歴'),
+        updatedAt: headers.indexOf('更新日時')
+      };
+
+      let rowIndex = -1;
+      let remaining = 0;
+      let history = '';
+      for (let i = 1; i < depositData.length; i++) {
+        if (depositData[i][dIdx.merchantId] === merchantId) {
+          rowIndex = i + 1;
+          remaining = parseInt(depositData[i][dIdx.remaining]) || 0;
+          history = depositData[i][dIdx.history] || '';
+          break;
+        }
+      }
+
+      if (rowIndex < 0 || remaining <= 0) {
+        return { success: true, consumed: false, reason: 'デポジット残高なし' };
+      }
+
+      // デポジット消化
+      const newRemaining = remaining - 1;
+      const newHistory = history ? history + ',' + cvId : cvId;
+      const now = new Date();
+
+      depositSheet.getRange(rowIndex, dIdx.remaining + 1).setValue(newRemaining);
+      depositSheet.getRange(rowIndex, dIdx.history + 1).setValue(newHistory);
+      depositSheet.getRange(rowIndex, dIdx.updatedAt + 1).setValue(now);
+
+      // 残高0になった場合
+      if (newRemaining === 0) {
+        // デポジット前金フラグをFALSEに
+        this._setDepositFlag(merchantId, false);
+
+        // TODO: 通知送信（管理者・加盟店）
+        console.log('[BillingSystem] デポジット残高0 - 通知送信対象:', merchantId);
+      }
+
+      console.log('[BillingSystem] デポジット消化:', merchantId, cvId, '残り' + newRemaining + '件');
+
+      return {
+        success: true,
+        consumed: true,
+        remaining: newRemaining,
+        cvId: cvId
+      };
+    } catch (e) {
+      console.error('[BillingSystem] consumeDeposit error:', e);
+      return { success: false, consumed: false, error: e.message };
+    }
+  },
+
+  /**
+   * デポジット情報取得
+   * @param {string} merchantId - 加盟店ID
+   * @returns {Object} デポジット情報
+   */
+  getDepositInfo: function(merchantId) {
+    try {
+      if (!merchantId) {
+        return { success: false, error: '加盟店IDが指定されていません' };
+      }
+
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+
+      const depositSheet = ss.getSheetByName(this.DEPOSIT_SHEET);
+      if (!depositSheet) {
+        return {
+          success: true,
+          deposit: {
+            remaining: 0,
+            total: 0,
+            lastPayment: null,
+            expiry: null,
+            setting: '繰越',
+            refundStatus: null,
+            history: []
+          }
+        };
+      }
+
+      const depositData = depositSheet.getDataRange().getValues();
+      const headers = depositData[0];
+
+      for (let i = 1; i < depositData.length; i++) {
+        if (depositData[i][headers.indexOf('加盟店ID')] === merchantId) {
+          const row = depositData[i];
+          const historyStr = row[headers.indexOf('適用履歴')] || '';
+
+          return {
+            success: true,
+            deposit: {
+              remaining: parseInt(row[headers.indexOf('デポジット残件数')]) || 0,
+              total: parseInt(row[headers.indexOf('デポジット総件数')]) || 0,
+              lastPayment: row[headers.indexOf('最終入金日')] || null,
+              expiry: row[headers.indexOf('有効期限')] || null,
+              setting: row[headers.indexOf('設定')] || '繰越',
+              settingDate: row[headers.indexOf('設定更新日')] || null,
+              refundStatus: row[headers.indexOf('返金状況')] || '未返金',
+              history: historyStr ? historyStr.split(',') : []
+            }
+          };
+        }
+      }
+
+      // 未登録の場合
+      return {
+        success: true,
+        deposit: {
+          remaining: 0,
+          total: 0,
+          lastPayment: null,
+          expiry: null,
+          setting: '繰越',
+          refundStatus: null,
+          history: []
+        }
+      };
+    } catch (e) {
+      console.error('[BillingSystem] getDepositInfo error:', e);
+      return { success: false, error: e.message };
+    }
+  },
+
+  /**
+   * デポジット設定変更（繰越/返金）
+   * @param {string} merchantId - 加盟店ID
+   * @param {string} setting - 設定（繰越 or 返金）
+   * @returns {Object} 更新結果
+   */
+  updateDepositSetting: function(merchantId, setting) {
+    try {
+      if (!merchantId) {
+        return { success: false, error: '加盟店IDが指定されていません' };
+      }
+
+      if (setting !== '繰越' && setting !== '返金') {
+        return { success: false, error: '無効な設定値です（繰越 or 返金）' };
+      }
+
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+
+      const depositSheet = ss.getSheetByName(this.DEPOSIT_SHEET);
+      if (!depositSheet) {
+        return { success: false, error: 'デポジット管理シートがありません' };
+      }
+
+      const depositData = depositSheet.getDataRange().getValues();
+      const headers = depositData[0];
+      const settingIdx = headers.indexOf('設定');
+      const settingDateIdx = headers.indexOf('設定更新日');
+      const refundStatusIdx = headers.indexOf('返金状況');
+      const updatedAtIdx = headers.indexOf('更新日時');
+      const merchantIdIdx = headers.indexOf('加盟店ID');
+
+      for (let i = 1; i < depositData.length; i++) {
+        if (depositData[i][merchantIdIdx] === merchantId) {
+          const rowIndex = i + 1;
+          const now = new Date();
+
+          depositSheet.getRange(rowIndex, settingIdx + 1).setValue(setting);
+          depositSheet.getRange(rowIndex, settingDateIdx + 1).setValue(Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM-dd'));
+          depositSheet.getRange(rowIndex, updatedAtIdx + 1).setValue(now);
+
+          // 返金に変更した場合、返金状況を「返金予定」に
+          if (setting === '返金') {
+            depositSheet.getRange(rowIndex, refundStatusIdx + 1).setValue('返金予定');
+          } else {
+            depositSheet.getRange(rowIndex, refundStatusIdx + 1).setValue('未返金');
+          }
+
+          console.log('[BillingSystem] デポジット設定変更:', merchantId, setting);
+
+          return {
+            success: true,
+            merchantId: merchantId,
+            setting: setting,
+            message: `デポジット設定を「${setting}」に変更しました`
+          };
+        }
+      }
+
+      return { success: false, error: 'デポジット情報が見つかりません' };
+    } catch (e) {
+      console.error('[BillingSystem] updateDepositSetting error:', e);
+      return { success: false, error: e.message };
+    }
+  },
+
+  /**
+   * デポジットプラン一覧取得
+   */
+  getDepositPlans: function() {
+    return {
+      success: true,
+      plans: this.DEPOSIT_PLANS,
+      pricePerCase: this.DEPOSIT_PRICE_PER_CASE
+    };
   }
 };
 
