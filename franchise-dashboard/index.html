@@ -19458,17 +19458,18 @@
         }
 
         // デポジット管理関数
-        function showDepositModal() {
+        async function showDepositModal() {
             const quantity = prompt('購入するデポジット数（件数）を入力してください:', '10');
-            if (quantity && !isNaN(quantity) && quantity > 0) {
-                const total = parseInt(quantity) * 22000;
+            if (quantity && !isNaN(quantity) && parseInt(quantity) > 0) {
+                const count = parseInt(quantity);
+                const total = count * 22000;
                 const today = new Date();
-                const dueDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
+                const dueDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 14);
                 const message = `
-デポジット${quantity}件分（¥${total.toLocaleString()}）の請求書を発行します。
+デポジット${count}件分（¥${total.toLocaleString()}）の請求書を発行します。
 
 【請求内容】
-・デポジット：${quantity}件 × ¥22,000 = ¥${total.toLocaleString()}
+・デポジット：${count}件 × ¥22,000 = ¥${total.toLocaleString()}
 ・支払期限：${dueDate.getFullYear()}年${dueDate.getMonth() + 1}月${dueDate.getDate()}日
 ・有効期限：入金確認の翌々月末まで
 
@@ -19480,21 +19481,153 @@
 請求書を発行してよろしいでしょうか？`;
 
                 if (confirm(message)) {
-                    // 請求書発行の処理
-                    const invoiceNo = 'INV-' + Date.now().toString().slice(-8);
-                    alert(`請求書を発行しました。\n\n請求書番号：${invoiceNo}\nデポジット数：${quantity}件\n請求金額：¥${total.toLocaleString()}\n\n入金確認後、1営業日以内にデポジットが反映されます。`);
-                    // 購入申請履歴に追加（実際はサーバー側で処理）
-                    location.reload();
+                    try {
+                        const merchantId = getMerchantId();
+                        if (!merchantId) {
+                            alert('ログイン情報を取得できません。再度ログインしてください。');
+                            return;
+                        }
+
+                        // API呼び出し
+                        const result = await callDepositApi('deposit_purchase', { merchantId, count });
+                        if (result.success) {
+                            alert(`請求書を発行しました。\n\n請求書番号：${result.invoiceId}\nデポジット数：${result.count}件\n請求金額：¥${result.totalPrice.toLocaleString()}\n\n入金確認後、1営業日以内にデポジットが反映されます。`);
+                            loadDepositInfo(); // 画面更新
+                        } else {
+                            alert('エラー: ' + (result.error || '請求書発行に失敗しました'));
+                        }
+                    } catch (e) {
+                        console.error('デポジット購入申請エラー:', e);
+                        alert('エラーが発生しました。しばらくしてから再度お試しください。');
+                    }
                 }
             }
         }
 
-        function updateDepositSetting() {
+        async function updateDepositSetting() {
             const selectedValue = document.querySelector('input[name="depositHandling"]:checked').value;
-            const message = selectedValue === 'rollover'
-                ? '繰越設定に変更しました。期限切れ後も継続して利用できます。'
-                : '返金設定に変更しました。期限切れ時に未使用分が返金されます。';
-            alert(message);
+            const setting = selectedValue === 'rollover' ? '繰越' : '返金';
+
+            try {
+                const merchantId = getMerchantId();
+                if (!merchantId) {
+                    alert('ログイン情報を取得できません。');
+                    return;
+                }
+
+                const result = await callDepositApi('deposit_updateSetting', { merchantId, setting });
+                if (result.success) {
+                    const message = setting === '繰越'
+                        ? '繰越設定に変更しました。期限切れ後も継続して利用できます。'
+                        : '返金設定に変更しました。期限切れ時に未使用分が返金されます。';
+                    alert(message);
+                    loadDepositInfo(); // 画面更新
+                } else {
+                    alert('エラー: ' + (result.error || '設定変更に失敗しました'));
+                }
+            } catch (e) {
+                console.error('設定変更エラー:', e);
+                alert('エラーが発生しました。');
+            }
+        }
+
+        // デポジットAPI呼び出し用ヘルパー
+        function callDepositApi(action, params) {
+            return new Promise((resolve, reject) => {
+                const apiUrl = typeof GAS_URL !== 'undefined' ? GAS_URL : window.GAS_URL;
+                if (!apiUrl) {
+                    reject(new Error('API URL not configured'));
+                    return;
+                }
+
+                const callbackName = 'depositCallback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                window[callbackName] = function(response) {
+                    delete window[callbackName];
+                    const script = document.getElementById(callbackName);
+                    if (script) script.remove();
+                    resolve(response);
+                };
+
+                const queryParams = new URLSearchParams({ action, callback: callbackName, ...params });
+                const script = document.createElement('script');
+                script.id = callbackName;
+                script.src = apiUrl + '?' + queryParams.toString();
+                script.onerror = function() {
+                    delete window[callbackName];
+                    script.remove();
+                    reject(new Error('API request failed'));
+                };
+                document.body.appendChild(script);
+
+                setTimeout(() => {
+                    if (window[callbackName]) {
+                        delete window[callbackName];
+                        const s = document.getElementById(callbackName);
+                        if (s) s.remove();
+                        reject(new Error('API request timeout'));
+                    }
+                }, 30000);
+            });
+        }
+
+        // デポジット情報読み込み・表示
+        async function loadDepositInfo() {
+            try {
+                const merchantId = getMerchantId();
+                if (!merchantId) {
+                    console.log('merchantId取得できず - デモモード');
+                    return;
+                }
+
+                const result = await callDepositApi('deposit_getInfo', { merchantId });
+                if (result.success && result.deposit) {
+                    const d = result.deposit;
+                    // 残高表示更新
+                    const balanceEl = document.querySelector('#depositSection .text-3xl');
+                    if (balanceEl) {
+                        balanceEl.textContent = `${d.remaining}/${d.total}件`;
+                    }
+                    // 金額表示
+                    const amountEl = document.querySelector('#depositSection .text-sm.text-gray-500.mt-1');
+                    if (amountEl) {
+                        amountEl.textContent = `¥${(d.remaining * 22000).toLocaleString()} 残高`;
+                    }
+                    // 有効期限
+                    const expiryEl = document.querySelectorAll('#depositSection .text-2xl')[0];
+                    if (expiryEl && d.expiry) {
+                        expiryEl.textContent = d.expiry.replace(/-/g, '/');
+                    }
+                    // 繰越/返金設定
+                    const settingEl = document.querySelectorAll('#depositSection .text-2xl')[1];
+                    if (settingEl) {
+                        settingEl.textContent = d.setting || '繰越';
+                    }
+                    // ラジオボタン同期
+                    const radioValue = d.setting === '返金' ? 'refund' : 'rollover';
+                    const radio = document.querySelector(`input[name="depositHandling"][value="${radioValue}"]`);
+                    if (radio) radio.checked = true;
+                }
+            } catch (e) {
+                console.error('デポジット情報読み込みエラー:', e);
+            }
+        }
+
+        // 加盟店ID取得ヘルパー
+        function getMerchantId() {
+            if (window.merchantData) {
+                return window.merchantData['登録ID'] || window.merchantData.registrationId || window.merchantData.merchantId;
+            }
+            if (typeof currentMerchantId !== 'undefined' && currentMerchantId) {
+                return currentMerchantId;
+            }
+            const loginData = localStorage.getItem('franchiseLoginData');
+            if (loginData) {
+                try {
+                    const parsed = JSON.parse(loginData);
+                    return parsed.merchantId || parsed.id || parsed.registrationId;
+                } catch (e) {}
+            }
+            return null;
         }
 
         // 請求書ダウンロード機能
@@ -19990,6 +20123,11 @@
                         fetchMerchantDataForAutodelivery(savedUser);
                     }
                 }
+            }
+
+            // V2232: デポジットセクション
+            if (section === 'deposit') {
+                loadDepositInfo();
             }
 
             // 案件管理セクションは originalShowSection で処理済み
