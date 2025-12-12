@@ -42,12 +42,11 @@ const BillingSystem = {
     const action = params.action;
     console.log('[BillingSystem] Action:', action);
 
-    // V2236: billingAction経由のルーティング
-    if (action === 'billing' && params.billingAction) {
-      return this.routeAction(params.billingAction, params);
-    }
+    // V2236: billingAction経由のルーティング（billingActionをactionとして処理）
+    const effectiveAction = (action === 'billing' && params.billingAction) ? params.billingAction : action;
+    console.log('[BillingSystem] Effective action:', effectiveAction);
 
-    switch (action) {
+    switch (effectiveAction) {
       case 'billing_getReferralFees':
         return this.getReferralFees(params.month);
       case 'billing_getCommissionFees':
