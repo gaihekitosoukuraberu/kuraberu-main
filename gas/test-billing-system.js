@@ -512,3 +512,19 @@ function testGetFinancialSummary() {
   console.log('結果:', JSON.stringify(result, null, 2));
   return result;
 }
+
+// ========================================
+// V2235: デポジット管理シートセットアップ
+// ========================================
+
+/**
+ * デポジット管理シートを作成
+ * GASエディタから直接実行可能
+ */
+function setupDepositSheet() {
+  console.log('========== デポジット管理シートセットアップ ==========');
+  const result = BillingSystem.setupDepositSheet();
+  console.log('結果:', JSON.stringify(result, null, 2));
+  console.log('========== 完了 ==========');
+  return result;
+}

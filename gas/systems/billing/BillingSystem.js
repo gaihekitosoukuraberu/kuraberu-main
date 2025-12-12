@@ -99,6 +99,8 @@ const BillingSystem = {
         return this.updateDepositSetting(params.merchantId, params.setting);
       case 'deposit_getAllInfo':
         return this.getAllDepositInfo();
+      case 'deposit_getPendingInvoices':
+        return this.getPendingDepositInvoices();
       default:
         return { success: false, error: 'Unknown billing action: ' + action };
     }
@@ -3497,6 +3499,63 @@ CV ID: ${lastCvId}
       return { success: true, depositMap: depositMap };
     } catch (e) {
       console.error('[BillingSystem] getAllDepositInfo error:', e);
+      return { success: false, error: e.message };
+    }
+  },
+
+  /**
+   * V2236: 未入金デポジット請求一覧取得（管理者入金確認用）
+   * @returns {Object} 未入金のデポジット請求一覧
+   */
+  getPendingDepositInvoices: function() {
+    try {
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+
+      const billingSheet = ss.getSheetByName(this.SHEETS.BILLING);
+      if (!billingSheet) {
+        return { success: true, invoices: [] };
+      }
+
+      const data = billingSheet.getDataRange().getValues();
+      if (data.length <= 1) {
+        return { success: true, invoices: [] };
+      }
+
+      const headers = data[0];
+      const invoiceIdIdx = headers.indexOf('請求ID');
+      const merchantIdIdx = headers.indexOf('加盟店ID');
+      const merchantNameIdx = headers.indexOf('加盟店名');
+      const typeIdx = headers.indexOf('請求種別');
+      const countIdx = headers.indexOf('対象件数');
+      const totalWithTaxIdx = headers.indexOf('税込金額');
+      const statusIdx = headers.indexOf('ステータス');
+      const createdAtIdx = headers.indexOf('作成日時');
+
+      const pendingInvoices = [];
+      for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        const type = row[typeIdx];
+        const status = row[statusIdx];
+
+        // デポジット購入で、未発行または発行済み（入金前）のもの
+        if (type === 'デポジット購入' && (status === '未発行' || status === '発行済み' || status === '未入金')) {
+          pendingInvoices.push({
+            invoiceId: row[invoiceIdIdx],
+            merchantId: row[merchantIdIdx],
+            merchantName: row[merchantNameIdx],
+            count: parseInt(row[countIdx]) || 0,
+            totalWithTax: parseInt(row[totalWithTaxIdx]) || 0,
+            status: status,
+            createdAt: row[createdAtIdx] ? Utilities.formatDate(new Date(row[createdAtIdx]), 'Asia/Tokyo', 'yyyy-MM-dd') : ''
+          });
+        }
+      }
+
+      console.log('[BillingSystem] getPendingDepositInvoices:', pendingInvoices.length, '件');
+      return { success: true, invoices: pendingInvoices };
+    } catch (e) {
+      console.error('[BillingSystem] getPendingDepositInvoices error:', e);
       return { success: false, error: e.message };
     }
   },

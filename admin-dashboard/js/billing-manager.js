@@ -730,3 +730,218 @@ window.BillingManager = BillingManager;
 document.addEventListener('DOMContentLoaded', () => {
   BillingManager.init();
 });
+
+// ========================================
+// V2236: デポジット入金管理
+// ========================================
+
+const DepositManager = {
+  apiClient: null,
+
+  /**
+   * 初期化
+   */
+  init: function() {
+    if (!window.ApiClient) {
+      console.error('[DepositManager] ApiClient not found');
+      return;
+    }
+    this.apiClient = new ApiClient();
+    console.log('[DepositManager] 初期化完了');
+  },
+
+  /**
+   * API呼び出し（billing経由）
+   */
+  async callApi(action, params = {}) {
+    if (!this.apiClient) {
+      this.init();
+    }
+    return await this.apiClient.postRequest('billing', {
+      billingAction: action,
+      ...params
+    });
+  },
+
+  /**
+   * 未入金デポジット請求一覧を読み込み
+   */
+  async loadPendingDeposits() {
+    console.log('[DepositManager] 未入金デポジット読み込み開始');
+
+    const tableBody = document.getElementById('deposit-table-body');
+    const mobileCards = document.getElementById('deposit-cards-mobile');
+    const summary = document.getElementById('deposit-summary');
+
+    if (!tableBody) {
+      console.log('[DepositManager] deposit-table-body not found, skipping');
+      return;
+    }
+
+    // ローディング表示
+    tableBody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-gray-500"><div class="animate-pulse">読み込み中...</div></td></tr>';
+    if (mobileCards) {
+      mobileCards.innerHTML = '<div class="animate-pulse bg-gray-100 rounded-lg p-4 h-32"></div>';
+    }
+
+    try {
+      const result = await this.callApi('deposit_getPendingInvoices');
+      console.log('[DepositManager] 結果:', result);
+
+      if (!result.success) {
+        tableBody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-red-500">データ取得エラー: ' + (result.error || '不明なエラー') + '</td></tr>';
+        return;
+      }
+
+      const invoices = result.invoices || [];
+
+      if (invoices.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-gray-500">未入金のデポジット請求はありません</td></tr>';
+        if (mobileCards) {
+          mobileCards.innerHTML = '<div class="p-4 text-center text-gray-500">未入金のデポジット請求はありません</div>';
+        }
+        if (summary) {
+          summary.innerHTML = '未入金: <span class="font-bold text-orange-600">0件</span> <span class="mx-2">|</span> 入金待ち合計: <span class="font-bold text-green-600">¥0</span>';
+        }
+        return;
+      }
+
+      // テーブル更新
+      this.updateDepositTable(invoices);
+      this.updateDepositMobile(invoices);
+      this.updateDepositSummary(invoices);
+
+    } catch (error) {
+      console.error('[DepositManager] エラー:', error);
+      tableBody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-red-500">通信エラーが発生しました</td></tr>';
+    }
+  },
+
+  /**
+   * テーブル更新（PC用）
+   */
+  updateDepositTable(invoices) {
+    const tableBody = document.getElementById('deposit-table-body');
+    if (!tableBody) return;
+
+    let html = '';
+    invoices.forEach(inv => {
+      const statusBadge = this.getStatusBadge(inv.status);
+      html += `
+        <tr class="border-b hover:bg-gray-50">
+          <td class="py-3 px-4 text-sm">${inv.invoiceId || '-'}</td>
+          <td class="py-3 px-4 font-medium">${inv.merchantName || '-'}</td>
+          <td class="py-3 px-4 text-right">${inv.count || 0}件</td>
+          <td class="py-3 px-4 text-right font-bold text-green-600">¥${(inv.totalWithTax || 0).toLocaleString()}</td>
+          <td class="py-3 px-4 text-sm text-gray-600">${inv.createdAt || '-'}</td>
+          <td class="py-3 px-4 text-center">${statusBadge}</td>
+          <td class="py-3 px-4 text-center">
+            <button onclick="DepositManager.confirmPayment('${inv.invoiceId}', ${inv.totalWithTax || 0})"
+              class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm">
+              入金確認
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+    tableBody.innerHTML = html;
+  },
+
+  /**
+   * モバイル用カード更新
+   */
+  updateDepositMobile(invoices) {
+    const container = document.getElementById('deposit-cards-mobile');
+    if (!container) return;
+
+    let html = '';
+    invoices.forEach(inv => {
+      const statusBadge = this.getStatusBadge(inv.status);
+      html += `
+        <div class="bg-white border rounded-lg p-4">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <div class="font-medium">${inv.merchantName || '-'}</div>
+              <div class="text-xs text-gray-500">${inv.invoiceId || '-'}</div>
+            </div>
+            ${statusBadge}
+          </div>
+          <div class="flex justify-between items-center text-sm mb-3">
+            <span class="text-gray-600">${inv.count || 0}件</span>
+            <span class="font-bold text-green-600">¥${(inv.totalWithTax || 0).toLocaleString()}</span>
+          </div>
+          <button onclick="DepositManager.confirmPayment('${inv.invoiceId}', ${inv.totalWithTax || 0})"
+            class="w-full px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm">
+            入金確認
+          </button>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+  },
+
+  /**
+   * サマリー更新
+   */
+  updateDepositSummary(invoices) {
+    const summary = document.getElementById('deposit-summary');
+    if (!summary) return;
+
+    const totalAmount = invoices.reduce((sum, inv) => sum + (inv.totalWithTax || 0), 0);
+    summary.innerHTML = `
+      未入金: <span class="font-bold text-orange-600">${invoices.length}件</span>
+      <span class="mx-2">|</span>
+      入金待ち合計: <span class="font-bold text-green-600">¥${totalAmount.toLocaleString()}</span>
+    `;
+  },
+
+  /**
+   * ステータスバッジ生成
+   */
+  getStatusBadge(status) {
+    const colors = {
+      '未発行': 'bg-gray-100 text-gray-600',
+      '発行済み': 'bg-blue-100 text-blue-600',
+      '未入金': 'bg-orange-100 text-orange-600',
+      '入金済み': 'bg-green-100 text-green-600'
+    };
+    const colorClass = colors[status] || 'bg-gray-100 text-gray-600';
+    return `<span class="px-2 py-1 rounded-full text-xs ${colorClass}">${status || '未発行'}</span>`;
+  },
+
+  /**
+   * 入金確認処理
+   */
+  async confirmPayment(invoiceId, amount) {
+    if (!confirm(`請求ID: ${invoiceId}\n金額: ¥${amount.toLocaleString()}\n\nこの請求の入金を確認しますか？`)) {
+      return;
+    }
+
+    console.log('[DepositManager] 入金確認:', invoiceId, amount);
+
+    try {
+      const result = await this.callApi('deposit_confirmPayment', {
+        invoiceId: invoiceId,
+        paymentAmount: amount
+      });
+
+      if (result.success) {
+        alert('入金確認完了！\n\nデポジット残件数に反映されました。');
+        this.loadPendingDeposits();
+      } else {
+        alert('エラー: ' + (result.error || '入金確認に失敗しました'));
+      }
+    } catch (error) {
+      console.error('[DepositManager] 入金確認エラー:', error);
+      alert('通信エラーが発生しました');
+    }
+  }
+};
+
+// グローバルに公開
+window.DepositManager = DepositManager;
+
+// 初期化
+document.addEventListener('DOMContentLoaded', () => {
+  DepositManager.init();
+});

@@ -4698,6 +4698,7 @@ window.addEventListener('beforeunload', function(e) {
                             <div class="flex border-b" id="financialTabs">
                                 <button onclick="switchFinancialTab('referral')" class="px-6 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600 tab-btn" data-tab="referral">紹介料請求</button>
                                 <button onclick="switchFinancialTab('invoices')" class="px-6 py-3 text-sm font-medium text-gray-600 hover:text-gray-800 tab-btn" data-tab="invoices">請求書一覧</button>
+                                <button onclick="switchFinancialTab('deposit')" class="px-6 py-3 text-sm font-medium text-gray-600 hover:text-gray-800 tab-btn" data-tab="deposit">デポジット入金</button>
                             </div>
                         </div>
 
@@ -4810,12 +4811,71 @@ window.addEventListener('beforeunload', function(e) {
                                 </div>
                             </div>
                         </div>
+
+                        <!-- V2236: デポジット入金タブ -->
+                        <div id="depositTab" class="financial-tab-content" style="display:none;">
+                            <div class="bg-white rounded-b-xl border border-gray-200 border-t-0">
+                                <div class="p-4 md:p-6">
+                                    <div class="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                        <div class="flex gap-2 flex-wrap">
+                                            <button onclick="DepositManager.loadPendingDeposits()" class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm">
+                                                <i class="fas fa-sync mr-1"></i>更新
+                                            </button>
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            未入金のデポジット購入申請を確認・入金処理
+                                        </div>
+                                    </div>
+
+                                    <!-- PC用テーブル -->
+                                    <div class="hidden md:block overflow-x-auto">
+                                        <table class="w-full">
+                                            <thead>
+                                                <tr class="border-b bg-gray-50">
+                                                    <th class="text-left py-3 px-4">請求ID</th>
+                                                    <th class="text-left py-3 px-4">加盟店名</th>
+                                                    <th class="text-right py-3 px-4">件数</th>
+                                                    <th class="text-right py-3 px-4">請求額<br><span class="text-xs text-gray-500">(税込)</span></th>
+                                                    <th class="text-left py-3 px-4">申請日</th>
+                                                    <th class="text-center py-3 px-4">ステータス</th>
+                                                    <th class="text-center py-3 px-4">操作</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="deposit-table-body">
+                                                <tr>
+                                                    <td colspan="7" class="py-8 text-center text-gray-500">
+                                                        <div class="animate-pulse">読み込み中...</div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- スマホ用カード -->
+                                    <div id="deposit-cards-mobile" class="md:hidden space-y-3">
+                                        <div class="animate-pulse bg-gray-100 rounded-lg p-4 h-32"></div>
+                                    </div>
+
+                                    <div class="p-4 bg-green-50 mt-4 rounded-lg">
+                                        <div id="deposit-summary" class="text-sm text-gray-600 text-center md:text-left">
+                                            未入金: <span class="font-bold text-orange-600">0件</span>
+                                            <span class="mx-2">|</span>
+                                            入金待ち合計: <span class="font-bold text-green-600">¥0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 `;
 
                 // データ読み込み
                 if (window.BillingManager) {
                     BillingManager.loadFinancialSection();
+                }
+                // V2236: デポジットタブが選択されていたらデータ読み込み
+                if (window.DepositManager) {
+                    DepositManager.loadPendingDeposits();
                 }
             } else if (sectionName === 'registrationRequests') {
                 // 加盟店登録申請セクション
