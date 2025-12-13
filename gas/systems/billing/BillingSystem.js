@@ -93,6 +93,8 @@ const BillingSystem = {
         return this.getDepositPlans();
       case 'deposit_getInfo':
         return this.getDepositInfo(params.merchantId);
+      case 'deposit_getHistory':
+        return this.getDepositHistory(params.merchantId);
       case 'deposit_purchase':
         return this.requestDepositPurchase(params.merchantId, params.count);
       case 'deposit_confirmPayment':
@@ -3458,6 +3460,151 @@ CV ID: ${lastCvId}
       };
     } catch (e) {
       console.error('[BillingSystem] getDepositInfo error:', e);
+      return { success: false, error: e.message };
+    }
+  },
+
+  /**
+   * V2261: デポジット取引履歴取得
+   * @param {string} merchantId - 加盟店ID
+   * @returns {Object} 取引履歴一覧
+   */
+  getDepositHistory: function(merchantId) {
+    try {
+      if (!merchantId) {
+        return { success: false, error: '加盟店IDが指定されていません' };
+      }
+
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+      const history = [];
+
+      // 1. デポジット管理シートの適用履歴を取得
+      const depositSheet = ss.getSheetByName(this.DEPOSIT_SHEET);
+      if (depositSheet) {
+        const depositData = depositSheet.getDataRange().getValues();
+        const dHeaders = depositData[0];
+        const dIdx = {
+          merchantId: dHeaders.indexOf('加盟店ID'),
+          history: dHeaders.indexOf('適用履歴'),
+          remaining: dHeaders.indexOf('デポジット残件数'),
+          expiry: dHeaders.indexOf('有効期限')
+        };
+
+        for (let i = 1; i < depositData.length; i++) {
+          if (depositData[i][dIdx.merchantId] === merchantId) {
+            const historyStr = depositData[i][dIdx.history] || '';
+            // 適用履歴のパース（改行区切り）
+            if (historyStr) {
+              const lines = historyStr.split('\n').filter(l => l.trim());
+              lines.forEach(line => {
+                // フォーマット: "2025-01-13 10:30 入金確認 10件 ¥220,000"
+                const match = line.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})?\s*(.+)$/);
+                if (match) {
+                  const dateStr = match[1];
+                  const desc = match[3] || line;
+                  let type = '入金';
+                  let count = 0;
+                  let amount = 0;
+                  let status = '完了';
+
+                  if (desc.includes('購入申請') || desc.includes('申請')) {
+                    type = '申請';
+                  } else if (desc.includes('入金確認') || desc.includes('入金')) {
+                    type = '入金';
+                  } else if (desc.includes('消化') || desc.includes('配信')) {
+                    type = '利用';
+                  } else if (desc.includes('キャンセル戻し')) {
+                    type = 'キャンセル戻し';
+                  } else if (desc.includes('返金')) {
+                    type = '返金';
+                  }
+
+                  // 件数抽出
+                  const countMatch = desc.match(/(\d+)件/);
+                  if (countMatch) count = parseInt(countMatch[1]);
+
+                  // 金額抽出
+                  const amountMatch = desc.match(/¥([\d,]+)/);
+                  if (amountMatch) amount = parseInt(amountMatch[1].replace(/,/g, ''));
+
+                  history.push({
+                    date: dateStr,
+                    type: type,
+                    status: status,
+                    count: type === '利用' ? -count : count,
+                    amount: type === '利用' ? -amount : amount,
+                    description: desc,
+                    remaining: null,
+                    invoiceId: null
+                  });
+                }
+              });
+            }
+            break;
+          }
+        }
+      }
+
+      // 2. 請求管理シートからデポジット関連の請求を取得
+      const invoiceSheet = ss.getSheetByName(this.INVOICE_SHEET);
+      if (invoiceSheet) {
+        const invoiceData = invoiceSheet.getDataRange().getValues();
+        const iHeaders = invoiceData[0];
+        const iIdx = {
+          invoiceId: iHeaders.indexOf('請求書ID'),
+          merchantId: iHeaders.indexOf('加盟店ID'),
+          date: iHeaders.indexOf('請求日') !== -1 ? iHeaders.indexOf('請求日') : iHeaders.indexOf('発行日'),
+          type: iHeaders.indexOf('請求種別') !== -1 ? iHeaders.indexOf('請求種別') : iHeaders.indexOf('種別'),
+          count: iHeaders.indexOf('件数'),
+          amount: iHeaders.indexOf('請求金額') !== -1 ? iHeaders.indexOf('請求金額') : iHeaders.indexOf('金額'),
+          status: iHeaders.indexOf('入金ステータス') !== -1 ? iHeaders.indexOf('入金ステータス') : iHeaders.indexOf('ステータス'),
+          dueDate: iHeaders.indexOf('支払期限'),
+          paidDate: iHeaders.indexOf('入金確認日') !== -1 ? iHeaders.indexOf('入金確認日') : iHeaders.indexOf('入金日')
+        };
+
+        for (let i = 1; i < invoiceData.length; i++) {
+          const row = invoiceData[i];
+          if (row[iIdx.merchantId] === merchantId) {
+            const invoiceType = row[iIdx.type] || '';
+            // デポジット購入の請求のみ
+            if (invoiceType.includes('デポジット')) {
+              const date = row[iIdx.date];
+              const dateStr = date ? Utilities.formatDate(new Date(date), 'Asia/Tokyo', 'yyyy-MM-dd') : '';
+              const status = row[iIdx.status] || '未入金';
+              const dueDate = row[iIdx.dueDate];
+              const dueDateStr = dueDate ? Utilities.formatDate(new Date(dueDate), 'Asia/Tokyo', 'MM/dd') : '';
+
+              history.push({
+                date: dateStr,
+                type: '申請',
+                status: status === '入金済み' ? '入金済' : '入金待ち',
+                count: parseInt(row[iIdx.count]) || 0,
+                amount: parseInt(row[iIdx.amount]) || 0,
+                description: `${row[iIdx.invoiceId]} (支払期限:${dueDateStr})`,
+                remaining: null,
+                invoiceId: row[iIdx.invoiceId]
+              });
+            }
+          }
+        }
+      }
+
+      // 日付降順でソート
+      history.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateB - dateA;
+      });
+
+      console.log('[BillingSystem] getDepositHistory:', merchantId, history.length, '件');
+
+      return {
+        success: true,
+        history: history
+      };
+    } catch (e) {
+      console.error('[BillingSystem] getDepositHistory error:', e);
       return { success: false, error: e.message };
     }
   },

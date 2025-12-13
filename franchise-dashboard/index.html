@@ -19477,46 +19477,249 @@
             });
         }
 
-        // デポジット情報読み込み・表示
-        async function loadDepositInfo() {
-            try {
-                const merchantId = getMerchantId();
-                if (!merchantId) {
-                    console.log('merchantId取得できず - デモモード');
+        // デポジット管理マネージャー（V2261）
+        const DepositManager = {
+            cache: { info: null, history: [] },
+            PRICE_PER_CASE: 22000,
+
+            // デポジット情報読み込み・表示
+            async loadInfo() {
+                try {
+                    const merchantId = getMerchantId();
+                    if (!merchantId) {
+                        console.log('[DepositManager] merchantId取得できず');
+                        this.showNoData();
+                        return;
+                    }
+
+                    // 並列で情報と履歴を取得
+                    const [infoResult, historyResult] = await Promise.all([
+                        callDepositApi('deposit_getInfo', { merchantId }),
+                        callDepositApi('deposit_getHistory', { merchantId })
+                    ]);
+
+                    if (infoResult.success && infoResult.deposit) {
+                        this.cache.info = infoResult.deposit;
+                        this.updateSummaryCards(infoResult.deposit);
+                    }
+
+                    if (historyResult.success && historyResult.history) {
+                        this.cache.history = historyResult.history;
+                        this.updateHistoryTable(historyResult.history);
+                    }
+
+                    // 月フィルターを今月に設定
+                    const now = new Date();
+                    const monthFilter = document.getElementById('depositMonthFilter');
+                    if (monthFilter) {
+                        monthFilter.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                    }
+                } catch (e) {
+                    console.error('[DepositManager] loadInfo error:', e);
+                }
+            },
+
+            // サマリーカード更新
+            updateSummaryCards(d) {
+                // 残高
+                const balanceEl = document.getElementById('depositBalance');
+                const balanceAmountEl = document.getElementById('depositBalanceAmount');
+                if (balanceEl) balanceEl.textContent = `${d.remaining}/${d.total}件`;
+                if (balanceAmountEl) balanceAmountEl.textContent = `¥${(d.remaining * this.PRICE_PER_CASE).toLocaleString()} 残高`;
+
+                // 有効期限
+                const expiryEl = document.getElementById('depositExpiry');
+                const expiryDaysEl = document.getElementById('depositExpiryDays');
+                if (expiryEl) {
+                    if (d.expiry) {
+                        expiryEl.textContent = d.expiry.replace(/-/g, '/');
+                        // 残り日数計算
+                        const expiryDate = new Date(d.expiry);
+                        const today = new Date();
+                        const diffDays = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+                        if (expiryDaysEl) {
+                            if (diffDays > 0) {
+                                expiryDaysEl.textContent = `残り${diffDays}日`;
+                                expiryDaysEl.className = diffDays <= 30 ? 'text-xs md:text-sm text-orange-600 mt-1' : 'text-xs md:text-sm text-gray-500 mt-1';
+                            } else {
+                                expiryDaysEl.textContent = '期限切れ';
+                                expiryDaysEl.className = 'text-xs md:text-sm text-red-600 mt-1';
+                            }
+                        }
+                    } else {
+                        expiryEl.textContent = '-';
+                        if (expiryDaysEl) expiryDaysEl.textContent = '-';
+                    }
+                }
+
+                // 現在の設定
+                const settingEl = document.getElementById('depositSetting');
+                const settingDateEl = document.getElementById('depositSettingDate');
+                if (settingEl) {
+                    settingEl.textContent = d.setting || '繰越';
+                    settingEl.className = d.setting === '返金'
+                        ? 'text-xl md:text-2xl font-bold text-orange-600'
+                        : 'text-xl md:text-2xl font-bold text-green-600';
+                }
+                if (settingDateEl && d.settingDate) {
+                    settingDateEl.textContent = `最終更新: ${d.settingDate.replace(/-/g, '/')}`;
+                }
+
+                // 表示ランク
+                const rankEl = document.getElementById('depositRank');
+                const rankNoteEl = document.getElementById('depositRankNote');
+                if (rankEl) {
+                    if (d.remaining > 0) {
+                        rankEl.textContent = '優先+1';
+                        rankEl.className = 'text-xl md:text-2xl font-bold text-purple-600';
+                        if (rankNoteEl) rankNoteEl.textContent = 'デポジット特典適用中';
+                    } else {
+                        rankEl.textContent = '通常';
+                        rankEl.className = 'text-xl md:text-2xl font-bold text-gray-500';
+                        if (rankNoteEl) rankNoteEl.textContent = 'デポジットなし';
+                    }
+                }
+
+                // ラジオボタン同期
+                const radioValue = d.setting === '返金' ? 'refund' : 'rollover';
+                const radio = document.querySelector(`input[name="depositHandling"][value="${radioValue}"]`);
+                if (radio) radio.checked = true;
+            },
+
+            // 履歴テーブル更新
+            updateHistoryTable(history) {
+                const tbody = document.getElementById('depositHistoryBody');
+                const cardsContainer = document.getElementById('depositHistoryCards');
+
+                if (!history || history.length === 0) {
+                    const emptyMsg = '<div class="text-center py-8 text-gray-500">取引履歴がありません</div>';
+                    if (tbody) tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">取引履歴がありません</td></tr>`;
+                    if (cardsContainer) cardsContainer.innerHTML = emptyMsg;
                     return;
                 }
 
-                const result = await callDepositApi('deposit_getInfo', { merchantId });
-                if (result.success && result.deposit) {
-                    const d = result.deposit;
-                    // 残高表示更新
-                    const balanceEl = document.querySelector('#depositSection .text-3xl');
-                    if (balanceEl) {
-                        balanceEl.textContent = `${d.remaining}/${d.total}件`;
-                    }
-                    // 金額表示
-                    const amountEl = document.querySelector('#depositSection .text-sm.text-gray-500.mt-1');
-                    if (amountEl) {
-                        amountEl.textContent = `¥${(d.remaining * 22000).toLocaleString()} 残高`;
-                    }
-                    // 有効期限
-                    const expiryEl = document.querySelectorAll('#depositSection .text-2xl')[0];
-                    if (expiryEl && d.expiry) {
-                        expiryEl.textContent = d.expiry.replace(/-/g, '/');
-                    }
-                    // 繰越/返金設定
-                    const settingEl = document.querySelectorAll('#depositSection .text-2xl')[1];
-                    if (settingEl) {
-                        settingEl.textContent = d.setting || '繰越';
-                    }
-                    // ラジオボタン同期
-                    const radioValue = d.setting === '返金' ? 'refund' : 'rollover';
-                    const radio = document.querySelector(`input[name="depositHandling"][value="${radioValue}"]`);
-                    if (radio) radio.checked = true;
+                // PC用テーブル
+                if (tbody) {
+                    tbody.innerHTML = history.map((item, idx) => this.createTableRow(item, idx)).join('');
                 }
-            } catch (e) {
-                console.error('デポジット情報読み込みエラー:', e);
+
+                // スマホ用カード
+                if (cardsContainer) {
+                    cardsContainer.innerHTML = history.map(item => this.createMobileCard(item)).join('');
+                }
+            },
+
+            // PC用行生成
+            createTableRow(item, idx) {
+                const typeStyle = this.getTypeStyle(item.type);
+                const statusStyle = this.getStatusStyle(item.status);
+                const amountClass = item.amount < 0 ? 'text-red-600' : 'text-green-600';
+                const countDisplay = item.count > 0 ? `+${item.count}` : item.count;
+                const amountDisplay = item.amount !== 0 ? (item.amount > 0 ? `+¥${item.amount.toLocaleString()}` : `-¥${Math.abs(item.amount).toLocaleString()}`) : '-';
+
+                return `
+                    <tr class="hover:bg-gray-50 ${idx % 2 === 1 ? 'bg-gray-50' : ''}">
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${item.date.replace(/-/g, '/')}</td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full ${typeStyle}">${item.type}</span>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusStyle}">${item.status}</span>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium ${item.count < 0 ? 'text-red-600' : 'text-gray-900'}">${countDisplay}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium ${amountClass}">${amountDisplay}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600 max-w-[200px] truncate">${item.description || '-'}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-900">${item.remaining !== null ? item.remaining : '-'}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm">
+                            ${item.invoiceId ? `<button onclick="downloadInvoice('${item.invoiceId}')" class="text-blue-600 hover:text-blue-800">請求書DL</button>` : '-'}
+                        </td>
+                    </tr>
+                `;
+            },
+
+            // スマホ用カード生成
+            createMobileCard(item) {
+                const typeStyle = this.getTypeStyle(item.type);
+                const statusStyle = this.getStatusStyle(item.status);
+                const amountClass = item.amount < 0 ? 'text-red-600' : 'text-green-600';
+                const countDisplay = item.count > 0 ? `+${item.count}件` : `${item.count}件`;
+                const amountDisplay = item.amount !== 0 ? (item.amount > 0 ? `+¥${item.amount.toLocaleString()}` : `-¥${Math.abs(item.amount).toLocaleString()}`) : '';
+
+                return `
+                    <div class="bg-white border rounded-lg p-3 shadow-sm">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 text-xs font-semibold rounded-full ${typeStyle}">${item.type}</span>
+                                <span class="px-2 py-0.5 text-xs font-semibold rounded-full ${statusStyle}">${item.status}</span>
+                            </div>
+                            <span class="text-xs text-gray-500">${item.date.replace(/-/g, '/')}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <span class="text-sm font-medium ${item.count < 0 ? 'text-red-600' : 'text-gray-900'}">${countDisplay}</span>
+                                <span class="text-sm font-bold ${amountClass} ml-2">${amountDisplay}</span>
+                            </div>
+                            ${item.invoiceId ? `<button onclick="downloadInvoice('${item.invoiceId}')" class="text-xs text-blue-600">請求書DL</button>` : ''}
+                        </div>
+                        ${item.description ? `<div class="text-xs text-gray-500 mt-1 truncate">${item.description}</div>` : ''}
+                    </div>
+                `;
+            },
+
+            // 種別スタイル
+            getTypeStyle(type) {
+                const styles = {
+                    '申請': 'bg-gray-100 text-gray-800',
+                    '入金': 'bg-green-100 text-green-800',
+                    '利用': 'bg-red-100 text-red-800',
+                    '返金': 'bg-blue-100 text-blue-800',
+                    'キャンセル戻し': 'bg-purple-100 text-purple-800'
+                };
+                return styles[type] || 'bg-gray-100 text-gray-800';
+            },
+
+            // ステータススタイル
+            getStatusStyle(status) {
+                const styles = {
+                    '完了': 'bg-green-100 text-green-800',
+                    '入金済': 'bg-green-100 text-green-800',
+                    '入金待ち': 'bg-yellow-100 text-yellow-800',
+                    '処理中': 'bg-blue-100 text-blue-800'
+                };
+                return styles[status] || 'bg-gray-100 text-gray-800';
+            },
+
+            // フィルター
+            filterHistory() {
+                const typeFilter = document.getElementById('depositTypeFilter').value;
+                const monthFilter = document.getElementById('depositMonthFilter').value;
+
+                let filtered = this.cache.history;
+
+                if (typeFilter !== 'all') {
+                    filtered = filtered.filter(item => item.type === typeFilter);
+                }
+
+                if (monthFilter) {
+                    filtered = filtered.filter(item => item.date.startsWith(monthFilter));
+                }
+
+                this.updateHistoryTable(filtered);
+            },
+
+            // データなし表示
+            showNoData() {
+                const balanceEl = document.getElementById('depositBalance');
+                if (balanceEl) balanceEl.textContent = '0/0件';
             }
+        };
+
+        // グローバルに公開
+        window.DepositManager = DepositManager;
+
+        // 旧関数との互換性
+        async function loadDepositInfo() {
+            await DepositManager.loadInfo();
         }
 
         // 加盟店ID取得ヘルパー
