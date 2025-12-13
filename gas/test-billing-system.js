@@ -528,3 +528,40 @@ function setupDepositSheet() {
   console.log('========== 完了 ==========');
   return result;
 }
+
+// ========================================
+// V2238: 返金リストデバッグ
+// ========================================
+
+/**
+ * BillingSystemのメソッド一覧を確認
+ */
+function debugBillingSystemMethods() {
+  console.log('========== BillingSystem メソッド確認 ==========');
+  const methods = Object.keys(BillingSystem).filter(k => typeof BillingSystem[k] === 'function');
+  console.log('メソッド数:', methods.length);
+  console.log('メソッド一覧:', methods.join(', '));
+  
+  // getDepositRefundListが存在するか確認
+  console.log('getDepositRefundList exists:', typeof BillingSystem.getDepositRefundList === 'function');
+  console.log('processDepositRefund exists:', typeof BillingSystem.processDepositRefund === 'function');
+  
+  console.log('========== 完了 ==========');
+}
+
+/**
+ * 返金リスト取得テスト
+ */
+function testGetDepositRefundList() {
+  console.log('========== 返金リスト取得テスト ==========');
+  
+  if (typeof BillingSystem.getDepositRefundList !== 'function') {
+    console.log('ERROR: getDepositRefundList is not a function');
+    return { success: false, error: 'getDepositRefundList is not a function' };
+  }
+  
+  const result = BillingSystem.getDepositRefundList();
+  console.log('結果:', JSON.stringify(result, null, 2));
+  console.log('========== 完了 ==========');
+  return result;
+}
