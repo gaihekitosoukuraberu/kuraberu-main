@@ -103,10 +103,10 @@
 - [x] 3.5-3. loadDepositInfoAll()関数追加
 - [x] 3.5-4. 加盟店カードにデポジットバッジ表示（「デポX/Y」形式）
 
-### Phase 4: 管理者側機能 ⏳未着手
-- [ ] 4-1. 入金確認画面（admin-dashboard）
-- [ ] 4-2. 返金リスト自動生成
-- [ ] 4-3. 返金処理画面
+### Phase 4: 管理者側機能 ✅完了
+- [x] 4-1. 入金確認画面（admin-dashboard）- デポジット入金タブ
+- [x] 4-2. 返金リスト自動生成API（deposit_getRefundList）
+- [x] 4-3. 返金処理画面 - 返金処理タブ（deposit_processRefund）
 
 ---
 
@@ -115,7 +115,11 @@
 /gas/
   systems/
     billing/
-      BillingSystem.js  ← デポジットAPI追加済み（deposit_getAllInfo含む）
+      BillingSystem.js  ← デポジットAPI追加済み
+        - deposit_getPendingInvoices: 未入金デポジット一覧
+        - deposit_confirmPayment: 入金確認処理
+        - deposit_getRefundList: 返金対象リスト
+        - deposit_processRefund: 返金処理
     admin/
       AdminSystem.js    ← オーダー転送時デポジット有り業者のみ希望社数表示
       AdminCancelSystem.js ← キャンセル承諾時デポジット戻し処理
@@ -125,7 +129,9 @@
   index.html            ← デポジットセクションUI + API連携完了
 
 /admin-dashboard/
+  index.html            ← 財務セクションにデポジット入金タブ・返金処理タブ追加
   js/
+    billing-manager.js  ← DepositManager・RefundManager追加
     business-selection-handler.js ← 加盟店カードにデポジットバッジ表示
 ```
 

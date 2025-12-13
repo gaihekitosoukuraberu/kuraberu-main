@@ -941,7 +941,203 @@ const DepositManager = {
 // グローバルに公開
 window.DepositManager = DepositManager;
 
+// ========================================
+// V2238: 返金管理
+// ========================================
+const RefundManager = {
+  apiClient: null,
+
+  /**
+   * 初期化
+   */
+  init: function() {
+    if (!window.ApiClient) {
+      console.error('[RefundManager] ApiClient not found');
+      return;
+    }
+    this.apiClient = new ApiClient();
+    console.log('[RefundManager] 初期化完了');
+  },
+
+  /**
+   * API呼び出し（billing経由）
+   */
+  async callApi(action, params = {}) {
+    return await this.apiClient.postRequest('billing', {
+      billingAction: action,
+      ...params
+    });
+  },
+
+  /**
+   * 返金対象リスト読み込み
+   */
+  async loadRefundList() {
+    console.log('[RefundManager] 返金対象リスト読み込み開始');
+
+    const tableBody = document.getElementById('refund-table-body');
+    const mobileCards = document.getElementById('refund-cards-mobile');
+    const summary = document.getElementById('refund-summary');
+
+    if (!tableBody) {
+      console.log('[RefundManager] refund-table-body not found, skipping');
+      return;
+    }
+
+    // ローディング表示
+    tableBody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-gray-500"><div class="animate-pulse">読み込み中...</div></td></tr>';
+
+    try {
+      const result = await this.callApi('deposit_getRefundList');
+      console.log('[RefundManager] 結果:', result);
+
+      if (!result.success) {
+        tableBody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-red-500">データ取得エラー: ' + (result.error || '不明なエラー') + '</td></tr>';
+        return;
+      }
+
+      const refundList = result.refundList || [];
+
+      if (refundList.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-gray-500">返金対象の加盟店はありません</td></tr>';
+        if (mobileCards) mobileCards.innerHTML = '<div class="text-center text-gray-500 py-8">返金対象の加盟店はありません</div>';
+      } else {
+        this.updateRefundTable(refundList);
+        this.updateRefundMobile(refundList);
+      }
+
+      this.updateRefundSummary(result.summary);
+
+    } catch (error) {
+      console.error('[RefundManager] エラー:', error);
+      tableBody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-red-500">通信エラーが発生しました</td></tr>';
+    }
+  },
+
+  /**
+   * PC用テーブル更新
+   */
+  updateRefundTable(refundList) {
+    const tableBody = document.getElementById('refund-table-body');
+    if (!tableBody) return;
+
+    tableBody.innerHTML = refundList.map(item => `
+      <tr class="border-b hover:bg-gray-50">
+        <td class="py-3 px-4">
+          <div class="font-medium">${item.merchantName || item.merchantId}</div>
+          <div class="text-xs text-gray-500">${item.merchantId}</div>
+        </td>
+        <td class="py-3 px-4 text-right font-bold">${item.remaining}件</td>
+        <td class="py-3 px-4">${item.expiry || '-'}</td>
+        <td class="py-3 px-4 text-right">¥${(item.refundAmountGross || 0).toLocaleString()}</td>
+        <td class="py-3 px-4 text-right text-red-600">-¥${(item.bankFee || 0).toLocaleString()}</td>
+        <td class="py-3 px-4 text-right font-bold text-purple-600">¥${(item.refundAmountNet || 0).toLocaleString()}</td>
+        <td class="py-3 px-4 text-center">
+          <button onclick="RefundManager.processRefund('${item.merchantId}', ${item.refundAmountNet || 0}, ${item.bankFee || 0}, '${item.merchantName || item.merchantId}')"
+            class="px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm">
+            返金処理
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  /**
+   * スマホ用カード更新
+   */
+  updateRefundMobile(refundList) {
+    const mobileCards = document.getElementById('refund-cards-mobile');
+    if (!mobileCards) return;
+
+    mobileCards.innerHTML = refundList.map(item => `
+      <div class="bg-white border border-gray-200 rounded-lg p-4">
+        <div class="flex justify-between items-start mb-3">
+          <div>
+            <div class="font-medium">${item.merchantName || item.merchantId}</div>
+            <div class="text-xs text-gray-500">${item.merchantId}</div>
+          </div>
+          <div class="text-right">
+            <div class="font-bold text-purple-600">¥${(item.refundAmountNet || 0).toLocaleString()}</div>
+            <div class="text-xs text-gray-500">実返金額</div>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-sm mb-3">
+          <div>
+            <span class="text-gray-500">残件数:</span>
+            <span class="font-bold ml-1">${item.remaining}件</span>
+          </div>
+          <div>
+            <span class="text-gray-500">有効期限:</span>
+            <span class="ml-1">${item.expiry || '-'}</span>
+          </div>
+          <div>
+            <span class="text-gray-500">返金額:</span>
+            <span class="ml-1">¥${(item.refundAmountGross || 0).toLocaleString()}</span>
+          </div>
+          <div>
+            <span class="text-gray-500">手数料:</span>
+            <span class="text-red-600 ml-1">-¥${(item.bankFee || 0).toLocaleString()}</span>
+          </div>
+        </div>
+        <button onclick="RefundManager.processRefund('${item.merchantId}', ${item.refundAmountNet || 0}, ${item.bankFee || 0}, '${item.merchantName || item.merchantId}')"
+          class="w-full px-3 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm">
+          返金処理
+        </button>
+      </div>
+    `).join('');
+  },
+
+  /**
+   * サマリー更新
+   */
+  updateRefundSummary(summary) {
+    const summaryEl = document.getElementById('refund-summary');
+    if (!summaryEl || !summary) return;
+
+    summaryEl.innerHTML = `
+      返金対象: <span class="font-bold text-purple-600">${summary.count || 0}件</span>
+      <span class="mx-2">|</span>
+      返金予定総額: <span class="font-bold text-purple-600">¥${(summary.totalNet || 0).toLocaleString()}</span>
+      <span class="mx-2">|</span>
+      振込手数料合計: <span class="text-red-600">¥${(summary.totalBankFee || 0).toLocaleString()}</span>
+    `;
+  },
+
+  /**
+   * 返金処理実行
+   */
+  async processRefund(merchantId, refundAmount, bankFee, merchantName) {
+    console.log('[RefundManager] 返金処理:', merchantId, refundAmount, bankFee);
+
+    if (!confirm(`${merchantName}への返金処理を実行しますか？\n\n返金額: ¥${refundAmount.toLocaleString()}\n（振込手数料 ¥${bankFee.toLocaleString()} 差引後）\n\n※振込は手動で行ってください`)) {
+      return;
+    }
+
+    try {
+      const result = await this.callApi('deposit_processRefund', {
+        merchantId: merchantId,
+        refundAmount: refundAmount,
+        bankFee: bankFee
+      });
+
+      if (result.success) {
+        alert(result.message || '返金処理が完了しました');
+        this.loadRefundList();
+      } else {
+        alert('エラー: ' + (result.error || '返金処理に失敗しました'));
+      }
+    } catch (error) {
+      console.error('[RefundManager] 返金処理エラー:', error);
+      alert('通信エラーが発生しました');
+    }
+  }
+};
+
+// グローバルに公開
+window.RefundManager = RefundManager;
+
 // 初期化
 document.addEventListener('DOMContentLoaded', () => {
   DepositManager.init();
+  RefundManager.init();
 });

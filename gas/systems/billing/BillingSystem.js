@@ -105,6 +105,10 @@ const BillingSystem = {
         return this.getAllDepositInfo();
       case 'deposit_getPendingInvoices':
         return this.getPendingDepositInvoices();
+      case 'deposit_getRefundList':
+        return this.getDepositRefundList();
+      case 'deposit_processRefund':
+        return this.processDepositRefund(params.merchantId, params.refundAmount, params.bankFee);
       default:
         return { success: false, error: 'Unknown billing action: ' + action };
     }
@@ -2989,23 +2993,24 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
           case '請求ID': newRow.push(invoiceId); break;
           case '加盟店ID': newRow.push(merchantId); break;
           case '加盟店名': newRow.push(merchantName); break;
-          case '請求種別': newRow.push('デポジット'); break;
-          case '対象月': newRow.push(Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM')); break;
+          case '請求種別': newRow.push('デポジット購入'); break;
+          case '対象期間': newRow.push(Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM')); break;
           case '対象CV ID': newRow.push(''); break;
+          case '対象件数': newRow.push(depositCount); break;
           case '税抜金額': newRow.push(taxExcluded); break;
           case '消費税': newRow.push(tax); break;
           case '税込金額': newRow.push(totalPrice); break;
-          case 'ステータス': newRow.push('入金待ち'); break;
+          case 'ステータス': newRow.push('未入金'); break;
           case '発行日': newRow.push(Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM-dd')); break;
           case '支払期限':
             const dueDate = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000); // 2週間後
             newRow.push(Utilities.formatDate(dueDate, 'Asia/Tokyo', 'yyyy-MM-dd'));
             break;
-          case '入金日': newRow.push(''); break;
+          case '入金確認日': newRow.push(''); break;
           case '入金額': newRow.push(''); break;
           case '備考': newRow.push(`デポジット${depositCount}件`); break;
           case '作成日時': newRow.push(now); break;
-          case '更新日時': newRow.push(now); break;
+          case '最終更新日時': newRow.push(now); break;
           default: newRow.push('');
         }
       }
@@ -3057,10 +3062,10 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
         type: billingHeaders.indexOf('請求種別'),
         amount: billingHeaders.indexOf('税込金額'),
         status: billingHeaders.indexOf('ステータス'),
-        paymentDate: billingHeaders.indexOf('入金日'),
+        paymentDate: billingHeaders.indexOf('入金確認日'),
         paymentAmount: billingHeaders.indexOf('入金額'),
         note: billingHeaders.indexOf('備考'),
-        updatedAt: billingHeaders.indexOf('更新日時')
+        updatedAt: billingHeaders.indexOf('最終更新日時')
       };
 
       let invoiceRowIndex = -1;
@@ -3077,8 +3082,8 @@ ${reminderNumber >= 3 ? '※ 本メールは3回目以上の督促となりま�
         return { success: false, error: '請求が見つかりません' };
       }
 
-      if (invoiceData[bIdx.type] !== 'デポジット') {
-        return { success: false, error: 'この請求はデポジットではありません' };
+      if (invoiceData[bIdx.type] !== 'デポジット購入') {
+        return { success: false, error: 'この請求はデポジット購入ではありません' };
       }
 
       if (invoiceData[bIdx.status] === '入金済み') {
@@ -3754,6 +3759,191 @@ const FreeeIntegration = {
       message: 'freee請求書作成（未実装）',
       hint: 'FREEE_ACCESS_TOKEN, FREEE_COMPANY_IDをScript Propertiesに設定してください'
     };
+  },
+
+  /**
+   * 返金対象リスト取得
+   * 「返金」設定 + 残高あり + 有効期限が今月末の加盟店を抽出
+   * @returns {Object} 返金対象リスト
+   */
+  getDepositRefundList: function() {
+    try {
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+
+      const depositSheet = ss.getSheetByName(this.DEPOSIT_SHEET);
+      if (!depositSheet) {
+        return { success: true, refundList: [], message: 'デポジット管理シートがありません' };
+      }
+
+      const depositData = depositSheet.getDataRange().getValues();
+      if (depositData.length <= 1) {
+        return { success: true, refundList: [] };
+      }
+
+      const headers = depositData[0];
+      const dIdx = {
+        merchantId: headers.indexOf('加盟店ID'),
+        merchantName: headers.indexOf('加盟店名'),
+        remaining: headers.indexOf('デポジット残件数'),
+        total: headers.indexOf('デポジット総件数'),
+        lastPayment: headers.indexOf('最終入金日'),
+        expiry: headers.indexOf('有効期限'),
+        setting: headers.indexOf('設定'),
+        refundStatus: headers.indexOf('返金状況'),
+        refundDate: headers.indexOf('返金処理日'),
+        refundAmount: headers.indexOf('返金額')
+      };
+
+      // 今月末を計算
+      const now = new Date();
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      const endOfMonthStr = Utilities.formatDate(endOfMonth, 'Asia/Tokyo', 'yyyy-MM-dd');
+
+      const refundList = [];
+      const BANK_FEE = 550; // 振込手数料（加盟店負担）
+
+      for (let i = 1; i < depositData.length; i++) {
+        const row = depositData[i];
+        const setting = row[dIdx.setting];
+        const remaining = parseInt(row[dIdx.remaining]) || 0;
+        const expiry = row[dIdx.expiry];
+        const refundStatus = row[dIdx.refundStatus];
+
+        // 返金設定 + 残高あり + 有効期限が今月末以前 + 未処理
+        if (setting === '返金' && remaining > 0 && refundStatus !== '処理済み') {
+          // 有効期限チェック（今月末以前なら返金対象）
+          let expiryDate = null;
+          if (expiry) {
+            expiryDate = new Date(expiry);
+          }
+
+          // 有効期限が今月末以前、または期限なし（古いデータ）の場合
+          if (!expiryDate || expiryDate <= endOfMonth) {
+            const refundAmountGross = remaining * this.DEPOSIT_PRICE_PER_CASE;
+            const refundAmountNet = refundAmountGross - BANK_FEE;
+
+            refundList.push({
+              rowIndex: i + 1,
+              merchantId: row[dIdx.merchantId],
+              merchantName: row[dIdx.merchantName],
+              remaining: remaining,
+              total: parseInt(row[dIdx.total]) || 0,
+              lastPayment: row[dIdx.lastPayment] ? Utilities.formatDate(new Date(row[dIdx.lastPayment]), 'Asia/Tokyo', 'yyyy-MM-dd') : '',
+              expiry: expiry ? Utilities.formatDate(new Date(expiry), 'Asia/Tokyo', 'yyyy-MM-dd') : '',
+              refundAmountGross: refundAmountGross,
+              bankFee: BANK_FEE,
+              refundAmountNet: refundAmountNet > 0 ? refundAmountNet : 0
+            });
+          }
+        }
+      }
+
+      console.log('[BillingSystem] getDepositRefundList:', refundList.length, '件');
+
+      return {
+        success: true,
+        refundList: refundList,
+        summary: {
+          count: refundList.length,
+          totalGross: refundList.reduce((sum, r) => sum + r.refundAmountGross, 0),
+          totalBankFee: refundList.length * BANK_FEE,
+          totalNet: refundList.reduce((sum, r) => sum + r.refundAmountNet, 0)
+        },
+        bankFee: BANK_FEE,
+        pricePerCase: this.DEPOSIT_PRICE_PER_CASE
+      };
+    } catch (e) {
+      console.error('[BillingSystem] getDepositRefundList error:', e);
+      return { success: false, error: e.message };
+    }
+  },
+
+  /**
+   * 返金処理実行
+   * @param {string} merchantId - 加盟店ID
+   * @param {number} refundAmount - 返金額（振込手数料差し引き後）
+   * @param {number} bankFee - 振込手数料
+   * @returns {Object} 処理結果
+   */
+  processDepositRefund: function(merchantId, refundAmount, bankFee) {
+    try {
+      if (!merchantId) {
+        return { success: false, error: '加盟店IDが指定されていません' };
+      }
+
+      const ssId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+      const ss = SpreadsheetApp.openById(ssId);
+
+      const depositSheet = ss.getSheetByName(this.DEPOSIT_SHEET);
+      if (!depositSheet) {
+        return { success: false, error: 'デポジット管理シートがありません' };
+      }
+
+      const depositData = depositSheet.getDataRange().getValues();
+      const headers = depositData[0];
+      const dIdx = {
+        merchantId: headers.indexOf('加盟店ID'),
+        merchantName: headers.indexOf('加盟店名'),
+        remaining: headers.indexOf('デポジット残件数'),
+        setting: headers.indexOf('設定'),
+        refundStatus: headers.indexOf('返金状況'),
+        refundDate: headers.indexOf('返金処理日'),
+        refundAmount: headers.indexOf('返金額'),
+        history: headers.indexOf('適用履歴'),
+        updatedAt: headers.indexOf('更新日時')
+      };
+
+      let targetRowIndex = -1;
+      let targetRow = null;
+      for (let i = 1; i < depositData.length; i++) {
+        if (depositData[i][dIdx.merchantId] === merchantId) {
+          targetRowIndex = i + 1;
+          targetRow = depositData[i];
+          break;
+        }
+      }
+
+      if (!targetRow) {
+        return { success: false, error: 'デポジット情報が見つかりません' };
+      }
+
+      const remaining = parseInt(targetRow[dIdx.remaining]) || 0;
+      const merchantName = targetRow[dIdx.merchantName];
+      const now = new Date();
+
+      // 残高を0に、返金情報を更新
+      depositSheet.getRange(targetRowIndex, dIdx.remaining + 1).setValue(0);
+      depositSheet.getRange(targetRowIndex, dIdx.refundStatus + 1).setValue('処理済み');
+      depositSheet.getRange(targetRowIndex, dIdx.refundDate + 1).setValue(Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM-dd'));
+      depositSheet.getRange(targetRowIndex, dIdx.refundAmount + 1).setValue(refundAmount);
+      depositSheet.getRange(targetRowIndex, dIdx.updatedAt + 1).setValue(now);
+
+      // 履歴追加
+      const currentHistory = targetRow[dIdx.history] || '';
+      const historyEntry = `${Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM-dd HH:mm')} 返金処理 ${remaining}件 ¥${refundAmount}（手数料¥${bankFee}差引後）`;
+      depositSheet.getRange(targetRowIndex, dIdx.history + 1).setValue(
+        currentHistory ? currentHistory + '\n' + historyEntry : historyEntry
+      );
+
+      // 加盟店マスタのデポジット前金フラグをFALSEに
+      this._setDepositFlag(merchantId, false);
+
+      console.log('[BillingSystem] processDepositRefund:', merchantId, refundAmount);
+
+      return {
+        success: true,
+        merchantId: merchantId,
+        merchantName: merchantName,
+        refundedCount: remaining,
+        refundAmount: refundAmount,
+        bankFee: bankFee,
+        message: `${merchantName}への返金処理が完了しました（${remaining}件、¥${refundAmount}）`
+      };
+    } catch (e) {
+      console.error('[BillingSystem] processDepositRefund error:', e);
+      return { success: false, error: e.message };
+    }
   }
 };
 
