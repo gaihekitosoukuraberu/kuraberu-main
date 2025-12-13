@@ -16601,6 +16601,13 @@
                     }
                 }
 
+                // V2261: デポジット管理セクションの場合はデポジット情報を読み込み
+                if (sectionName === 'deposit') {
+                    if (typeof loadDepositInfo === 'function') {
+                        setTimeout(() => loadDepositInfo(), 100);
+                    }
+                }
+
                 // V2007: 案件管理セクションの場合は案件データを読み込み
                 if (sectionName === 'cases') {
                     loadMerchantCases();
