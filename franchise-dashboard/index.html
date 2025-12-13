@@ -3212,26 +3212,26 @@
                 </div>
 
                 <!-- デポジット状況サマリー -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div class="bg-white border-2 border-blue-200 rounded-lg shadow p-4">
-                        <div class="text-sm text-gray-600 mb-1">デポジット残高</div>
-                        <div class="text-3xl font-bold text-blue-600">20/25件</div>
-                        <div class="text-sm text-gray-500 mt-1">¥440,000 残高</div>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
+                    <div class="bg-white border-2 border-blue-200 rounded-lg shadow p-3 md:p-4">
+                        <div class="text-xs md:text-sm text-gray-600 mb-1">デポジット残高</div>
+                        <div id="depositBalance" class="text-2xl md:text-3xl font-bold text-blue-600">-/-件</div>
+                        <div id="depositBalanceAmount" class="text-xs md:text-sm text-gray-500 mt-1">¥0 残高</div>
                     </div>
-                    <div class="bg-white border rounded-lg shadow p-4">
-                        <div class="text-sm text-gray-600 mb-1">有効期限</div>
-                        <div class="text-2xl font-bold text-gray-900">2025/03/31</div>
-                        <div class="text-sm text-orange-600 mt-1">残り45日</div>
+                    <div class="bg-white border rounded-lg shadow p-3 md:p-4">
+                        <div class="text-xs md:text-sm text-gray-600 mb-1">有効期限</div>
+                        <div id="depositExpiry" class="text-xl md:text-2xl font-bold text-gray-900">-</div>
+                        <div id="depositExpiryDays" class="text-xs md:text-sm text-orange-600 mt-1">-</div>
                     </div>
-                    <div class="bg-white border rounded-lg shadow p-4">
-                        <div class="text-sm text-gray-600 mb-1">現在の設定</div>
-                        <div class="text-2xl font-bold text-green-600">繰越</div>
-                        <div class="text-sm text-gray-500 mt-1">最終更新: 2025/01/17</div>
+                    <div class="bg-white border rounded-lg shadow p-3 md:p-4">
+                        <div class="text-xs md:text-sm text-gray-600 mb-1">現在の設定</div>
+                        <div id="depositSetting" class="text-xl md:text-2xl font-bold text-green-600">-</div>
+                        <div id="depositSettingDate" class="text-xs md:text-sm text-gray-500 mt-1">-</div>
                     </div>
-                    <div class="bg-white border rounded-lg shadow p-4">
-                        <div class="text-sm text-gray-600 mb-1">表示ランク</div>
-                        <div class="text-2xl font-bold text-purple-600">優先+1</div>
-                        <div class="text-sm text-gray-500 mt-1">デポジット特典適用中</div>
+                    <div class="bg-white border rounded-lg shadow p-3 md:p-4">
+                        <div class="text-xs md:text-sm text-gray-600 mb-1">表示ランク</div>
+                        <div id="depositRank" class="text-xl md:text-2xl font-bold text-purple-600">-</div>
+                        <div id="depositRankNote" class="text-xs md:text-sm text-gray-500 mt-1">-</div>
                     </div>
                 </div>
 
@@ -3331,137 +3331,44 @@
                 </div>
 
                 <!-- デポジット取引履歴 -->
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="flex justify-between items-center mb-4">
+                <div class="bg-white rounded-lg shadow p-4 md:p-6">
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-4">
                         <h3 class="text-lg font-semibold">デポジット取引履歴</h3>
-                        <div class="flex space-x-2">
-                            <select id="depositTypeFilter" onchange="filterDepositHistory()" class="border rounded px-3 py-1 text-sm">
+                        <div class="flex flex-wrap gap-2">
+                            <select id="depositTypeFilter" onchange="DepositManager.filterHistory()" class="border rounded px-3 py-1.5 text-sm flex-1 md:flex-none">
                                 <option value="all">全て</option>
-                                <option value="申請">申請中</option>
-                                <option value="反映">反映</option>
+                                <option value="申請">申請</option>
+                                <option value="入金">入金</option>
                                 <option value="利用">利用</option>
                                 <option value="返金">返金</option>
+                                <option value="キャンセル戻し">キャンセル戻し</option>
                             </select>
-                            <input type="month" id="depositMonthFilter" value="2025-01" onchange="filterDepositHistory()" class="border rounded px-3 py-1 text-sm">
+                            <input type="month" id="depositMonthFilter" onchange="DepositManager.filterHistory()" class="border rounded px-3 py-1.5 text-sm flex-1 md:flex-none">
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto">
+                    <!-- スマホ用カードリスト -->
+                    <div id="depositHistoryCards" class="md:hidden space-y-3">
+                        <div class="text-center py-8 text-gray-500">読み込み中...</div>
+                    </div>
+
+                    <!-- PC用テーブル -->
+                    <div class="hidden md:block overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">日付</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">種別</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">状態</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">件数</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">金額</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">説明</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">残件数</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">有効期限</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">日付</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">種別</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">状態</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">件数</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">金額</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">説明</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">残件数</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作</th>
                                 </tr>
                             </thead>
                             <tbody id="depositHistoryBody" class="bg-white divide-y divide-gray-200">
-                                <tr class="hover:bg-gray-50 deposit-row" data-type="申請" data-date="2025-01">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/17</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">申請</span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">入金待ち</span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">10</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">¥220,000</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">INV-20250117 (支払期限:1/24)</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">-</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">-</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                        <button onclick="downloadInvoice('INV-20250117')" class="text-blue-600 hover:text-blue-800">請求書DL</button>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-50 bg-gray-50 deposit-row" data-type="利用" data-date="2025-01">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/15</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">利用</span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">完了</span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">-1</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">-¥22,000</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
-                                        <a href="#" onclick="showCaseDetail('C2025-001'); return false;" class="hover:underline">#C2025-001 田中様</a>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">20</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/03/31</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">-</td>
-                                </tr>
-                                <tr class="hover:bg-gray-50 deposit-row" data-type="利用" data-date="2025-01">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/10</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">利用</span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">完了</span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">-1</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">-¥22,000</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
-                                        <a href="#" onclick="showCaseDetail('C2025-002'); return false;" class="hover:underline">#C2025-002 佐藤様</a>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">21</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/03/31</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">-</td>
-                                </tr>
-                                <tr class="hover:bg-gray-50 bg-gray-50 deposit-row" data-type="反映" data-date="2025-01">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/05</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">反映</span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">完了</span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">+25</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">+¥550,000</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">INV-20250101 入金確認</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">25</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/03/31</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                        <button onclick="downloadInvoice('INV-20250101')" class="text-blue-600 hover:text-blue-800">請求書DL</button>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-50 deposit-row" data-type="申請" data-date="2025-01">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2025/01/01</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">申請</span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">入金済</span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">25</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">¥550,000</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">INV-20250101 (入金:1/5)</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">-</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">-</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                        <button onclick="downloadInvoice('INV-20250101')" class="text-blue-600 hover:text-blue-800">請求書DL</button>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-50 bg-gray-50 deposit-row" data-type="返金" data-date="2024-12">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024/12/15</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">返金</span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">完了</span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">-3</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">¥65,450</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">期限切れ返金(手数料¥550差引)</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">0</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024/11/30</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">-</td>
-                                </tr>
+                                <tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">読み込み中...</td></tr>
                             </tbody>
                         </table>
                     </div>
