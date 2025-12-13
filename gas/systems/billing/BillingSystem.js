@@ -3723,42 +3723,6 @@ CV ID: ${lastCvId}
       console.error('[BillingSystem] refundDepositOnCancel error:', e);
       return { success: false, refunded: false, error: e.message };
     }
-  }
-};
-
-// freee連携モジュール
-const FreeeIntegration = {
-  /**
-   * freee APIアクセストークン取得
-   */
-  getAccessToken: function() {
-    // OAuth2.0フロー実装が必要
-    // Script Propertiesから取得
-    return PropertiesService.getScriptProperties().getProperty('FREEE_ACCESS_TOKEN');
-  },
-
-  /**
-   * 請求書作成
-   */
-  createInvoice: function(invoiceData) {
-    const token = this.getAccessToken();
-    if (!token) {
-      return { success: false, error: 'freeeアクセストークンが設定されていません' };
-    }
-
-    const companyId = PropertiesService.getScriptProperties().getProperty('FREEE_COMPANY_ID');
-    if (!companyId) {
-      return { success: false, error: 'freee会社IDが設定されていません' };
-    }
-
-    // TODO: freee API呼び出し実装
-    // https://developer.freee.co.jp/docs/accounting/reference#/Invoices/create_invoice
-
-    return {
-      success: true,
-      message: 'freee請求書作成（未実装）',
-      hint: 'FREEE_ACCESS_TOKEN, FREEE_COMPANY_IDをScript Propertiesに設定してください'
-    };
   },
 
   /**
@@ -3795,13 +3759,11 @@ const FreeeIntegration = {
         refundAmount: headers.indexOf('返金額')
       };
 
-      // 今月末を計算
       const now = new Date();
       const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      const endOfMonthStr = Utilities.formatDate(endOfMonth, 'Asia/Tokyo', 'yyyy-MM-dd');
 
       const refundList = [];
-      const BANK_FEE = 550; // 振込手数料（加盟店負担）
+      const BANK_FEE = 550;
 
       for (let i = 1; i < depositData.length; i++) {
         const row = depositData[i];
@@ -3810,15 +3772,12 @@ const FreeeIntegration = {
         const expiry = row[dIdx.expiry];
         const refundStatus = row[dIdx.refundStatus];
 
-        // 返金設定 + 残高あり + 有効期限が今月末以前 + 未処理
         if (setting === '返金' && remaining > 0 && refundStatus !== '処理済み') {
-          // 有効期限チェック（今月末以前なら返金対象）
           let expiryDate = null;
           if (expiry) {
             expiryDate = new Date(expiry);
           }
 
-          // 有効期限が今月末以前、または期限なし（古いデータ）の場合
           if (!expiryDate || expiryDate <= endOfMonth) {
             const refundAmountGross = remaining * this.DEPOSIT_PRICE_PER_CASE;
             const refundAmountNet = refundAmountGross - BANK_FEE;
@@ -3861,10 +3820,6 @@ const FreeeIntegration = {
 
   /**
    * 返金処理実行
-   * @param {string} merchantId - 加盟店ID
-   * @param {number} refundAmount - 返金額（振込手数料差し引き後）
-   * @param {number} bankFee - 振込手数料
-   * @returns {Object} 処理結果
    */
   processDepositRefund: function(merchantId, refundAmount, bankFee) {
     try {
@@ -3886,7 +3841,6 @@ const FreeeIntegration = {
         merchantId: headers.indexOf('加盟店ID'),
         merchantName: headers.indexOf('加盟店名'),
         remaining: headers.indexOf('デポジット残件数'),
-        setting: headers.indexOf('設定'),
         refundStatus: headers.indexOf('返金状況'),
         refundDate: headers.indexOf('返金処理日'),
         refundAmount: headers.indexOf('返金額'),
@@ -3912,21 +3866,18 @@ const FreeeIntegration = {
       const merchantName = targetRow[dIdx.merchantName];
       const now = new Date();
 
-      // 残高を0に、返金情報を更新
       depositSheet.getRange(targetRowIndex, dIdx.remaining + 1).setValue(0);
       depositSheet.getRange(targetRowIndex, dIdx.refundStatus + 1).setValue('処理済み');
       depositSheet.getRange(targetRowIndex, dIdx.refundDate + 1).setValue(Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM-dd'));
       depositSheet.getRange(targetRowIndex, dIdx.refundAmount + 1).setValue(refundAmount);
       depositSheet.getRange(targetRowIndex, dIdx.updatedAt + 1).setValue(now);
 
-      // 履歴追加
       const currentHistory = targetRow[dIdx.history] || '';
       const historyEntry = `${Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM-dd HH:mm')} 返金処理 ${remaining}件 ¥${refundAmount}（手数料¥${bankFee}差引後）`;
       depositSheet.getRange(targetRowIndex, dIdx.history + 1).setValue(
         currentHistory ? currentHistory + '\n' + historyEntry : historyEntry
       );
 
-      // 加盟店マスタのデポジット前金フラグをFALSEに
       this._setDepositFlag(merchantId, false);
 
       console.log('[BillingSystem] processDepositRefund:', merchantId, refundAmount);
@@ -3944,6 +3895,42 @@ const FreeeIntegration = {
       console.error('[BillingSystem] processDepositRefund error:', e);
       return { success: false, error: e.message };
     }
+  }
+};
+
+// freee連携モジュール
+const FreeeIntegration = {
+  /**
+   * freee APIアクセストークン取得
+   */
+  getAccessToken: function() {
+    // OAuth2.0フロー実装が必要
+    // Script Propertiesから取得
+    return PropertiesService.getScriptProperties().getProperty('FREEE_ACCESS_TOKEN');
+  },
+
+  /**
+   * 請求書作成
+   */
+  createInvoice: function(invoiceData) {
+    const token = this.getAccessToken();
+    if (!token) {
+      return { success: false, error: 'freeeアクセストークンが設定されていません' };
+    }
+
+    const companyId = PropertiesService.getScriptProperties().getProperty('FREEE_COMPANY_ID');
+    if (!companyId) {
+      return { success: false, error: 'freee会社IDが設定されていません' };
+    }
+
+    // TODO: freee API呼び出し実装
+    // https://developer.freee.co.jp/docs/accounting/reference#/Invoices/create_invoice
+
+    return {
+      success: true,
+      message: 'freee請求書作成（未実装）',
+      hint: 'FREEE_ACCESS_TOKEN, FREEE_COMPANY_IDをScript Propertiesに設定してください'
+    };
   }
 };
 
