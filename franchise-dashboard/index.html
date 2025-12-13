@@ -19731,19 +19731,51 @@
 
         // 加盟店ID取得ヘルパー
         function getMerchantId() {
+            // 1. window.merchantData（最優先）
             if (window.merchantData) {
-                return window.merchantData['登録ID'] || window.merchantData.registrationId || window.merchantData.merchantId;
+                const id = window.merchantData['登録ID'] || window.merchantData.registrationId || window.merchantData.merchantId;
+                if (id) {
+                    console.log('[getMerchantId] merchantData:', id);
+                    return id;
+                }
             }
+            // 2. window.merchantId（グローバル）
+            if (window.merchantId) {
+                console.log('[getMerchantId] window.merchantId:', window.merchantId);
+                return window.merchantId;
+            }
+            // 3. currentMerchantId（旧変数）
             if (typeof currentMerchantId !== 'undefined' && currentMerchantId) {
+                console.log('[getMerchantId] currentMerchantId:', currentMerchantId);
                 return currentMerchantId;
             }
+            // 4. ローカルストレージ
             const loginData = localStorage.getItem('franchiseLoginData');
             if (loginData) {
                 try {
                     const parsed = JSON.parse(loginData);
-                    return parsed.merchantId || parsed.id || parsed.registrationId;
+                    const id = parsed.merchantId || parsed.id || parsed.registrationId || parsed['登録ID'];
+                    if (id) {
+                        console.log('[getMerchantId] localStorage:', id);
+                        return id;
+                    }
+                } catch (e) {
+                    console.error('[getMerchantId] localStorage parse error:', e);
+                }
+            }
+            // 5. セッションストレージ
+            const sessionData = sessionStorage.getItem('franchiseLoginData');
+            if (sessionData) {
+                try {
+                    const parsed = JSON.parse(sessionData);
+                    const id = parsed.merchantId || parsed.id || parsed.registrationId || parsed['登録ID'];
+                    if (id) {
+                        console.log('[getMerchantId] sessionStorage:', id);
+                        return id;
+                    }
                 } catch (e) {}
             }
+            console.warn('[getMerchantId] 取得失敗 - 全ソースをチェック済み');
             return null;
         }
 
